@@ -131,7 +131,7 @@ So that as próximas stories tenham uma base funcionando para rodar.
 **When** o projeto é inicializado
 **Then** existe um projeto Supabase (Postgres + Auth) conectado ao app via Drizzle, com Drizzle Kit configurado para migrations
 **And** o projeto está publicado no Vercel com deploy funcionando (ainda sem funcionalidade além de uma página inicial)
-**And** Point-in-Time Recovery está habilitado no projeto Supabase de produção (NFR4)
+**And** o NFR4 (durabilidade) é satisfeito por um job de backup diário (Vercel Cron → `server/backup/dump.ts`, dump JSON de todas as tabelas `public` para o Supabase Storage, retenção de 30 dias) em vez de Point-in-Time Recovery — o add-on de PITR custa US$100/mês isolado do plano Pro, desproporcional à escala de 2 usuários; decisão registrada em ARCHITECTURE-SPINE.md
 
 ### Story 1.1: Provisionamento das duas contas do casal
 
