@@ -107,7 +107,7 @@ Regra de dependência: UI nunca chama `db/` diretamente; serviços nunca importa
 | Next.js (App Router) | 16.2 |
 | Node.js | 24 (LTS) |
 | Supabase (Postgres + Auth + Storage) | hospedado, gerenciado |
-| Drizzle ORM + Drizzle Kit | atual; usar `prepare: false` na conexão (pooling em modo transação do Supabase) |
+| Drizzle ORM + Drizzle Kit | atual; usar `prepare: false` na conexão (pooling em modo transação do Supabase). `DIRECT_URL` do Drizzle Kit (migrations) usa o **session pooler** (porta 5432, mesmo host do pooler) em vez da conexão direta (`db.<ref>.supabase.co`) — essa é IPv6-only e não resolveu na rede de desenvolvimento (Story 1.0). |
 | SheetJS (`xlsx`) | **instalar via `cdn.sheetjs.com`, não via npm** — a tag `xlsx` publicada no npm está travada em 0.18.5 (abandonada, com CVEs de prototype pollution/ReDoS não corrigidas); relevante aqui porque o app faz parsing de arquivo enviado por usuário |
 | Extensão Postgres `pg_trgm` | built-in Postgres — ver ressalva de habilitação em AD-3 |
 | Vercel | hospedagem/deploy |
