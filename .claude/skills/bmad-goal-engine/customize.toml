@@ -1,0 +1,52 @@
+# DO NOT EDIT -- this is the shipped default. To customize, write overrides to:
+#   {project-root}/_bmad/custom/bmad-goal-engine.toml        (team, committed)
+#   {project-root}/_bmad/custom/bmad-goal-engine.user.toml   (personal, gitignored)
+
+[workflow]
+
+# --- Configurable below. Overrides merge per BMad structural rules: ---
+#   scalars: override wins • arrays: append
+
+# Steps to run before the standard activation (config load, greet).
+activation_steps_prepend = []
+
+# Steps to run after greet but before the goal-intake step.
+activation_steps_append = []
+
+# Persistent facts the run keeps in mind throughout the whole dispatch loop
+# (org conventions, approved stacks, standing constraints on what may be
+# auto-decided vs. must be asked). Each entry is a literal sentence or a
+# `file:`-prefixed path/glob loaded as facts.
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+]
+
+# Executed when the goal is reached (or the achievable pipeline is exhausted).
+on_complete = ""
+
+# The BMad skill catalog this workflow reads to determine phases, sequencing
+# (preceded-by/followed-by), required gates, and output locations for
+# completion detection. Same file bmad-help reads. Treated as read-only —
+# override only if a team relocates or forks their catalog.
+catalog_path = "{project-root}/_bmad/_config/bmad-help.csv"
+
+# Where this workflow's own run log (.memlog.md) lives. One folder per goal
+# run, so a run can be resumed by name later.
+output_path = "{planning_artifacts}/goal-engine"
+run_folder_pattern = "goal-{project_name}-{date}"
+
+# Default non-interactive overlay instruction injected before dispatching a
+# stage skill that has no native headless.md (e.g. bmad-create-epics-and-stories,
+# bmad-check-implementation-readiness, bmad-sprint-planning). Skills with a
+# native headless.md ignore this — they self-detect headless mode instead.
+# Override to tune wording/strictness without touching SKILL.md.
+stage_overlay_instruction = "Rode este workflow de forma não-interativa: infira valores razoáveis em vez de perguntar (calibração de stakes, working mode, escolhas de menu), não apresente menus de revisão ao usuário, registre toda suposição no memlog do próprio workflow, e só pare para perguntar se travar numa decisão real que só o usuário pode tomar (informação que não existe em nenhum artefato ou fato disponível)."
+
+# --- Goal-engine reviewers ---
+# Extra review lenses spawned as parallel subagents whenever a stage produces
+# an artifact and the catalog's own Reviewer Gate (if the stage has one) is
+# skipped in headless mode. Empty by default — the invoked skills' own
+# built-in gates (bmad-prd's Reviewer Gate, bmad-architecture's good-spine
+# checklist) already run inside headless mode; this is only for extra
+# cross-stage lenses a team wants on every run.
+extra_reviewers = []

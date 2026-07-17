@@ -1,0 +1,16 @@
+# Editorial Review — Prose
+
+**Target document:** `brief.md`
+**Reader type:** humans
+
+| Original Text | Revised Text | Changes |
+|---|---|---|
+| "a fatura do banco mistura os gastos dos dois cartões" (Resumo Executivo, linha 14) | Consider: "a fatura do banco mistura os gastos dos vários cartões" (ou reafirmar "um ou mais cartões")? | O restante do documento ("O Problema", "Quem Isso Serve") descreve cada pessoa com "um ou mais cartões próprios", mas aqui o texto assume exatamente dois cartões no total — inconsistência de contagem que pode confundir o leitor. |
+| "o banco não separa por pessoa de forma útil para orçamento doméstico" (O Problema, linha 18) | Consider: esclarecer que o banco *agrupa* por titular/cartão, mas não oferece uma *visão consolidada* útil para orçamento? | Contradiz (ou ao menos tensiona com) o Resumo Executivo e "A Solução", que afirmam que o app usa "o agrupamento por titular/cartão que já existe na própria fatura" como fonte de dados — ou seja, o banco separa, sim, só não sintetiza. |
+| "não refletem como o casal realmente pensa os próprios gastos" (O Problema, linha 18) | "não refletem como o casal realmente pensa sobre os próprios gastos" (ou "...a forma como o casal categoriza os próprios gastos") | "Pensar os gastos" (sem preposição) é uma construção verbal incomum em português que dificulta a leitura; falta a preposição "sobre" ou um verbo mais direto como "categoriza". |
+| "quanto do limite mensal já está comprometido" (Resumo Executivo, linha 12) vs. "quanto do crédito de cada mês seguinte já está consumido" (A Solução, linha 30) e "comprometimento de crédito por mês seguinte" (Escopo, linha 51) | Consider: padronizar um único termo (por exemplo, sempre "limite mensal" ou sempre "crédito do mês") nas quatro ocorrências? | O documento alterna entre "limite mensal" e "crédito" para o que parece ser o mesmo conceito (quanto do cartão fica comprometido por parcelas futuras em um mês específico). A variação de termo não deixa claro se são a mesma coisa. |
+| "Ambos precisam ver o gasto combinado do casal e o próprio individualmente" (Quem Isso Serve, linha 36) | "Ambos precisam ver o gasto combinado do casal e o próprio gasto, individualmente" | "O próprio individualmente" é telegráfico — falta o substantivo repetido ("gasto") para deixar claro que se refere ao gasto de cada um, não a outra coisa. |
+| "o usuário reconhece isso mas não tem bagagem técnica de segurança para decidir sozinho as ferramentas" (Considerações de Segurança, linha 64) | Consider: "o casal reconhece isso..." (ou esclarecer quem é "o usuário" neste contexto)? | Todo o restante do brief se refere a "o casal" (2 usuários); a mudança repentina para "o usuário" no singular, na mesma seção que depois usa "login obrigatório por usuário" para as 2 contas, deixa ambíguo a quem a frase se refere. |
+| "mais rápido que o método atual (nenhum)" (Critérios de Sucesso, linha 42) | Consider: "mais rápido do que continuar sem processo nenhum, que é a situação atual"? | Comparar velocidade contra um método que é explicitamente "nenhum" é logicamente estranho — não há um método atual para servir de referência de comparação. |
+
+**Note on scope:** Text inside `[ASSUMPTION: ...]` tags was treated as structural markup and excluded from review, per the skill's rule to skip code/markup.

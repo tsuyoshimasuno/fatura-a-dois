@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\tsuja\\\\OneDrive\\\\Desenvolvimento\\\\bmad-project\\\\{output_folder}\" -Recurse -Force | Select-Object FullName, @{N='Items';E={\\(Get-ChildItem $_.FullName -Force -ErrorAction SilentlyContinue | Measure-Object\\).Count}})"
+    ]
+  }
+}
