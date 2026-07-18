@@ -51,7 +51,7 @@ development_status:
   epic-1: in-progress
   1-0-setup-inicial-do-projeto: done
   1-1-provisionamento-das-duas-contas-do-casal: done
-  1-2-login-obrigatorio-em-toda-rota-de-dado: backlog
+  1-2-login-obrigatorio-em-toda-rota-de-dado: done
   1-3-recuperacao-de-senha: backlog
   epic-1-retrospective: optional
   epic-2: backlog
