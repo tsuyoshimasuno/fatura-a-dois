@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
   date,
@@ -7,6 +8,7 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { authUsers } from './auth-ref';
@@ -21,6 +23,25 @@ export const cartao = pgTable('cartao', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+// Compartilhada pelas duas contas (AD-8) -- nunca ganha coluna de escopo por
+// usuário. Exclusão é sempre lógica (removidoEm): um lançamento que aponta
+// para uma categoria removida continua com FK íntegra, distinguindo
+// "categoria removida" de "nunca categorizado" (categoriaId is null).
+export const categoria = pgTable(
+  'categoria',
+  {
+    id: serial('id').primaryKey(),
+    nome: text('nome').notNull(),
+    removidoEm: timestamp('removido_em'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => [
+    // Índice único parcial: só categorias ativas precisam de nome único,
+    // permitindo recriar uma categoria com o mesmo nome de uma já removida.
+    uniqueIndex('categoria_nome_ativa_idx').on(table.nome).where(sql`removido_em is null`),
+  ],
+);
+
 export const lancamento = pgTable(
   'lancamento',
   {
@@ -33,8 +54,7 @@ export const lancamento = pgTable(
     cartaoId: integer('cartao_id')
       .notNull()
       .references(() => cartao.id),
-    // Sem FK ainda: tabela `categoria` só existe no Epic 3.
-    categoriaId: integer('categoria_id'),
+    categoriaId: integer('categoria_id').references(() => categoria.id),
     // Sem FK ainda: tabela `compra_parcelada` só existe no Epic 5.
     compraParceladaId: integer('compra_parcelada_id'),
     parcelaNumero: integer('parcela_numero'),

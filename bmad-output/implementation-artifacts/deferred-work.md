@@ -54,3 +54,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-2-4-merge-delta-reenvio-competencia.md`
   summary: Quando o merge por delta remove um lançamento que é a primeira parcela conhecida de uma compra parcelada, nenhuma retração de projeção futura acontece -- `server/parcelas`/`compra_parcelada` (Epic 5) ainda não existem.
   evidence: `server/ingestao/upload.ts` só deleta a linha removida, sem chamar nenhuma função de retração (AD-7 prevê essa chamada, mas o módulo alvo só é criado no Epic 5). Como parcelas futuras são sempre computadas em leitura e nunca materializadas (AD-7), é possível que nenhuma ação ativa seja necessária -- a leitura futura do Epic 5 simplesmente deixaria de ver o lançamento removido; a Story 5.2 (ou a que criar `compra_parcelada`) precisa confirmar isso ao ser implementada.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-3-1-gestao-de-categorias-do-casal.md`
+  summary: Nenhuma tela permite ver ou restaurar uma categoria removida (soft-delete via `removido_em`) -- o único "desfazer" disponível é criar uma categoria nova com o mesmo nome, que é uma linha/id diferente e não recupera o que foi migrado na remoção original.
+  evidence: `listarCategorias` filtra por `removido_em is null`, então uma categoria removida nunca mais aparece em nenhuma tela; nenhum AC da Story 3.1 pede um fluxo de restauração, candidato a uma story de polimento futura (mesmo padrão do "sem undo de rejeição de cartão" deferido na Story 2.3).
