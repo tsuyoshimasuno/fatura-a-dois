@@ -72,6 +72,9 @@ export default function LoginPage() {
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
+      <p>
+        <a href="/esqueci-senha">Esqueci minha senha</a>
+      </p>
     </main>
   );
 }

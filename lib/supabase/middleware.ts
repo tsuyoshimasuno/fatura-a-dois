@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import { isSafeRedirectPath } from './safe-redirect';
 
-const PUBLIC_PATHS = ['/login'];
+const PUBLIC_PATHS = ['/login', '/esqueci-senha', '/auth/confirm'];
 
 // Rotas de sistema com auth própria (ex: CRON_SECRET), nunca sessão de
 // usuário -- allowlist exata, não prefixo, para não isentar por engano uma
