@@ -1,0 +1,2 @@
+CREATE INDEX "lancamento_cartao_id_idx" ON "lancamento" USING btree ("cartao_id");--> statement-breakpoint
+CREATE INDEX "lancamento_competencia_idx" ON "lancamento" USING btree ("competencia_ano","competencia_mes");

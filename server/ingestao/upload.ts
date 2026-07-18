@@ -1,8 +1,16 @@
 'use server';
 
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { cartao, lancamento } from '@/db/schema';
+import { parsePlanilhaItau } from './parse-planilha-itau';
+
 const ANO_MIN = 2000;
 const ANO_MAX = 2100;
 const NOME_ARQUIVO_MAX_LENGTH = 200;
+// Uma fatura real tem no máximo algumas dezenas de KB; a margem cobre
+// variação razoável sem permitir upload de arquivo arbitrariamente grande.
+const TAMANHO_ARQUIVO_MAX_BYTES = 5 * 1024 * 1024;
 
 export async function processarUpload(
   formData: FormData
@@ -27,6 +35,10 @@ export async function processarUpload(
     return { ok: false, message: 'Selecione um arquivo .xlsx.' };
   }
 
+  if (arquivo.size > TAMANHO_ARQUIVO_MAX_BYTES) {
+    return { ok: false, message: 'Arquivo muito grande para ser uma fatura do Itaú.' };
+  }
+
   // Checagem por extensão é só uma triagem de UX -- não é fronteira de
   // segurança nem garante o layout do Itaú; a validação de conteúdo real
   // acontece no parsing da Story 2.2.
@@ -38,8 +50,67 @@ export async function processarUpload(
     };
   }
 
+  const buffer = await arquivo.arrayBuffer();
+  const resultado = parsePlanilhaItau(buffer);
+
+  if (!resultado.ok) {
+    return { ok: false, message: resultado.message };
+  }
+
+  const { lancamentos } = resultado;
+
+  try {
+    await db.transaction(async (tx) => {
+    // Cache local por número mascarado -- evita repetir a consulta pro mesmo
+    // cartão várias vezes dentro do mesmo upload.
+    const cartoesCache = new Map<string, number>();
+
+    for (const lancamentoBruto of lancamentos) {
+      let cartaoId = cartoesCache.get(lancamentoBruto.numeroMascarado);
+
+      if (cartaoId === undefined) {
+        const existente = await tx
+          .select()
+          .from(cartao)
+          .where(eq(cartao.numeroMascarado, lancamentoBruto.numeroMascarado));
+
+        if (existente.length > 0) {
+          cartaoId = existente[0].id;
+        } else {
+          const [novoCartao] = await tx
+            .insert(cartao)
+            .values({
+              numeroMascarado: lancamentoBruto.numeroMascarado,
+              nomeTitular: lancamentoBruto.nomeTitular,
+              tipoCartao: lancamentoBruto.tipoCartao,
+              usuarioId: null,
+            })
+            .returning();
+          cartaoId = novoCartao.id;
+        }
+
+        cartoesCache.set(lancamentoBruto.numeroMascarado, cartaoId);
+      }
+
+      await tx.insert(lancamento).values({
+        competenciaAno: ano,
+        competenciaMes: mes,
+        data: lancamentoBruto.data,
+        estabelecimento: lancamentoBruto.estabelecimento,
+        valorCentavos: lancamentoBruto.valorCentavos,
+        cartaoId,
+        parcelaNumero: lancamentoBruto.parcelaNumero,
+        parcelaTotal: lancamentoBruto.parcelaTotal,
+      });
+    }
+    });
+  } catch (error) {
+    console.error('Falha ao gravar lançamentos:', error);
+    return { ok: false, message: 'Falha ao gravar os lançamentos. Tente novamente.' };
+  }
+
   return {
     ok: true,
-    message: `Upload aceito para a competência ${mes}/${ano}. Processamento dos lançamentos ainda não implementado (Story 2.2).`,
+    message: `${lancamentos.length} lançamentos importados para a competência ${mes}/${ano}.`,
   };
 }
