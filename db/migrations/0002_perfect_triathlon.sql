@@ -1,0 +1,1 @@
+ALTER TABLE "cartao" ADD COLUMN "terceiro" boolean DEFAULT false NOT NULL;

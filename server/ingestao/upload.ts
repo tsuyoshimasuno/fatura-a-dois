@@ -1,6 +1,6 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { cartao, lancamento } from '@/db/schema';
 import { parsePlanilhaItau } from './parse-planilha-itau';
@@ -58,6 +58,20 @@ export async function processarUpload(
   }
 
   const { lancamentos } = resultado;
+
+  const numerosDistintos = [...new Set(lancamentos.map((l) => l.numeroMascarado))];
+  const cartoesTerceiro = await db
+    .select()
+    .from(cartao)
+    .where(and(inArray(cartao.numeroMascarado, numerosDistintos), eq(cartao.terceiro, true)));
+
+  if (cartoesTerceiro.length > 0) {
+    const numeros = cartoesTerceiro.map((c) => c.numeroMascarado).join(', ');
+    return {
+      ok: false,
+      message: `Upload rejeitado: contém lançamentos do(s) cartão(ões) ${numeros}, marcado(s) como não pertencente(s) ao casal. Resolva na tela de mapeamento (/cartoes) antes de reenviar.`,
+    };
+  }
 
   try {
     await db.transaction(async (tx) => {

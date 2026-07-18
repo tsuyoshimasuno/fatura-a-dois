@@ -42,3 +42,11 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-2-2-extracao-lancamentos-atribuicao-competencia.md`
   summary: Corrida (TOCTOU) na criação de `cartao`: duas requisições concorrentes de upload introduzindo o mesmo `numero_mascarado` novo podem ambas tentar `INSERT`, uma falhando na constraint `unique`.
   evidence: `server/ingestao/upload.ts` faz um `SELECT` seguido de `INSERT` condicional sem lock/upsert atômico; mitigado a uma falha graciosa (não mais uma exceção não tratada) pelo `try/catch` da transação, mas ainda pode exigir um novo upload se acontecer. Risco real muito baixo para 2 pessoas fazendo upload manualmente.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-2-3-mapeamento-cartao-titular-conta-casal.md`
+  summary: Corrida (TOCTOU) entre a consulta de cartões-terceiro e a abertura da transação em `processarUpload`: uma chamada a `rejeitarCartaoTerceiro` exatamente nesse intervalo (entre o SELECT de checagem e o commit da transação) poderia deixar passar lançamentos de um cartão que acabou de ser marcado como terceiro.
+  evidence: `server/ingestao/upload.ts` não usa lock nem re-checa dentro da própria transação; extremamente improvável na prática (exigiria duas pessoas agindo no mesmo segundo em ações diferentes), mas real em teoria.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-2-3-mapeamento-cartao-titular-conta-casal.md`
+  summary: Não existe forma de desfazer `rejeitarCartaoTerceiro` pela UI -- uma vez um cartão marcado como "não é do casal", só é reversível editando o banco diretamente.
+  evidence: `listarCartoesPendentes` filtra por `terceiro = false`, então um cartão rejeitado nunca mais aparece em nenhuma tela; nenhuma story pede um fluxo de "desmarcar", candidato a uma story de polimento futura.

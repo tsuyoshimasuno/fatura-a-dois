@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -16,6 +17,7 @@ export const cartao = pgTable('cartao', {
   nomeTitular: text('nome_titular').notNull(),
   tipoCartao: text('tipo_cartao').notNull(),
   usuarioId: uuid('usuario_id').references(() => authUsers.id),
+  terceiro: boolean('terceiro').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

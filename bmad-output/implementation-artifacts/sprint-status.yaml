@@ -57,7 +57,7 @@ development_status:
   epic-2: in-progress
   2-1-selecao-de-competencia-e-upload-de-planilha: done
   2-2-extracao-de-lancamentos-e-atribuicao-de-competencia: done
-  2-3-mapeamento-de-cartao-titular-para-conta-do-casal: backlog
+  2-3-mapeamento-de-cartao-titular-para-conta-do-casal: done
   2-4-merge-por-delta-em-reenvio-da-mesma-competencia: backlog
   epic-2-retrospective: optional
   epic-3: backlog

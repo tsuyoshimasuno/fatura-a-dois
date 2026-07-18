@@ -15,6 +15,13 @@
       "when": 1784343482619,
       "tag": "0001_normal_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784344285927,
+      "tag": "0002_perfect_triathlon",
+      "breakpoints": true
     }
   ]
 }
