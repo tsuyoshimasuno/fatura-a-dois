@@ -2,6 +2,14 @@
 
 <!-- Append-only. Populated by bmad-dev-auto step-04 when a review finding is real but pre-existing / out of this story's scope. Do not modify existing entries or look for duplicates. -->
 
+- source_spec: `bmad-output/implementation-artifacts/spec-4-1-visao-de-gastos-por-pessoa-e-categoria.md`
+  summary: Em `/gastos`, o item de "pendente de revisão" com motivo `categoria_removida` não mostra o nome da categoria que foi removida, dificultando decidir para qual categoria recategorizar o lançamento.
+  evidence: `resumo-gastos.ts` monta `ItemPendente` sem incluir `categoriaNome` para esse motivo; não exigido por nenhum AC da Story 4.1, apenas uma melhoria de UX possível.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-4-1-visao-de-gastos-por-pessoa-e-categoria.md`
+  summary: Se `listarContasCasal()` (Admin API) falhar, a visão combinada de `/gastos` ainda renderiza o card "Casal -- R$ 0,00" com aparência normal, indistinguível de um mês real sem gastos -- nenhum sinal visível de que houve uma falha de infraestrutura.
+  evidence: Mesmo padrão de degradação silenciosa já aceito em `listarContasCasal()` desde a Story 2.3 (retorna `[]` e loga via `console.error`); uma correção completa (banner de erro explícito na UI) é uma preocupação transversal a todas as telas que dependem dessa função, fora do escopo desta story.
+
 - source_spec: `bmad-output/implementation-artifacts/spec-1-2-login-obrigatorio-rota-de-dado.md`
   summary: Sem affordance de logout em nenhuma rota de `app/(app)` — uma vez autenticado, não há como encerrar a sessão pela UI.
   evidence: Confirmado ao ler `app/(app)/page.tsx` e o restante de `app/(app)`: nenhum botão/link/ação de logout existe em lugar nenhum do app.

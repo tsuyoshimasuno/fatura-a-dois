@@ -1,3 +1,5 @@
+import { competenciaValida } from '@/lib/competencia';
+import { formatarValorEmReais } from '@/lib/moeda';
 import {
   corrigirCategoriaLancamento,
   listarLancamentosParaCorrecao,
@@ -18,28 +20,6 @@ const MESES = [
   { value: '11', label: 'Novembro' },
   { value: '12', label: 'Dezembro' },
 ];
-
-const formatadorValor = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-
-function formatarValor(valorCentavos: number): string {
-  return formatadorValor.format(valorCentavos / 100);
-}
-
-// `mes`/`ano` inválidos ou ausentes caem no mês/ano atuais -- mesma ideia de
-// não deixar a tela num estado sem competência selecionada.
-function competenciaValida(
-  mesBruto: string | undefined,
-  anoBruto: string | undefined
-): { mes: number; ano: number } {
-  const agora = new Date();
-  const mes = Number(mesBruto);
-  const ano = Number(anoBruto);
-
-  const mesValido = Number.isInteger(mes) && mes >= 1 && mes <= 12 ? mes : agora.getMonth() + 1;
-  const anoValido = Number.isInteger(ano) && ano >= 2000 && ano <= 2100 ? ano : agora.getFullYear();
-
-  return { mes: mesValido, ano: anoValido };
-}
 
 type LancamentosPageProps = {
   searchParams: Promise<{ mes?: string; ano?: string }>;
@@ -125,7 +105,7 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
               <li key={item.id} className="card">
                 <div style={{ marginBottom: '0.5rem' }}>
                   <strong>{item.data}</strong> -- {item.estabelecimento} --{' '}
-                  {formatarValor(item.valorCentavos)}
+                  {formatarValorEmReais(item.valorCentavos)}
                 </div>
                 <div className="hint" style={{ marginBottom: '0.75rem' }}>
                   Categoria atual: {categoriaAtualLabel}
