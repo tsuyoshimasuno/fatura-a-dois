@@ -9,6 +9,7 @@ import {
   type LancamentoExistente,
   type LancamentoNovoParaMerge,
 } from '../lancamento-matching';
+import { identificarOuCriarCompraParcelada } from '../parcelas/identificar-compra-parcelada';
 import { parsePlanilhaItau } from './parse-planilha-itau';
 
 const ANO_MIN = 2000;
@@ -160,6 +161,25 @@ export async function processarUpload(
       for (const item of delta.inserir) {
         const categoriaId = await resolverCategoriaSugerida(item.estabelecimento, tx);
 
+        // Identidade da compra original (AD-4, Story 5.1): só lançamentos
+        // com indicação de parcela ("3/10", Story 2.2) participam. "1/1" não
+        // conta como parcelado de verdade (nenhuma parcela futura a
+        // projetar) -- não materializa uma `compra_parcelada`. A escrita em
+        // `compra_parcelada` acontece exclusivamente dentro de
+        // `identificarOuCriarCompraParcelada` (AD-7) -- este módulo nunca
+        // insere/seleciona nessa tabela diretamente.
+        let compraParceladaId: number | null = null;
+        if (item.parcelaNumero !== null && item.parcelaTotal !== null && item.parcelaTotal > 1) {
+          compraParceladaId = await identificarOuCriarCompraParcelada(tx, {
+            cartaoId: item.cartaoId,
+            estabelecimento: item.estabelecimento,
+            valorParcelaCentavos: item.valorCentavos,
+            totalParcelas: item.parcelaTotal,
+            competenciaAno: ano,
+            competenciaMes: mes,
+          });
+        }
+
         await tx.insert(lancamento).values({
           competenciaAno: ano,
           competenciaMes: mes,
@@ -170,6 +190,7 @@ export async function processarUpload(
           parcelaNumero: item.parcelaNumero,
           parcelaTotal: item.parcelaTotal,
           categoriaId,
+          compraParceladaId,
         });
       }
 

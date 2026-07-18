@@ -10,6 +10,10 @@
   summary: Se `listarContasCasal()` (Admin API) falhar, a visão combinada de `/gastos` ainda renderiza o card "Casal -- R$ 0,00" com aparência normal, indistinguível de um mês real sem gastos -- nenhum sinal visível de que houve uma falha de infraestrutura.
   evidence: Mesmo padrão de degradação silenciosa já aceito em `listarContasCasal()` desde a Story 2.3 (retorna `[]` e loga via `console.error`); uma correção completa (banner de erro explícito na UI) é uma preocupação transversal a todas as telas que dependem dessa função, fora do escopo desta story.
 
+- source_spec: `bmad-output/implementation-artifacts/spec-5-1-identificacao-de-parcelas-e-compra-original.md`
+  summary: `delta.atualizar` (merge por delta, quando o valor de um lançamento de parcela já existente muda) nunca reidentifica/revalida `compraParceladaId` -- se a correção mudar o que deveria ser a chave de identidade real da parcela, o link antigo fica desatualizado silenciosamente.
+  evidence: `server/ingestao/upload.ts` só chama `identificarOuCriarCompraParcelada` no branch `delta.inserir`; a spec da Story 5.1 já excluía `delta.atualizar`/`delta.remover` do escopo explicitamente. Baixíssima probabilidade (correção de valor num lançamento já parcelado é rara); a Story 5.2 (reconciliação/retração) é o lugar natural para revisitar se necessário.
+
 - source_spec: `bmad-output/implementation-artifacts/spec-1-2-login-obrigatorio-rota-de-dado.md`
   summary: Sem affordance de logout em nenhuma rota de `app/(app)` — uma vez autenticado, não há como encerrar a sessão pela UI.
   evidence: Confirmado ao ler `app/(app)/page.tsx` e o restante de `app/(app)`: nenhum botão/link/ação de logout existe em lugar nenhum do app.

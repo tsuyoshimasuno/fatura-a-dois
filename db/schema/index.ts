@@ -56,6 +56,42 @@ export const regraCategorizacao = pgTable('regra_categorizacao', {
   atualizadoEm: timestamp('atualizado_em').notNull().defaultNow(),
 });
 
+// Identidade de uma compra parcelada (AD-4) -- uma linha por compra
+// original, materializada quando a primeira parcela conhecida (upload,
+// Epic 2) é processada. A chave de identidade é o índice único
+// composto abaixo: cartão + estabelecimento normalizado (AD-9) + valor de
+// cada parcela + total de parcelas -- nunca `data` nem `parcelaNumero`, que
+// variam entre parcelas da mesma compra. `server/parcelas` é o único módulo
+// que escreve aqui (AD-7); `server/ingestao` sempre chama uma função de
+// serviço exposta por `server/parcelas`, nunca insere/seleciona aqui direto.
+export const compraParcelada = pgTable(
+  'compra_parcelada',
+  {
+    id: serial('id').primaryKey(),
+    cartaoId: integer('cartao_id')
+      .notNull()
+      .references(() => cartao.id),
+    estabelecimentoNormalizado: text('estabelecimento_normalizado').notNull(),
+    valorParcelaCentavos: integer('valor_parcela_centavos').notNull(),
+    totalParcelas: integer('total_parcelas').notNull(),
+    // Apenas âncora/exibição: competência do lançamento que disparou a
+    // criação desta compra. A projeção de parcelas futuras (Story 5.2) não
+    // depende deste valor para calcular meses futuros -- usa a competência e
+    // o número da parcela do lançamento real mais recente conhecido.
+    competenciaInicialAno: integer('competencia_inicial_ano').notNull(),
+    competenciaInicialMes: integer('competencia_inicial_mes').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('compra_parcelada_chave_idx').on(
+      table.cartaoId,
+      table.estabelecimentoNormalizado,
+      table.valorParcelaCentavos,
+      table.totalParcelas
+    ),
+  ],
+);
+
 export const lancamento = pgTable(
   'lancamento',
   {
@@ -69,8 +105,7 @@ export const lancamento = pgTable(
       .notNull()
       .references(() => cartao.id),
     categoriaId: integer('categoria_id').references(() => categoria.id),
-    // Sem FK ainda: tabela `compra_parcelada` só existe no Epic 5.
-    compraParceladaId: integer('compra_parcelada_id'),
+    compraParceladaId: integer('compra_parcelada_id').references(() => compraParcelada.id),
     parcelaNumero: integer('parcela_numero'),
     parcelaTotal: integer('parcela_total'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
