@@ -59,11 +59,14 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
   const anos = [anoAtual - 1, anoAtual, anoAtual + 1];
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '720px' }}>
-      <h1>Lançamentos</h1>
+    <main className="page">
+      <div className="page-header">
+        <h1 className="page-title">Lançamentos</h1>
+        <p className="page-subtitle">Revise e corrija a categoria de cada lançamento da competência.</p>
+      </div>
 
-      <form method="GET" style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <form method="GET" className="form-row">
+        <label className="field">
           Mês
           <select name="mes" defaultValue={String(mes)}>
             {MESES.map((item) => (
@@ -73,7 +76,7 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
             ))}
           </select>
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label className="field">
           Ano
           <select name="ano" defaultValue={String(ano)}>
             {anos.map((item) => (
@@ -87,9 +90,9 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
       </form>
 
       {lancamentos.length === 0 ? (
-        <p>Nenhum lançamento nesta competência.</p>
+        <p className="empty-state">Nenhum lançamento nesta competência.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <ul className="card-list">
           {lancamentos.map((item) => {
             const categoriaAtualLabel = item.categoriaRemovida
               ? 'Categoria removida'
@@ -119,19 +122,18 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
             }
 
             return (
-              <li
-                key={item.id}
-                style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '1rem' }}
-              >
+              <li key={item.id} className="card">
                 <div style={{ marginBottom: '0.5rem' }}>
                   <strong>{item.data}</strong> -- {item.estabelecimento} --{' '}
                   {formatarValor(item.valorCentavos)}
                 </div>
-                <div style={{ marginBottom: '0.5rem' }}>Categoria atual: {categoriaAtualLabel}</div>
+                <div className="hint" style={{ marginBottom: '0.75rem' }}>
+                  Categoria atual: {categoriaAtualLabel}
+                </div>
                 {categorias.length === 0 ? (
-                  <p>Nenhuma categoria cadastrada ainda -- crie uma em /categorias antes de corrigir.</p>
+                  <p className="hint">Nenhuma categoria cadastrada ainda -- crie uma em /categorias antes de corrigir.</p>
                 ) : (
-                  <form action={corrigir} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <form action={corrigir} className="field-inline">
                     <select name="categoria_id" defaultValue={categoriaAtualSelecionavel} required>
                       <option value="" disabled>
                         Selecione a categoria

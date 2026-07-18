@@ -1,12 +1,27 @@
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1f2b;
+  --muted-foreground: #5b6472;
+  --surface: #f6f7f9;
+  --border: #e2e5ea;
+  --accent: #2554c7;
+  --accent-hover: #1d4399;
+  --accent-foreground: #ffffff;
+  --danger: #c0362c;
+  --radius: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0d12;
+    --foreground: #edf0f5;
+    --muted-foreground: #9aa3b2;
+    --surface: #12151c;
+    --border: #262b36;
+    --accent: #6f9bff;
+    --accent-hover: #8db0ff;
+    --accent-foreground: #0b0d12;
+    --danger: #ff8377;
   }
 }
 
@@ -26,7 +41,9 @@ body {
   flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -46,4 +63,225 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Nav */
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 1.125rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.app-nav-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin-right: 0.5rem;
+}
+
+.app-nav-list {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+.app-nav-link {
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.app-nav-link:hover {
+  color: var(--foreground);
+}
+
+.app-nav-link.ativo {
+  color: var(--foreground);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.app-content {
+  flex: 1;
+}
+
+/* Page layout */
+
+.page {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page--narrow {
+  max-width: 400px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+}
+
+.page-subtitle {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+/* Cards */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.card-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* Forms */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.field-inline {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+input[type='file'] {
+  border: none;
+  padding: 0.25rem 0;
+}
+
+/* Buttons */
+
+button,
+.btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+button:hover,
+.btn:hover {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface);
+}
+
+.link {
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Feedback */
+
+.alert-error {
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+.hint {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
 }

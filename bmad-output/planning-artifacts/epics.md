@@ -180,6 +180,25 @@ So that eu não fique bloqueado do app sem depender de recriar minha conta.
 **When** a pessoa define uma nova senha
 **Then** consegue logar com a nova senha imediatamente
 
+### Story 1.4: Shell de navegação entre telas
+
+As a pessoa do casal,
+I want um menu comum ligando as telas do app (Lançamentos, Upload, Categorias, Cartões, Parcelas),
+So that eu consiga navegar entre elas sem digitar URLs manualmente.
+
+**Acceptance Criteria:**
+
+**Given** estou autenticado em qualquer tela de dado do app
+**When** a página carrega
+**Then** vejo um menu comum (layout compartilhado) com links para Lançamentos, Upload, Categorias e Cartões (Parcelas entra quando a Epic 5 existir)
+**And** o item da tela atual fica indicado visualmente como ativo
+
+**Given** o menu comum existe
+**When** clico em qualquer item
+**Then** navego para a tela correspondente sem precisar digitar a URL
+
+**Nota:** gap identificado após revisão do usuário — nenhuma story anterior cobria navegação entre telas; adicionada retroativamente ao Epic 1 por ser infraestrutura transversal, sem renumerar as demais stories (mesmo padrão da Story 1.0).
+
 ## Epic 2: Ingestão de Fatura
 
 O casal consegue selecionar a competência, subir a planilha do Itaú, mapear cartões novos para uma das duas contas, e reenviar a mesma fatura mês a mês sem duplicar ou perder lançamentos.

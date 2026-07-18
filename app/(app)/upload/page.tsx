@@ -49,10 +49,13 @@ export default function UploadPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '360px' }}>
-      <h1>Enviar fatura</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <main className="page page--narrow">
+      <div className="page-header">
+        <h1 className="page-title">Enviar fatura</h1>
+        <p className="page-subtitle">Selecione a competência e envie a planilha (.xlsx) exportada do Itaú.</p>
+      </div>
+      <form onSubmit={handleSubmit} className="form">
+        <label className="field">
           Mês
           <select name="competencia_mes" defaultValue="" required disabled={loading}>
             <option value="" disabled>
@@ -65,7 +68,7 @@ export default function UploadPage() {
             ))}
           </select>
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label className="field">
           Ano
           <select name="competencia_ano" defaultValue="" required disabled={loading}>
             <option value="" disabled>
@@ -78,7 +81,7 @@ export default function UploadPage() {
             ))}
           </select>
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label className="field">
           Arquivo
           <input type="file" accept=".xlsx" name="arquivo" required disabled={loading} />
         </label>
@@ -86,7 +89,7 @@ export default function UploadPage() {
           <p
             role={result.ok ? undefined : 'alert'}
             aria-live={result.ok ? 'polite' : undefined}
-            style={result.ok ? undefined : { color: 'red' }}
+            className={result.ok ? 'hint' : 'alert-error'}
           >
             {result.message}
           </p>

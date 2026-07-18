@@ -38,10 +38,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '360px' }}>
-      <h1>Entrar</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <main className="page page--narrow">
+      <div className="page-header">
+        <h1 className="page-title">Entrar</h1>
+        <p className="page-subtitle">Fatura a Dois</p>
+      </div>
+      <form onSubmit={handleSubmit} className="form">
+        <label className="field">
           E-mail
           <input
             type="email"
@@ -52,7 +55,7 @@ export default function LoginPage() {
             required
           />
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label className="field">
           Senha
           <input
             type="password"
@@ -64,7 +67,7 @@ export default function LoginPage() {
           />
         </label>
         {error && (
-          <p role="alert" style={{ color: 'red' }}>
+          <p role="alert" className="alert-error">
             {error}
           </p>
         )}
@@ -72,9 +75,9 @@ export default function LoginPage() {
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
-      <p>
-        <a href="/esqueci-senha">Esqueci minha senha</a>
-      </p>
+      <a href="/esqueci-senha" className="link">
+        Esqueci minha senha
+      </a>
     </main>
   );
 }

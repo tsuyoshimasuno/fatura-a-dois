@@ -47,25 +47,26 @@ export default async function RemoverCategoriaPage({
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '480px' }}>
-      <h1>Remover categoria</h1>
+    <main className="page page--narrow">
+      <div className="page-header">
+        <h1 className="page-title">Remover categoria</h1>
+      </div>
 
-      <p>
+      <p className="hint">
         {totalLancamentos === 0
           ? 'Nenhum lançamento associado.'
           : `${totalLancamentos} lançamento(s) serão afetados.`}
       </p>
       {totalRegras > 0 && (
-        <p>
+        <p className="hint">
           {totalRegras} regra(s) memorizada(s) para esta categoria serão redirecionadas para a
           substituta escolhida, ou removidas se nenhuma for escolhida.
         </p>
       )}
 
-      <form action={confirmar} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <label>
+      <form action={confirmar} className="form">
+        <label className="field">
           Migrar lançamentos para:
-          <br />
           <select name="substitutaId" defaultValue="">
             <option value="">Nenhuma (marcar como removida)</option>
             {substitutasDisponiveis.map((item) => (
@@ -76,15 +77,16 @@ export default async function RemoverCategoriaPage({
           </select>
         </label>
 
-        <label>
+        <label className="field">
           Ou criar nova categoria substituta (tem prioridade sobre a seleção acima, se preenchida):
-          <br />
           <input type="text" name="novaCategoria" placeholder="Nome da nova categoria" />
         </label>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="field-inline">
           <button type="submit">Confirmar</button>
-          <a href="/categorias">Cancelar</a>
+          <a href="/categorias" className="btn btn-secondary">
+            Cancelar
+          </a>
         </div>
       </form>
     </main>

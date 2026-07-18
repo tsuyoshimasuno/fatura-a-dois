@@ -14,18 +14,21 @@ export default async function CategoriasPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '480px' }}>
-      <h1>Categorias</h1>
+    <main className="page">
+      <div className="page-header">
+        <h1 className="page-title">Categorias</h1>
+        <p className="page-subtitle">Categorias compartilhadas pelas duas contas do casal.</p>
+      </div>
 
-      <form action={criar} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <form action={criar} className="form-row">
         <input type="text" name="nome" placeholder="Nova categoria" required />
         <button type="submit">Criar</button>
       </form>
 
       {categorias.length === 0 ? (
-        <p>Nenhuma categoria cadastrada ainda.</p>
+        <p className="empty-state">Nenhuma categoria cadastrada ainda.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <ul className="card-list">
           {categorias.map((item) => {
             async function renomear(formData: FormData) {
               'use server';
@@ -34,15 +37,14 @@ export default async function CategoriasPage() {
             }
 
             return (
-              <li key={item.id} style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '1rem' }}>
-                <form
-                  action={renomear}
-                  style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}
-                >
+              <li key={item.id} className="card">
+                <form action={renomear} className="field-inline" style={{ marginBottom: '0.75rem' }}>
                   <input type="text" name="nome" defaultValue={item.nome} required />
                   <button type="submit">Salvar</button>
                 </form>
-                <a href={`/categorias/${item.id}/remover`}>Remover</a>
+                <a href={`/categorias/${item.id}/remover`} className="link">
+                  Remover
+                </a>
               </li>
             );
           })}

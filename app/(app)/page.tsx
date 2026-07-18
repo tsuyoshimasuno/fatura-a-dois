@@ -1,8 +1,10 @@
 export default function Home() {
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Fatura a Dois</h1>
-      <p>Autenticação ativa (Story 1.2). Próxima parada: ingestão de fatura.</p>
+    <main className="page">
+      <div className="page-header">
+        <h1 className="page-title">Fatura a Dois</h1>
+        <p className="page-subtitle">Use o menu acima para enviar a fatura do mês, revisar lançamentos e categorias.</p>
+      </div>
     </main>
   );
 }

@@ -53,6 +53,7 @@ development_status:
   1-1-provisionamento-das-duas-contas-do-casal: done
   1-2-login-obrigatorio-em-toda-rota-de-dado: done
   1-3-recuperacao-de-senha: done
+  1-4-shell-de-navegacao-entre-telas: done
   epic-1-retrospective: optional
   epic-2: done
   2-1-selecao-de-competencia-e-upload-de-planilha: done

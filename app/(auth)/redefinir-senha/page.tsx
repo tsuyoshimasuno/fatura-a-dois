@@ -54,10 +54,12 @@ export default function RedefinirSenhaPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '360px' }}>
-      <h1>Redefinir senha</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <main className="page page--narrow">
+      <div className="page-header">
+        <h1 className="page-title">Redefinir senha</h1>
+      </div>
+      <form onSubmit={handleSubmit} className="form">
+        <label className="field">
           Nova senha
           <input
             type="password"
@@ -69,7 +71,7 @@ export default function RedefinirSenhaPage() {
             required
           />
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <label className="field">
           Confirmar nova senha
           <input
             type="password"
@@ -82,12 +84,14 @@ export default function RedefinirSenhaPage() {
           />
         </label>
         {error && (
-          <p role="alert" style={{ color: 'red' }}>
+          <p role="alert" className="alert-error">
             {error}
             {sessionExpired && (
               <>
                 {' '}
-                <a href="/esqueci-senha">Solicitar novo link</a>
+                <a href="/esqueci-senha" className="link">
+                  Solicitar novo link
+                </a>
               </>
             )}
           </p>

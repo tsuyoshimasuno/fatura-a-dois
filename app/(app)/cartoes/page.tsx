@@ -12,12 +12,15 @@ export default async function CartoesPage() {
   ]);
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '480px' }}>
-      <h1>Cartões</h1>
+    <main className="page">
+      <div className="page-header">
+        <h1 className="page-title">Cartões</h1>
+        <p className="page-subtitle">Associe cada cartão novo a uma das duas contas do casal.</p>
+      </div>
       {pendentes.length === 0 ? (
-        <p>Nenhum cartão pendente de mapeamento.</p>
+        <p className="empty-state">Nenhum cartão pendente de mapeamento.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <ul className="card-list">
           {pendentes.map((item) => {
             async function atribuir(formData: FormData) {
               'use server';
@@ -32,8 +35,8 @@ export default async function CartoesPage() {
             }
 
             return (
-              <li key={item.id} style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '1rem' }}>
-                <p>
+              <li key={item.id} className="card">
+                <p style={{ marginBottom: '0.75rem' }}>
                   <strong>{item.nomeTitular}</strong> -- {item.tipoCartao} {item.numeroMascarado}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -44,7 +47,9 @@ export default async function CartoesPage() {
                     </form>
                   ))}
                   <form action={rejeitar}>
-                    <button type="submit">Não é do casal</button>
+                    <button type="submit" className="btn-secondary">
+                      Não é do casal
+                    </button>
                   </form>
                 </div>
               </li>
