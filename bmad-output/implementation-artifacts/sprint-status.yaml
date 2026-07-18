@@ -62,7 +62,7 @@ development_status:
   epic-2-retrospective: optional
   epic-3: in-progress
   3-1-gestao-de-categorias-do-casal: done
-  3-2-sugestao-automatica-de-categoria: backlog
+  3-2-sugestao-automatica-de-categoria: done
   3-3-correcao-manual-de-categoria-com-regra-memorizada: backlog
   epic-3-retrospective: optional
   epic-4: backlog

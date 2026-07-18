@@ -3,6 +3,7 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { cartao, lancamento } from '@/db/schema';
+import { resolverCategoriaSugerida } from '../categorizacao/resolver-categoria-sugerida';
 import {
   calcularMergeDelta,
   type LancamentoExistente,
@@ -157,6 +158,8 @@ export async function processarUpload(
       }
 
       for (const item of delta.inserir) {
+        const categoriaId = await resolverCategoriaSugerida(item.estabelecimento, tx);
+
         await tx.insert(lancamento).values({
           competenciaAno: ano,
           competenciaMes: mes,
@@ -166,6 +169,7 @@ export async function processarUpload(
           cartaoId: item.cartaoId,
           parcelaNumero: item.parcelaNumero,
           parcelaTotal: item.parcelaTotal,
+          categoriaId,
         });
       }
 
