@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import {
   contarLancamentosPorCategoria,
+  contarRegrasPorCategoria,
   listarCategorias,
   removerCategoria,
 } from '@/server/categorizacao/gerenciar-categorias';
@@ -23,7 +24,10 @@ export default async function RemoverCategoriaPage({
     notFound();
   }
 
-  const totalLancamentos = await contarLancamentosPorCategoria(categoriaId);
+  const [totalLancamentos, totalRegras] = await Promise.all([
+    contarLancamentosPorCategoria(categoriaId),
+    contarRegrasPorCategoria(categoriaId),
+  ]);
   const substitutasDisponiveis = categorias.filter((item) => item.id !== categoriaId);
 
   async function confirmar(formData: FormData) {
@@ -51,6 +55,12 @@ export default async function RemoverCategoriaPage({
           ? 'Nenhum lançamento associado.'
           : `${totalLancamentos} lançamento(s) serão afetados.`}
       </p>
+      {totalRegras > 0 && (
+        <p>
+          {totalRegras} regra(s) memorizada(s) para esta categoria serão redirecionadas para a
+          substituta escolhida, ou removidas se nenhuma for escolhida.
+        </p>
+      )}
 
       <form action={confirmar} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <label>

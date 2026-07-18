@@ -42,6 +42,20 @@ export const categoria = pgTable(
   ],
 );
 
+// Regra memorizada de categorização por padrão de estabelecimento (AD-3,
+// Story 3.3) -- compartilhada pelas duas contas, assim como `categoria`.
+// Uma linha por `padraoEstabelecimento` (upsert em `corrigir-categoria.ts`
+// garante isso); `resolverCategoriaSugerida` consulta via `similarity()`
+// (pg_trgm) contra o estabelecimento normalizado de um lançamento novo.
+export const regraCategorizacao = pgTable('regra_categorizacao', {
+  id: serial('id').primaryKey(),
+  padraoEstabelecimento: text('padrao_estabelecimento').notNull().unique(),
+  categoriaId: integer('categoria_id')
+    .notNull()
+    .references(() => categoria.id),
+  atualizadoEm: timestamp('atualizado_em').notNull().defaultNow(),
+});
+
 export const lancamento = pgTable(
   'lancamento',
   {

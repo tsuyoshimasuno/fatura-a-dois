@@ -1,0 +1,364 @@
+{
+  "id": "c179a843-0220-4128-9efc-dd4cd3fc8c49",
+  "prevId": "de688622-d7ad-482e-9d23-daa11f03494d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.cartao": {
+      "name": "cartao",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "numero_mascarado": {
+          "name": "numero_mascarado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome_titular": {
+          "name": "nome_titular",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo_cartao": {
+          "name": "tipo_cartao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "terceiro": {
+          "name": "terceiro",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cartao_usuario_id_users_id_fk": {
+          "name": "cartao_usuario_id_users_id_fk",
+          "tableFrom": "cartao",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cartao_numero_mascarado_unique": {
+          "name": "cartao_numero_mascarado_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "numero_mascarado"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.categoria": {
+      "name": "categoria",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removido_em": {
+          "name": "removido_em",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "categoria_nome_ativa_idx": {
+          "name": "categoria_nome_ativa_idx",
+          "columns": [
+            {
+              "expression": "nome",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "removido_em is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lancamento": {
+      "name": "lancamento",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "competencia_ano": {
+          "name": "competencia_ano",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competencia_mes": {
+          "name": "competencia_mes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estabelecimento": {
+          "name": "estabelecimento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_centavos": {
+          "name": "valor_centavos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cartao_id": {
+          "name": "cartao_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "categoria_id": {
+          "name": "categoria_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "compra_parcelada_id": {
+          "name": "compra_parcelada_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcela_numero": {
+          "name": "parcela_numero",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcela_total": {
+          "name": "parcela_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "lancamento_cartao_id_idx": {
+          "name": "lancamento_cartao_id_idx",
+          "columns": [
+            {
+              "expression": "cartao_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "lancamento_competencia_idx": {
+          "name": "lancamento_competencia_idx",
+          "columns": [
+            {
+              "expression": "competencia_ano",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "competencia_mes",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "lancamento_cartao_id_cartao_id_fk": {
+          "name": "lancamento_cartao_id_cartao_id_fk",
+          "tableFrom": "lancamento",
+          "tableTo": "cartao",
+          "columnsFrom": [
+            "cartao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lancamento_categoria_id_categoria_id_fk": {
+          "name": "lancamento_categoria_id_categoria_id_fk",
+          "tableFrom": "lancamento",
+          "tableTo": "categoria",
+          "columnsFrom": [
+            "categoria_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.regra_categorizacao": {
+      "name": "regra_categorizacao",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "padrao_estabelecimento": {
+          "name": "padrao_estabelecimento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "categoria_id": {
+          "name": "categoria_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "regra_categorizacao_categoria_id_categoria_id_fk": {
+          "name": "regra_categorizacao_categoria_id_categoria_id_fk",
+          "tableFrom": "regra_categorizacao",
+          "tableTo": "categoria",
+          "columnsFrom": [
+            "categoria_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "regra_categorizacao_padrao_estabelecimento_unique": {
+          "name": "regra_categorizacao_padrao_estabelecimento_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "padrao_estabelecimento"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

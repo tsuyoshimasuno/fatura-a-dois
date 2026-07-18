@@ -60,10 +60,10 @@ development_status:
   2-3-mapeamento-de-cartao-titular-para-conta-do-casal: done
   2-4-merge-por-delta-em-reenvio-da-mesma-competencia: done
   epic-2-retrospective: optional
-  epic-3: in-progress
+  epic-3: done
   3-1-gestao-de-categorias-do-casal: done
   3-2-sugestao-automatica-de-categoria: done
-  3-3-correcao-manual-de-categoria-com-regra-memorizada: backlog
+  3-3-correcao-manual-de-categoria-com-regra-memorizada: done
   epic-3-retrospective: optional
   epic-4: backlog
   4-1-visao-de-gastos-por-pessoa-e-categoria: backlog

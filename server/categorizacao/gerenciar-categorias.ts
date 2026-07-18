@@ -3,7 +3,7 @@
 import { and, count, eq, isNull, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
-import { categoria, lancamento } from '@/db/schema';
+import { categoria, lancamento, regraCategorizacao } from '@/db/schema';
 
 type ResultadoOperacao = { ok: boolean; message?: string };
 
@@ -89,6 +89,18 @@ export async function contarLancamentosPorCategoria(categoriaId: number): Promis
     .select({ total: count() })
     .from(lancamento)
     .where(eq(lancamento.categoriaId, categoriaId));
+
+  return linha?.total ?? 0;
+}
+
+// Quantas regras memorizadas (Story 3.3) apontam para esta categoria -- usado
+// pela tela de confirmação de remoção para avisar também esse impacto, não só
+// o de lançamentos.
+export async function contarRegrasPorCategoria(categoriaId: number): Promise<number> {
+  const [linha] = await db
+    .select({ total: count() })
+    .from(regraCategorizacao)
+    .where(eq(regraCategorizacao.categoriaId, categoriaId));
 
   return linha?.total ?? 0;
 }
@@ -224,6 +236,19 @@ export async function removerCategoria(
           .update(lancamento)
           .set({ categoriaId: substitutaFinalId })
           .where(eq(lancamento.categoriaId, categoriaId));
+
+        // Regra memorizada que apontava para a categoria removida é
+        // redirecionada para a substituta -- nunca fica sugerindo uma
+        // categoria inexistente (acoplamento Story 3.1 / Story 3.3).
+        await tx
+          .update(regraCategorizacao)
+          .set({ categoriaId: substitutaFinalId, atualizadoEm: new Date() })
+          .where(eq(regraCategorizacao.categoriaId, categoriaId));
+      } else {
+        // Sem substituta: a regra não tem para onde apontar, então é
+        // apagada junto -- nunca fica órfã apontando para uma categoria
+        // removida.
+        await tx.delete(regraCategorizacao).where(eq(regraCategorizacao.categoriaId, categoriaId));
       }
 
       // Guard de estado no próprio WHERE: remover uma categoria já removida
