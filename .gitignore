@@ -43,3 +43,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# exemplos reais de fatura (dados financeiros sensiveis, nunca commitar)
+/fixtures
