@@ -50,3 +50,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-2-3-mapeamento-cartao-titular-conta-casal.md`
   summary: Não existe forma de desfazer `rejeitarCartaoTerceiro` pela UI -- uma vez um cartão marcado como "não é do casal", só é reversível editando o banco diretamente.
   evidence: `listarCartoesPendentes` filtra por `terceiro = false`, então um cartão rejeitado nunca mais aparece em nenhuma tela; nenhuma story pede um fluxo de "desmarcar", candidato a uma story de polimento futura.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-2-4-merge-delta-reenvio-competencia.md`
+  summary: Quando o merge por delta remove um lançamento que é a primeira parcela conhecida de uma compra parcelada, nenhuma retração de projeção futura acontece -- `server/parcelas`/`compra_parcelada` (Epic 5) ainda não existem.
+  evidence: `server/ingestao/upload.ts` só deleta a linha removida, sem chamar nenhuma função de retração (AD-7 prevê essa chamada, mas o módulo alvo só é criado no Epic 5). Como parcelas futuras são sempre computadas em leitura e nunca materializadas (AD-7), é possível que nenhuma ação ativa seja necessária -- a leitura futura do Epic 5 simplesmente deixaria de ver o lançamento removido; a Story 5.2 (ou a que criar `compra_parcelada`) precisa confirmar isso ao ser implementada.

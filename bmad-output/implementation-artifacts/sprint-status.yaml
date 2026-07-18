@@ -54,11 +54,11 @@ development_status:
   1-2-login-obrigatorio-em-toda-rota-de-dado: done
   1-3-recuperacao-de-senha: done
   epic-1-retrospective: optional
-  epic-2: in-progress
+  epic-2: done
   2-1-selecao-de-competencia-e-upload-de-planilha: done
   2-2-extracao-de-lancamentos-e-atribuicao-de-competencia: done
   2-3-mapeamento-de-cartao-titular-para-conta-do-casal: done
-  2-4-merge-por-delta-em-reenvio-da-mesma-competencia: backlog
+  2-4-merge-por-delta-em-reenvio-da-mesma-competencia: done
   epic-2-retrospective: optional
   epic-3: backlog
   3-1-gestao-de-categorias-do-casal: backlog

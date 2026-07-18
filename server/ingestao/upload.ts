@@ -3,6 +3,11 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { cartao, lancamento } from '@/db/schema';
+import {
+  calcularMergeDelta,
+  type LancamentoExistente,
+  type LancamentoNovoParaMerge,
+} from '../lancamento-matching';
 import { parsePlanilhaItau } from './parse-planilha-itau';
 
 const ANO_MIN = 2000;
@@ -73,50 +78,98 @@ export async function processarUpload(
     };
   }
 
+  let resultadoMerge: ReturnType<typeof calcularMergeDelta>;
+
   try {
-    await db.transaction(async (tx) => {
-    // Cache local por número mascarado -- evita repetir a consulta pro mesmo
-    // cartão várias vezes dentro do mesmo upload.
-    const cartoesCache = new Map<string, number>();
+    resultadoMerge = await db.transaction(async (tx) => {
+      // Cache local por número mascarado -- evita repetir a consulta pro mesmo
+      // cartão várias vezes dentro do mesmo upload.
+      const cartoesCache = new Map<string, number>();
+      const novosParaMerge: LancamentoNovoParaMerge[] = [];
 
-    for (const lancamentoBruto of lancamentos) {
-      let cartaoId = cartoesCache.get(lancamentoBruto.numeroMascarado);
+      for (const lancamentoBruto of lancamentos) {
+        let cartaoId = cartoesCache.get(lancamentoBruto.numeroMascarado);
 
-      if (cartaoId === undefined) {
-        const existente = await tx
-          .select()
-          .from(cartao)
-          .where(eq(cartao.numeroMascarado, lancamentoBruto.numeroMascarado));
+        if (cartaoId === undefined) {
+          const existente = await tx
+            .select()
+            .from(cartao)
+            .where(eq(cartao.numeroMascarado, lancamentoBruto.numeroMascarado));
 
-        if (existente.length > 0) {
-          cartaoId = existente[0].id;
-        } else {
-          const [novoCartao] = await tx
-            .insert(cartao)
-            .values({
-              numeroMascarado: lancamentoBruto.numeroMascarado,
-              nomeTitular: lancamentoBruto.nomeTitular,
-              tipoCartao: lancamentoBruto.tipoCartao,
-              usuarioId: null,
-            })
-            .returning();
-          cartaoId = novoCartao.id;
+          if (existente.length > 0) {
+            cartaoId = existente[0].id;
+          } else {
+            const [novoCartao] = await tx
+              .insert(cartao)
+              .values({
+                numeroMascarado: lancamentoBruto.numeroMascarado,
+                nomeTitular: lancamentoBruto.nomeTitular,
+                tipoCartao: lancamentoBruto.tipoCartao,
+                usuarioId: null,
+              })
+              .returning();
+            cartaoId = novoCartao.id;
+          }
+
+          cartoesCache.set(lancamentoBruto.numeroMascarado, cartaoId);
         }
 
-        cartoesCache.set(lancamentoBruto.numeroMascarado, cartaoId);
+        novosParaMerge.push({
+          data: lancamentoBruto.data,
+          estabelecimento: lancamentoBruto.estabelecimento,
+          cartaoId,
+          valorCentavos: lancamentoBruto.valorCentavos,
+          parcelaNumero: lancamentoBruto.parcelaNumero,
+          parcelaTotal: lancamentoBruto.parcelaTotal,
+        });
       }
 
-      await tx.insert(lancamento).values({
-        competenciaAno: ano,
-        competenciaMes: mes,
-        data: lancamentoBruto.data,
-        estabelecimento: lancamentoBruto.estabelecimento,
-        valorCentavos: lancamentoBruto.valorCentavos,
-        cartaoId,
-        parcelaNumero: lancamentoBruto.parcelaNumero,
-        parcelaTotal: lancamentoBruto.parcelaTotal,
-      });
-    }
+      // ORDER BY é obrigatório aqui: o pareamento posicional do merge (para
+      // duplicatas de mesma chave) depende de uma ordem estável e
+      // reprodutível -- sem isso, o Postgres não garante nenhuma ordem, e
+      // duas linhas de valores diferentes na mesma chave poderiam trocar de
+      // par entre execuções.
+      const existentesBrutos = await tx
+        .select()
+        .from(lancamento)
+        .where(and(eq(lancamento.competenciaAno, ano), eq(lancamento.competenciaMes, mes)))
+        .orderBy(lancamento.id);
+
+      const existentes: LancamentoExistente[] = existentesBrutos.map((l) => ({
+        id: l.id,
+        data: l.data,
+        estabelecimento: l.estabelecimento,
+        cartaoId: l.cartaoId,
+        valorCentavos: l.valorCentavos,
+      }));
+
+      const delta = calcularMergeDelta(existentes, novosParaMerge);
+
+      if (delta.remover.length > 0) {
+        await tx.delete(lancamento).where(inArray(lancamento.id, delta.remover));
+      }
+
+      for (const item of delta.atualizar) {
+        await tx
+          .update(lancamento)
+          .set({ valorCentavos: item.valorCentavos })
+          .where(eq(lancamento.id, item.id));
+      }
+
+      for (const item of delta.inserir) {
+        await tx.insert(lancamento).values({
+          competenciaAno: ano,
+          competenciaMes: mes,
+          data: item.data,
+          estabelecimento: item.estabelecimento,
+          valorCentavos: item.valorCentavos,
+          cartaoId: item.cartaoId,
+          parcelaNumero: item.parcelaNumero,
+          parcelaTotal: item.parcelaTotal,
+        });
+      }
+
+      return delta;
     });
   } catch (error) {
     console.error('Falha ao gravar lançamentos:', error);
@@ -125,6 +178,6 @@ export async function processarUpload(
 
   return {
     ok: true,
-    message: `${lancamentos.length} lançamentos importados para a competência ${mes}/${ano}.`,
+    message: `${resultadoMerge.inserir.length} novos, ${resultadoMerge.atualizar.length} atualizados, ${resultadoMerge.remover.length} removidos para a competência ${mes}/${ano}.`,
   };
 }
