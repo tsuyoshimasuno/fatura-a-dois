@@ -10,6 +10,7 @@ import {
   type LancamentoNovoParaMerge,
 } from '../lancamento-matching';
 import { identificarOuCriarCompraParcelada } from '../parcelas/identificar-compra-parcelada';
+import { retrairComprasSemLancamentos } from '../parcelas/retrair-compra-parcelada';
 import { parsePlanilhaItau } from './parse-planilha-itau';
 
 const ANO_MIN = 2000;
@@ -148,7 +149,25 @@ export async function processarUpload(
       const delta = calcularMergeDelta(existentes, novosParaMerge);
 
       if (delta.remover.length > 0) {
+        // Coleta os `compraParceladaId` (não nulos) antes de apagar -- depois
+        // da remoção não há mais como descobrir a que compra um lançamento
+        // apagado pertencia. Fecha o gap herdado da Story 2.4/AD-7: uma
+        // `compra_parcelada` que fica sem nenhum lançamento real vinculado é
+        // retraída via `server/parcelas`, nunca manipulada diretamente aqui.
+        const lancamentosRemovidos = await tx
+          .select({ compraParceladaId: lancamento.compraParceladaId })
+          .from(lancamento)
+          .where(inArray(lancamento.id, delta.remover));
+
         await tx.delete(lancamento).where(inArray(lancamento.id, delta.remover));
+
+        const compraParceladaIdsRemovidos = lancamentosRemovidos
+          .map((item) => item.compraParceladaId)
+          .filter((id): id is number => id !== null);
+
+        if (compraParceladaIdsRemovidos.length > 0) {
+          await retrairComprasSemLancamentos(tx, compraParceladaIdsRemovidos);
+        }
       }
 
       for (const item of delta.atualizar) {

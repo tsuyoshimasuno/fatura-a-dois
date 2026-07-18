@@ -14,3 +14,23 @@ export function competenciaValida(
 
   return { mes: mesValido, ano: anoValido };
 }
+
+// Nomes de mês para exibição (índice 1-12; posição 0 nunca usada). Separado
+// de `MESES` (usado nos `<select>` de /lancamentos, /gastos, /upload --
+// pares value/label para formulário) porque é uma lista só de rótulos, sem
+// os `value` de string exigidos por um `<select>`.
+export const NOME_MES = [
+  '',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+] as const;
