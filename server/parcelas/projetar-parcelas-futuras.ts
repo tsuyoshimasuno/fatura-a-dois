@@ -1,9 +1,10 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { compraParcelada, lancamento } from '@/db/schema';
+import { cartao, compraParcelada, lancamento } from '@/db/schema';
 
 export type ItemParcelaProjetada = {
   compraParceladaId: number;
+  cartaoId: number;
   estabelecimento: string;
   parcelaNumero: number;
   totalParcelas: number;
@@ -30,6 +31,7 @@ function avancarCompetencia(ano: number, mes: number, n: number): { ano: number;
 
 type UltimaParcelaReal = {
   compraParceladaId: number;
+  cartaoId: number;
   parcelaNumero: number;
   estabelecimento: string;
   competenciaAno: number;
@@ -51,15 +53,18 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
   const linhas = await db
     .select({
       compraParceladaId: lancamento.compraParceladaId,
+      cartaoId: lancamento.cartaoId,
       parcelaNumero: lancamento.parcelaNumero,
       estabelecimento: lancamento.estabelecimento,
       competenciaAno: lancamento.competenciaAno,
       competenciaMes: lancamento.competenciaMes,
       totalParcelas: compraParcelada.totalParcelas,
       valorParcelaCentavos: compraParcelada.valorParcelaCentavos,
+      cartaoTerceiro: cartao.terceiro,
     })
     .from(lancamento)
     .innerJoin(compraParcelada, eq(lancamento.compraParceladaId, compraParcelada.id))
+    .innerJoin(cartao, eq(lancamento.cartaoId, cartao.id))
     // Ordem estável e reprodutível -- se duas linhas empatarem no maior
     // `parcelaNumero` da mesma compra (dado duplicado/corrida), o `id` mais
     // alto (processado por último) desempata de forma determinística, nunca
@@ -75,10 +80,19 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
   for (const linha of linhas) {
     if (linha.compraParceladaId === null || linha.parcelaNumero === null) continue;
 
+    // Cartão já resolvido como "não é do casal" (Story 2.3) -- lançamentos
+    // inseridos antes dessa rejeição podem continuar na tabela
+    // (`rejeitarCartaoTerceiro` só bloqueia uploads futuros); excluídos aqui
+    // pelo mesmo motivo de `server/visualizacao/resumo-gastos.ts` (Story
+    // 4.1): esse dinheiro não é do casal, não deveria contar em nenhuma
+    // projeção nem no comprometimento de limite.
+    if (linha.cartaoTerceiro) continue;
+
     const atual = ultimaPorCompra.get(linha.compraParceladaId);
     if (!atual || linha.parcelaNumero >= atual.parcelaNumero) {
       ultimaPorCompra.set(linha.compraParceladaId, {
         compraParceladaId: linha.compraParceladaId,
+        cartaoId: linha.cartaoId,
         parcelaNumero: linha.parcelaNumero,
         estabelecimento: linha.estabelecimento,
         competenciaAno: linha.competenciaAno,
@@ -112,6 +126,7 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
       grupo.totalCentavos += ultima.valorParcelaCentavos;
       grupo.itens.push({
         compraParceladaId: ultima.compraParceladaId,
+        cartaoId: ultima.cartaoId,
         // Capitalização original do lançamento real mais recente -- nunca
         // `compraParcelada.estabelecimentoNormalizado` (só chave normalizada).
         estabelecimento: ultima.estabelecimento,

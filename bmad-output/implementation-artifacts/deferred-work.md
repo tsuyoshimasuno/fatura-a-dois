@@ -14,6 +14,10 @@
   summary: `delta.atualizar` (merge por delta, quando o valor de um lançamento de parcela já existente muda) nunca reidentifica/revalida `compraParceladaId` -- se a correção mudar o que deveria ser a chave de identidade real da parcela, o link antigo fica desatualizado silenciosamente.
   evidence: `server/ingestao/upload.ts` só chama `identificarOuCriarCompraParcelada` no branch `delta.inserir`; a spec da Story 5.1 já excluía `delta.atualizar`/`delta.remover` do escopo explicitamente. Baixíssima probabilidade (correção de valor num lançamento já parcelado é rara); a Story 5.2 (reconciliação/retração) é o lugar natural para revisitar se necessário.
 
+- source_spec: `bmad-output/implementation-artifacts/spec-5-3-comprometimento-do-limite-mensal.md`
+  summary: Em `/parcelas`, o item "Pendente" (parcela projetada cujo cartão ainda não tem titular mapeado) não explica o que significa nem linka para `/cartoes`, onde o mapeamento seria de fato resolvido.
+  evidence: `app/(app)/parcelas/page.tsx` renderiza a linha "Pendente -- R$ X" sem nenhum texto de apoio ou link; não exigido pelo AC da Story 5.3, apenas uma melhoria de UX possível.
+
 - source_spec: `bmad-output/implementation-artifacts/spec-1-2-login-obrigatorio-rota-de-dado.md`
   summary: Sem affordance de logout em nenhuma rota de `app/(app)` — uma vez autenticado, não há como encerrar a sessão pela UI.
   evidence: Confirmado ao ler `app/(app)/page.tsx` e o restante de `app/(app)`: nenhum botão/link/ação de logout existe em lugar nenhum do app.
