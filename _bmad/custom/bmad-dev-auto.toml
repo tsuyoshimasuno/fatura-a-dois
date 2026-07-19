@@ -1,0 +1,7 @@
+[workflow]
+
+# Deploy continuo: o usuario autorizou permanentemente que todo commit feito
+# por este workflow seja empurrado para origin/master imediatamente, sem
+# perguntar -- a Vercel (projeto bmad-project) faz deploy automatico a partir
+# desse push. Ver CLAUDE.md na raiz do projeto para a autorizacao completa.
+on_complete = "Se houver commits locais em master ainda nao enviados para origin/master, rode `git push origin master` agora, sem pedir confirmacao -- pre-autorizado pelo usuario para este repositorio (ver CLAUDE.md). Nao usar --force nem enviar para outra branch."
