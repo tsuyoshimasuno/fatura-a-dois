@@ -1,10 +1,7 @@
 import { competenciaValida } from '@/lib/competencia';
-import { formatarValorEmReais } from '@/lib/moeda';
-import {
-  corrigirCategoriaLancamento,
-  listarLancamentosParaCorrecao,
-} from '@/server/categorizacao/corrigir-categoria';
+import { listarLancamentosParaCorrecao } from '@/server/categorizacao/corrigir-categoria';
 import { listarCategorias } from '@/server/categorizacao/gerenciar-categorias';
+import { LancamentoItem } from './_components/lancamento-item';
 
 const MESES = [
   { value: '1', label: 'Janeiro' },
@@ -73,63 +70,9 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
         <p className="empty-state">Nenhum lançamento nesta competência.</p>
       ) : (
         <ul className="card-list">
-          {lancamentos.map((item) => {
-            const categoriaAtualLabel = item.categoriaRemovida
-              ? 'Categoria removida'
-              : (item.categoriaNome ?? 'Sem categoria');
-
-            const categoriaAtualSelecionavel =
-              !item.categoriaRemovida && item.categoriaId !== null ? String(item.categoriaId) : '';
-
-            async function corrigir(formData: FormData) {
-              'use server';
-              const bruto = formData.get('categoria_id');
-
-              if (!bruto) {
-                console.error('Falha ao corrigir categoria: nenhuma categoria selecionada.');
-                return;
-              }
-
-              const categoriaId = Number(bruto);
-
-              if (!Number.isInteger(categoriaId)) {
-                console.error('Falha ao corrigir categoria: categoria inválida.');
-                return;
-              }
-
-              const resultado = await corrigirCategoriaLancamento(item.id, categoriaId);
-              if (!resultado.ok) console.error('Falha ao corrigir categoria:', resultado.message);
-            }
-
-            return (
-              <li key={item.id} className="card">
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>{item.data}</strong> -- {item.estabelecimento} --{' '}
-                  {formatarValorEmReais(item.valorCentavos)}
-                </div>
-                <div className="hint" style={{ marginBottom: '0.75rem' }}>
-                  Categoria atual: {categoriaAtualLabel}
-                </div>
-                {categorias.length === 0 ? (
-                  <p className="hint">Nenhuma categoria cadastrada ainda -- crie uma em /categorias antes de corrigir.</p>
-                ) : (
-                  <form action={corrigir} className="field-inline">
-                    <select name="categoria_id" defaultValue={categoriaAtualSelecionavel} required>
-                      <option value="" disabled>
-                        Selecione a categoria
-                      </option>
-                      {categorias.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.nome}
-                        </option>
-                      ))}
-                    </select>
-                    <button type="submit">Corrigir</button>
-                  </form>
-                )}
-              </li>
-            );
-          })}
+          {lancamentos.map((item) => (
+            <LancamentoItem key={item.id} item={item} categorias={categorias} />
+          ))}
         </ul>
       )}
     </main>

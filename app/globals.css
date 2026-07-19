@@ -255,6 +255,16 @@ button:disabled {
   background: var(--surface);
 }
 
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-danger-outline:hover {
+  background: var(--surface);
+}
+
 .link {
   color: var(--accent);
   font-weight: 500;

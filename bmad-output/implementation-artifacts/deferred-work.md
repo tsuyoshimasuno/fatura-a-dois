@@ -78,3 +78,15 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-3-3-correcao-manual-categoria-regra-memorizada.md`
   summary: Corrida (TOCTOU) entre `corrigirCategoriaLancamento` (lê o estado ativo da categoria numa SELECT antes de escrever) e `removerCategoria` sem substituta (apaga a regra memorizada daquela categoria) rodando concorrentemente -- uma correção que comita nesse intervalo pode recriar uma regra apontando para uma categoria que acabou de ser removida.
   evidence: Nenhuma das duas funções usa lock (`SELECT ... FOR UPDATE`) na linha de `categoria`; mitigado na prática pela defesa em profundidade em `resolverCategoriaSugerida` (que já ignora regras apontando para categoria removida), então a regra órfã nunca seria usada para sugerir -- mas ficaria órfã na tabela `regra_categorizacao` até a categoria (já removida) ser afetada por uma nova operação. Baixíssima probabilidade para um casal operando manualmente, mesmo padrão de outras corridas já aceitas (Stories 2.2, 2.3, 3.1).
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-feedback-acoes-silenciosas.md`
+  summary: Inputs não-controlados com `defaultValue` (`categoria-item.tsx`'s `defaultValue={item.nome}`, `lancamento-item.tsx`'s `defaultValue={categoriaAtualSelecionavel}`) só capturam o valor no mount; se o parceiro editar/remover a mesma linha concorrentemente, o campo não reflete a mudança mesmo que o rótulo ao lado atualize.
+  evidence: Padrão pré-existente ao próprio diff desta story -- `defaultValue={item.nome}` já era usado no `<form action={renomear}>` original antes da extração para Client Component; não é uma regressão introduzida agora, é um comportamento herdado.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-feedback-acoes-silenciosas.md`
+  summary: Nenhum `aria-busy`/live region anuncia o estado de carregamento a leitores de tela nos botões com rótulo de progresso ("Atribuindo...", "Salvando...", "Corrigindo...") -- só o resultado final (`role="alert"`/`aria-live="polite"`) é anunciado.
+  evidence: Mesmo padrão parcial já aceito em produção em `/login`, `/upload`, `/esqueci-senha`, `/redefinir-senha` (nenhum usa aria-busy); gap real de acessibilidade mas transversal ao app inteiro, não introduzido por este diff -- merece um passe dedicado de acessibilidade em vez de uma correção pontual aqui.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-feedback-acoes-silenciosas.md`
+  summary: `CategoriaItem`'s input é não-controlado (`defaultValue={item.nome}`) e `editarCategoria` faz `trim()` no servidor -- se o usuário digitar espaços extras, o campo continua mostrando o texto não-trimado mesmo após "Categoria salva.", divergindo do que foi persistido. A mensagem de sucesso também nunca some (sem timeout/dismissal).
+  evidence: Padrão de input não-controlado já existia antes desta story (mesmo `defaultValue={item.nome}` no `<form action={renomear}>` original); a mensagem de sucesso é nova nesta story mas é cosmética -- não afeta a correção do dado persistido, só a exatidão visual do campo entre um render e o próximo `router.refresh()`.
