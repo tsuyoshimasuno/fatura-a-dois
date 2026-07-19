@@ -55,7 +55,7 @@ NFR8: Resiliência a mudança de layout do Itaú é um risco conhecido e aceito,
 
 ### UX Design Requirements
 
-Nenhum — sem UX spec para este projeto (decisão explícita do usuário; produto pequeno, hobby, 2 usuários, fluxos já cobertos pelas UJs da PRD).
+Nenhum na criação original deste documento (decisão explícita do usuário; produto pequeno, hobby, 2 usuários, fluxos já cobertos pelas UJs da PRD). **Nota (2026-07-19):** posteriormente à conclusão dos 5 epics, o usuário pediu uma auditoria de UX do produto já em produção — `DESIGN.md`/`EXPERIENCE.md` em `{planning_artifacts}/ux-designs/ux-fatura-a-dois-2026-07-18/`, status `final`. Achados dessa auditoria (e das rodadas seguintes) foram reconciliados incrementalmente nas ACs deste documento (ver notas "retroativo"/"achado" abaixo) em vez de re-derivar este documento inteiro a partir do zero.
 
 ### FR Coverage Map
 
@@ -381,6 +381,16 @@ So that a gente saiba rapidamente pra onde foi o dinheiro sem reler a planilha.
 **Given** lançamentos com titular ainda pendente de mapeamento (Story 2.3) ou marcados "categoria removida" (Story 3.1)
 **When** vejo a competência
 **Then** eles aparecem num grupo separado "pendente de revisão" — nunca ausentes silenciosamente da visão
+
+**Given** a lista de lançamentos individuais da competência (Story 3.3)
+**When** um lançamento tem titular já mapeado
+**Then** ele mostra de quem é (primeiro nome do titular do cartão), não só o total agregado por pessoa *(AC adicionado retroativamente — auditoria 2026-07-19, rodada 3: FR11/este AC original prometiam só o total por pessoa agregado, nunca a visibilidade de titular por lançamento individual — capacidade nova pedida explicitamente pelo usuário, avaliada como extensão desta story por PM+tech lead, não epic/story nova, por caber inteiramente no escopo já cartografado "ver quanto cada um gastou e em quê")*
+
+**Given** a visão de gastos por competência
+**When** o casal seleciona uma pessoa específica num filtro
+**Then** tanto o resumo agregado quanto a lista de lançamentos individuais mostram só os dados dessa pessoa, e o alternador combinada/individual (AC acima) deixa de ser exibido enquanto o filtro estiver ativo *(AC adicionado retroativamente — auditoria 2026-07-19, rodada 3: refinamento direto do AC "alterno entre visão combinada e individual" já existente, estreitando-o a uma pessoa específica)*
+
+**Nota de implementação (2026-07-19, rodada 3):** `/gastos` (rota original desta story) e `/lancamentos` (Story 3.3) foram unificadas numa única tela em `/lancamentos` — decisão de UX documentada em `EXPERIENCE.md`, seção "Unificação de Lançamentos e Gastos numa Única Visão". `/gastos?...` continua resolvendo via redirect (preserva querystring), não é uma rota removida do produto, só da navegação.
 
 ## Epic 5: Parcelas Futuras e Comprometimento de Limite
 

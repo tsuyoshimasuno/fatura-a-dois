@@ -24,6 +24,7 @@ export type ItemPendente = {
   estabelecimento: string;
   valorCentavos: number;
   motivo: MotivoPendencia;
+  usuarioId: string | null;
 };
 
 export type ResumoGastos = {
@@ -55,7 +56,17 @@ export type ResumoGastos = {
 // graciosa já tratada lá, retornando `[]`), nenhum titular pode ser
 // confirmado: `pessoas` fica vazio e todo lançamento (exceto os de cartão
 // terceiro) cai em "pendente de revisão" com motivo `titular_pendente`.
-export async function obterResumoGastos(ano: number, mes: number): Promise<ResumoGastos> {
+//
+// `contasPreCarregadas` é opcional -- chamadores que já buscaram
+// `listarContasCasal()` na mesma requisição (ex: `/lancamentos`, que também
+// usa a lista para o filtro de pessoa) passam o resultado para evitar uma
+// segunda chamada à Admin API; os demais chamadores (layout, dashboard)
+// continuam sem passar nada, comportamento inalterado.
+export async function obterResumoGastos(
+  ano: number,
+  mes: number,
+  contasPreCarregadas?: { id: string; email: string }[]
+): Promise<ResumoGastos> {
   const [linhas, contas] = await Promise.all([
     db
       .select({
@@ -73,7 +84,7 @@ export async function obterResumoGastos(ano: number, mes: number): Promise<Resum
       .leftJoin(cartao, eq(lancamento.cartaoId, cartao.id))
       .leftJoin(categoria, eq(lancamento.categoriaId, categoria.id))
       .where(and(eq(lancamento.competenciaAno, ano), eq(lancamento.competenciaMes, mes))),
-    listarContasCasal(),
+    contasPreCarregadas ? Promise.resolve(contasPreCarregadas) : listarContasCasal(),
   ]);
 
   const contaPorId = new Map(contas.map((conta) => [conta.id, conta]));
@@ -120,6 +131,7 @@ export async function obterResumoGastos(ano: number, mes: number): Promise<Resum
         estabelecimento: linha.estabelecimento,
         valorCentavos: linha.valorCentavos,
         motivo,
+        usuarioId,
       });
       continue;
     }

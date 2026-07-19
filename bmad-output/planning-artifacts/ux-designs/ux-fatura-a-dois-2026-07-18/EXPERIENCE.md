@@ -13,6 +13,8 @@ updated: 2026-07-19
 > Auditoria de UX do produto **já implementado e em produção** (5 épicos, 15 stories concluídas) — não um planejamento pré-implementação. Toda observação de estado atual abaixo vem de leitura direta do código-fonte (`app/(app)/*`, `app/(auth)/*`), não de suposição. Onde este documento propõe uma mudança em vez de descrever o que já existe, a proposta é marcada com uma tag entre colchetes.
 >
 > **Nota de reconciliação (2026-07-19):** as 7 propostas da auditoria de 2026-07-18 (dashboard inicial, feedback/loading em Server Actions, nav mobile, competência persistente, badge de pendência, botão destrutivo, alert-error estendido) foram todas implementadas e verificadas em produção (ver `.memlog.md` deste workspace) — as tags abaixo, antes `[PROPOSTO]`, agora dizem `[IMPLEMENTADO 2026-07-18]` para refletir isso. Uma nova rodada de auditoria (correção funcional, ver seção "Achados de Correção Funcional" ao final) foi conduzida em 2026-07-19; suas propostas ainda em aberto usam `[PROPOSTO]` normalmente.
+>
+> **Nota de reconciliação (2026-07-19, rodada 3):** o usuário pediu para unificar `/lancamentos` e `/gastos` numa única visão, com titular por lançamento e filtro por pessoa. Seção "Unificação de Lançamentos e Gastos" adicionada ao final com o desenho completo — suas propostas usam `[PROPOSTO]` até a implementação confirmar.
 
 ## Foundation
 
@@ -29,8 +31,8 @@ As duas contas reais (Tsuyoshi e Milena, provisionadas na Story 1.1) enxergam os
 | Cartões (`/cartoes`) | Nav | Mapear cartão/titular novo → conta do casal | Funcional; badge de pendência na nav (`[IMPLEMENTADO 2026-07-18]`) já dá a pista antes exigida em outra tela. `[IMPLEMENTADO 2026-07-19]` mapeamento agora informa quantos lançamentos existentes foram afetados; seção separada lista cartões marcados "não é do casal" com opção de desfazer (ver "Achados de Correção Funcional" #2). |
 | Categorias (`/categorias`) | Nav | Criar/editar/remover categorias do casal | Funcional. |
 | Remover categoria (`/categorias/[id]/remover`) | Link "Remover" em Categorias | Confirmação dedicada antes de excluir, com contagem de impacto | Já é o padrão certo — replicar para outras ações destrutivas (ver Component Patterns). |
-| Lançamentos (`/lancamentos`) | Nav | Revisar/corrigir categoria por competência | Competência persistente com Gastos já implementada (`[IMPLEMENTADO 2026-07-18]`). `[IMPLEMENTADO 2026-07-19]` indicador de parcela ("N/M") e datas em `DD-MM-AAAA` (ver "Achados de Correção Funcional" #1 e #3). |
-| Gastos (`/gastos`) | Nav | Total por pessoa/categoria na competência, visão individual ou combinada | Competência persistente com Lançamentos já implementada. Bloco "Pendente de revisão" — `[IMPLEMENTADO 2026-07-19]` datas em `DD-MM-AAAA` e link "Resolver em Cartões" nos itens `titular_pendente`. |
+| Lançamentos (`/lancamentos`) | Nav | Visão única: total por pessoa/categoria da competência **e** lista de lançamentos individuais para revisar/corrigir categoria, com titular por linha e filtro por pessoa | `[IMPLEMENTADO 2026-07-18]` indicador de parcela e data `DD-MM-AAAA`. `[PROPOSTO]` absorve o papel de `/gastos` (ver "Unificação de Lançamentos e Gastos" ao final) — rota canônica única, nav perde o item "Gastos". |
+| ~~Gastos (`/gastos`)~~ | Nav | ~~Total por pessoa/categoria na competência, visão individual ou combinada~~ | `[PROPOSTO]` rota removida da nav; `/gastos?…` redireciona para `/lancamentos?…` preservando querystring (bookmarks antigos continuam funcionando). Ver "Unificação de Lançamentos e Gastos". |
 | Parcelas (`/parcelas`) | Nav | Parcelas futuras projetadas + comprometimento de limite mensal | Sem seletor (mostra todos os meses futuros com parcela pendente) — correto, é uma unidade diferente de "competência de fatura". `[IMPLEMENTADO 2026-07-19]` linha "Pendente" ganhou link "Resolver em Cartões". |
 | Entrar (`/login`) | Redirecionamento não-autenticado | Login | Funcional, já com estado de erro/loading. |
 | Esqueci minha senha (`/esqueci-senha`) | Link em Login | Solicitar redefinição | Funcional, mensagem anti-enumeração já correta. |
@@ -62,10 +64,12 @@ Comportamental. Especificação visual vive em `DESIGN.md.Components`.
 | `item-card` (era `card`) | Um lançamento, um cartão pendente, uma categoria | Contém sempre uma ação primária de linha (Corrigir, Atribuir, Salvar) e nunca mais de uma ação secundária. Estado de carregamento por item — enquanto a Server Action daquele card está em voo, seu botão mostra `disabled` + rótulo de progresso (`[IMPLEMENTADO 2026-07-18]`, ver State Patterns), os demais cards da lista continuam interativos. |
 | `summary-card` (era `card`) | Bloco agregado por pessoa (Gastos) ou por mês (Parcelas) | Título do bloco é sempre "quem/quando + valor total" (`{typography.section-title}`); nunca mistura ação de mutação — é só leitura. |
 | Botão destrutivo `[IMPLEMENTADO 2026-07-18]` | "Não é do casal" (Cartões) | Hoje visualmente idêntico a "Cancelar" (`btn-secondary`). Passa a usar cor `{colors.danger}` no texto/borda — sinaliza "isto tem consequência" sem exigir uma tela de confirmação nova (a ação já é rara — cartão de terceiro é caso de borda, não fluxo comum). Remover categoria mantém sua página de confirmação dedicada (ação mais comum e com impacto maior: redireciona lançamentos). |
-| Seletor de competência (mês/ano) | Upload, Lançamentos, Gastos | Hoje três instâncias independentes do mesmo par `<select>`. `[IMPLEMENTADO 2026-07-18]` — mesmo componente visual, mas ao navegar entre Lançamentos ↔ Gastos via nav, a competência selecionada persiste (ver IA). Upload continua sempre partindo do mês calendário atual — faz sentido para ele ser independente, já que upload é sempre "a fatura que acabou de fechar", raramente uma competência passada. |
+| Seletor de competência (mês/ano) | Upload, Lançamentos (unificada) | `[IMPLEMENTADO 2026-07-18]` competência persistente entre Lançamentos ↔ Gastos via nav — `[PROPOSTO]` fica sem objeto próprio após a fusão (é a mesma tela, não precisa mais persistir *entre* telas). Upload continua sempre partindo do mês calendário atual — faz sentido para ele ser independente, já que upload é sempre "a fatura que acabou de fechar", raramente uma competência passada. |
 | Badge de pendência `[IMPLEMENTADO 2026-07-18]` | Item de nav "Cartões" (quando há pendente) e "Lançamentos" (quando há "pendente de revisão" na competência atual) | Número pequeno ao lado do rótulo do link, cor `{colors.pending}`. Nunca bloqueia navegação — é aviso, não gate. Desaparece assim que a contagem chega a zero. |
 | `empty-state` | Toda lista vazia | Já consistente (Cartões, Categorias, Lançamentos, Gastos, Parcelas). Manter: nunca texto vazio nem tabela sem linhas — sempre a frase + borda tracejada. |
 | `alert-error` | Formulários | Já usado em Login/Upload/Senha. `[IMPLEMENTADO 2026-07-18]` — estender às Server Actions que hoje só logam no console (ver State Patterns). |
+| `titular-badge` `[PROPOSTO]` | Cada `item-card` de lançamento em `/lancamentos` | Texto curto (primeiro nome, não o e-mail inteiro) junto da linha data/estabelecimento/valor. **Não** ganha cor nova — reaproveita `{colors.muted-foreground}` sobre `{colors.surface}` (mesmo tom de `hint`), com borda `1px solid {colors.border}` e `{rounded.full}`, mesma família visual do badge de pendência mas sem a cor semântica (isto é identidade, não estado de espera). Quando o titular não é conhecido (`titular_pendente`), o badge não aparece — o item já carrega o rótulo "Titular pendente de mapeamento" (ver State Patterns), redundância seria ruído. Ver "Unificação de Lançamentos e Gastos". |
+| Filtro de pessoa `[PROPOSTO]` | Formulário de filtro em `/lancamentos` (mesma linha do seletor de competência) | Terceiro controle do formulário GET: "Todos" (default) + uma opção por conta real do casal (`listarContasCasal()`, mesma fonte que a tela já usa). Ao selecionar uma pessoa específica, filtra a lista de lançamentos **e** a seção de resumo para essa pessoa só, e o toggle Individual/Combinada (ver linha abaixo) fica sem sentido e some da tela enquanto o filtro estiver ativo. Ver "Unificação de Lançamentos e Gastos". |
 
 ## State Patterns
 
@@ -102,10 +106,10 @@ Realiza UJ-1 (PRD §2.3).
 2. `[IMPLEMENTADO 2026-07-18]` Com o dashboard: `/` mostra a competência atual (mês calendário) com um destes três estados, na ordem em que a jornada realmente progride — (a) "Fatura de julho ainda não enviada" + botão direto para `/upload`; (b) "3 cartões pendentes de mapeamento" + link para `/cartoes` (quando há pendência de FR-6 bloqueando a visão); (c) "Gastos de julho: R$ X (2 lançamentos pendentes de revisão)" + link para `/gastos`, quando já há dado processado.
 3. Tsuyoshi vê "(a)", toca no botão, chega em `/upload` com mês/ano já pré-selecionado (o mês que o dashboard identificou como pendente, não necessariamente o mês calendário do dia — cobre o caso de conferir uma fatura de um mês anterior).
 4. Envia a planilha. Upload processa (FR-2 a FR-6); ao concluir com sucesso, a mensagem de resultado `[IMPLEMENTADO 2026-07-18]` inclui um link direto: "12 lançamentos importados. Ver gastos de julho →" — hoje o sucesso só limpa o formulário, sem indicar o próximo passo.
-5. Ele segue o link, chega em `/gastos?mes=7&ano=2026`, vê o bloco "Pendente de revisão" com 2 lançamentos sem categoria clara.
-6. Segue para `/lancamentos` — `[IMPLEMENTADO 2026-07-18]` já com mês/julho pré-selecionado (competência persistente), não precisa reescolher.
-7. Corrige as 2 categorias. Cada correção mostra feedback imediato (`[IMPLEMENTADO 2026-07-18]`: "Categoria atualizada." — hoje, nada aparece).
-8. **Clímax:** volta para `/gastos` (mesma competência, sem reescolher) e vê o número final: quanto cada um gastou e em quê — em poucos minutos, sem ter aberto a planilha manualmente, exatamente o clímax descrito no PRD.
+5. Ele segue o link, chega em `/lancamentos?mes=7&ano=2026` `[PROPOSTO]` — já a visão unificada: resumo por pessoa no topo, lista de lançamentos logo abaixo, cada um mostrando de quem foi. Vê o bloco "Pendente de revisão" com 2 lançamentos sem categoria clara, sem precisar trocar de tela.
+6. ~~Segue para `/lancamentos`~~ `[PROPOSTO]` — passo eliminado pela fusão: já está na tela que tem a lista de lançamentos para corrigir, não existe mais um "ida" separada.
+7. Corrige as 2 categorias, na mesma tela. Cada correção mostra feedback imediato (`[IMPLEMENTADO 2026-07-18]`: "Categoria atualizada." — hoje, nada aparece).
+8. **Clímax:** `[PROPOSTO]` o resumo por pessoa no topo da própria tela já reflete a correção assim que ela acontece (mesmo Server Component, um único `router.refresh()`) — Tsuyoshi vê o número final: quanto cada um gastou e em quê, sem sair da tela nem voltar por um link — em poucos minutos, sem ter aberto a planilha manualmente, exatamente o clímax descrito no PRD. Se ele quiser saber só o que é dele, usa o filtro de pessoa (ver "Unificação de Lançamentos e Gastos"); o resumo e a lista filtram juntos.
 9. **Falha:** se a correção do passo 7 falhar (ex: categoria removida entre a carga da lista e o clique), hoje a tela simplesmente não muda — Tsuyoshi assume que funcionou. `[IMPLEMENTADO 2026-07-18]`: mensagem de erro inline no card daquele lançamento, categoria permanece com o valor anterior selecionado, ele tenta de novo.
 
 ### Flow 2 — Conferir o comprometimento futuro antes da fatura fechar (Milena, meio do mês, pensando numa compra maior)
@@ -124,8 +128,8 @@ Web responsivo é requisito explícito do PRD (§7: "usável sem scroll horizont
 
 | Largura | Comportamento atual | Proposta |
 |---|---|---|
-| `≥ 768px` (desktop/tablet) | Nav horizontal com título + 7 links, `flex-wrap` | Manter como está — cabe confortavelmente. |
-| `< 768px` (celular, uso mais provável para conferir fatura no dia a dia) | Mesma nav horizontal quebra em 2–3 linhas (título + 7 links não cabem em 360–414px), empurrando o conteúdo da página para baixo da dobra | `[IMPLEMENTADO 2026-07-18]` nav colapsa para: título + botão de menu (hambúrguer) abrindo lista vertical de links, mesmo padrão de destaque do link ativo (`aria-current="page"`, borda `{colors.accent}`) já usado hoje |
+| `≥ 768px` (desktop/tablet) | Nav horizontal com título + 7 links, `flex-wrap` | Manter como está — cabe confortavelmente. `[PROPOSTO]` cai para 6 links após a fusão (item "Gastos" removido da nav). |
+| `< 768px` (celular, uso mais provável para conferir fatura no dia a dia) | Mesma nav horizontal quebra em 2–3 linhas (título + 7 links não cabem em 360–414px), empurrando o conteúdo da página para baixo da dobra | `[IMPLEMENTADO 2026-07-18]` nav colapsa para: título + botão de menu (hambúrguer) abrindo lista vertical de links, mesmo padrão de destaque do link ativo (`aria-current="page"`, borda `{colors.accent}`) já usado hoje. `[PROPOSTO]` 6 links após a fusão folga ainda mais a margem — não muda a necessidade do colapso, só reduz quanto ele precisa absorver. |
 
 Nenhuma diferença de conteúdo entre mobile e desktop é necessária — é o mesmo dado, mesma densidade; o ajuste é exclusivamente na navegação.
 
@@ -158,3 +162,47 @@ Nenhum helper de formatação de data existe em `lib/` (só `lib/moeda.ts`, `lib
 ### Achados investigados e já rastreados em `deferred-work.md` — sem ação nesta rodada
 
 Confirmados ainda válidos por leitura de código, mas de baixa probabilidade/escopo maior que esta rodada, mantidos como deferred (critério igual ao já usado nas rodadas anteriores desta run): (a) sem UI de restauração de categoria removida (spec-3-1); (b) `delta.atualizar` não revalida `compraParceladaId` numa correção de valor de lançamento já parcelado (spec-5-1); (c) `getUser()` do middleware sem timeout (spec-1-2). Nenhum é um bug reportado pelo usuário nem foi encontrado como causa dos 3 bugs desta rodada.
+
+## Unificação de Lançamentos e Gastos numa Única Visão (auditoria 2026-07-19, rodada 3)
+
+> O usuário pediu para juntar `/lancamentos` e `/gastos` numa única tela, com UX moderna/fácil/agradável, mostrando de quem foi cada lançamento e com filtro por pessoa. Todo item abaixo é `[PROPOSTO]` até a implementação confirmar.
+
+### Por que fundir (não só listar lado a lado)
+
+Hoje as duas telas mostram o **mesmo recorte de dados** (lançamentos da competência) em duas granularidades — `/gastos` é o agregado, `/lancamentos` é o detalhe — e o próprio Key Flow 1 (PRD UJ-1) já faz o casal pingue-pongar entre elas: chega em Gastos pelo link do upload, desce até "Pendente de revisão", segue para Lançamentos para corrigir, volta para Gastos para ver o número final. Fundir não é só economizar um clique — elimina a necessidade de **duas cópias do mesmo seletor de competência sincronizadas por querystring** (gambiarra da rodada 07-18) e faz o clímax da jornada (ver o total atualizado) acontecer *na mesma tela* onde a correção aconteceu, sem navegação.
+
+### Rota e navegação
+
+- **`/lancamentos` vira a rota canônica única.** É o nome mais específico dos dois (lista de lançamentos é o conteúdo central; "gastos" descrevia só uma das duas visões possíveis sobre esse conteúdo) e já carrega o badge de pendência na nav.
+- **`/gastos` deixa de existir como destino de navegação** (removido de `LINKS` em `nav.tsx`, nav cai de 7 para 6 itens) mas **continua resolvendo**: qualquer link/bookmark antigo para `/gastos?mes=X&ano=Y&visao=Z` redireciona (redirect de servidor, preservando querystring) para `/lancamentos?mes=X&ano=Y&visao=Z`. Ninguém com o link salvo cai em 404.
+- O link cruzado "Ver gastos desta competência" / "Ver lançamentos desta competência" que hoje existe nas duas telas **deixa de fazer sentido e é removido** — não há mais para onde ir, já se está na tela.
+- Badge de pendência na nav (hoje só em "Lançamentos") passa a refletir a mesma contagem de `resumo.pendentes.itens.length` que já alimenta o bloco "Pendente de revisão" da tela unificada — nenhuma mudança de fonte de dado, só um item de nav a menos disputando espaço.
+
+### Layout da tela unificada (de cima para baixo)
+
+1. **Cabeçalho** — título "Lançamentos", subtítulo atualizado para descrever as duas funções: "Veja quanto cada um gastou e corrija a categoria de cada lançamento da competência."
+2. **Formulário de filtro** (`form-row`, mesmo padrão visual de hoje) — três controles na mesma linha: Mês, Ano, **Pessoa** `[PROPOSTO]` (select ou grupo de botões: "Todos" default + uma opção por conta real do casal). O toggle "Individual/Combinada" que hoje existe em Gastos **só é renderizado quando Pessoa = Todos** (ver "Interação do filtro" abaixo) — quando uma pessoa específica está selecionada, ele é redundante (só há uma pessoa para agregar) e some da tela em vez de ficar desabilitado, para não ocupar espaço com um controle sem efeito.
+3. **Resumo por pessoa** (`summary-card`, mesmo componente de hoje) — um card por pessoa (ou um card "Casal" combinado, conforme o toggle), exatamente como `/gastos` já renderiza hoje. Continua no topo porque é a resposta mais rápida à pergunta que motiva a maior parte das visitas ("quanto eu/nós gastamos") — não teria sentido empurrar para baixo da lista detalhada.
+4. **Lista de lançamentos** (`item-card` em `card-list`, mesmo componente de `/lancamentos` hoje) — cada item ganha o `titular-badge` (ver Component Patterns) e continua com a ação de corrigir categoria inline. Esta lista é filtrada pela Pessoa selecionada no passo 2.
+5. **Pendente de revisão** (`summary-card`, mesmo bloco de hoje) — mantém-se como seção separada ao final, não misturada com a lista principal (motivos diferentes de pendência precisam do rótulo explícito que já existem, ver State Patterns). Também respeita o filtro de Pessoa quando o motivo tem titular conhecido (`sem_categoria`, `categoria_removida`); itens com motivo `titular_pendente` (titular desconhecido) **sempre aparecem**, independente do filtro — filtrar por "quem" não deveria esconder justamente os lançamentos cujo "quem" ainda não se sabe, isso seria perder o único lugar onde essa pendência é visível.
+
+### Interação do filtro de Pessoa × toggle Individual/Combinada
+
+Os dois controles respondem à mesma pergunta em eixos diferentes — "de quem eu quero ver" vs. "como somar o que eu já decidi ver" — e um deles fica redundante quando o outro está no extremo mais específico:
+
+- **Pessoa = Todos** (default): toggle Individual/Combinada aparece e funciona exatamente como hoje em `/gastos` (dois `summary-card`s por pessoa, ou um "Casal" combinado). A lista de lançamentos abaixo mostra todo mundo, cada item com seu `titular-badge`.
+- **Pessoa = uma conta específica**: toggle some (não há o que combinar/individualizar quando só uma pessoa está no recorte). Resumo mostra um único `summary-card` dessa pessoa. Lista de lançamentos mostra só os dela. `titular-badge` continua aparecendo em cada item mesmo assim — remover o badge quando o filtro já garante que é sempre a mesma pessoa economizaria uma leitura visual, mas manter é mais simples de implementar (mesmo componente, sem variante condicional) e não atrapalha; não vale a complexidade extra para este produto pequeno.
+
+### Mudança de dado necessária para a implementação
+
+`listarLancamentosParaCorrecao` (`server/categorizacao/corrigir-categoria.ts`) hoje não seleciona titular — precisa ganhar o mesmo join `lancamento -> cartao -> usuário` que `resumo-gastos.ts` já faz, para alimentar o `titular-badge`. `ItemPendente` (`resumo-gastos.ts`) também precisa ganhar `usuarioId`/`email` (hoje só tem `id/data/estabelecimento/valorCentavos/motivo`) para que o filtro de Pessoa consiga aplicar-se aos itens pendentes com titular conhecido (`sem_categoria`, `categoria_removida`) — decisão de dado, não de UX, mas registrada aqui porque a spec de implementação vai precisar dela.
+
+### `titular-badge`: de onde vem o nome exibido
+
+As contas reais só têm e-mail (`listarContasCasal()` retorna `{id, email}`, sem nome de exibição em lugar nenhum do sistema — não há tabela de perfil). Mostrar o e-mail inteiro (`tsuyoshi.masuno@gmail.com`) no badge de cada card poluiria a lista. `[PROPOSTO]` derivar um primeiro nome a partir do prefixo do e-mail antes do primeiro `.` (capitalizado): `tsuyoshi.masuno@...` → "Tsuyoshi", `milena.smasuno@...` → "Milena" — mesma convenção que `/gastos` já usa informalmente ao exibir o e-mail inteiro no título do `summary-card` hoje (`{pessoa.email}`), que também deveria trocar para o mesmo primeiro nome derivado nesta rodada, por consistência entre o resumo e a lista. `[ASSUMPTION]` — nenhuma fonte real de "nome de exibição" existe hoje; se o casal um dia quiser um nome que não bate com o prefixo do e-mail, isso exigiria um campo de perfil novo, fora do escopo desta fusão.
+
+### O que NÃO muda
+
+- `/parcelas` continua separada — unidade de dado diferente (parcelas futuras projetadas, não lançamentos de uma competência fechada), já documentado como correto na tabela de IA.
+- `/upload` continua com seletor de competência independente (não participa da fusão nem do filtro de pessoa).
+- Nenhum token novo de `DESIGN.md` — `titular-badge` reaproveita `muted-foreground`/`surface`/`border`/`rounded.full`, já existentes.

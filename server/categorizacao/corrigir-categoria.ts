@@ -3,7 +3,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
-import { categoria, lancamento, regraCategorizacao } from '@/db/schema';
+import { cartao, categoria, lancamento, regraCategorizacao } from '@/db/schema';
 import { normalizarEstabelecimento } from '@/server/shared/normalizar-estabelecimento';
 
 type ResultadoOperacao = { ok: boolean; message?: string };
@@ -34,13 +34,16 @@ export type LancamentoParaCorrecao = {
   categoriaRemovida: boolean;
   parcelaNumero: number | null;
   parcelaTotal: number | null;
+  titularUsuarioId: string | null;
 };
 
 // Lista os lançamentos de uma competência com a categoria atual (se houver)
 // para a tela de correção manual (`/lancamentos`). `LEFT JOIN` porque um
 // lançamento pode não ter categoria (`categoriaId` null) ou apontar para uma
 // categoria já removida (soft-delete, AD-8) -- os dois casos são
-// distinguidos na UI ("Sem categoria" vs. "Categoria removida").
+// distinguidos na UI ("Sem categoria" vs. "Categoria removida"). `LEFT JOIN`
+// com `cartao` (mesmo padrão de `resumo-gastos.ts`) alimenta o badge de
+// titular -- também pode ser nulo quando o cartão ainda não foi mapeado.
 export async function listarLancamentosParaCorrecao(
   ano: number,
   mes: number
@@ -56,9 +59,11 @@ export async function listarLancamentosParaCorrecao(
       categoriaRemovidoEm: categoria.removidoEm,
       parcelaNumero: lancamento.parcelaNumero,
       parcelaTotal: lancamento.parcelaTotal,
+      cartaoUsuarioId: cartao.usuarioId,
     })
     .from(lancamento)
     .leftJoin(categoria, eq(lancamento.categoriaId, categoria.id))
+    .leftJoin(cartao, eq(lancamento.cartaoId, cartao.id))
     .where(and(eq(lancamento.competenciaAno, ano), eq(lancamento.competenciaMes, mes)))
     .orderBy(lancamento.data);
 
@@ -72,6 +77,7 @@ export async function listarLancamentosParaCorrecao(
     categoriaRemovida: linha.categoriaNome !== null && linha.categoriaRemovidoEm !== null,
     parcelaNumero: linha.parcelaNumero,
     parcelaTotal: linha.parcelaTotal,
+    titularUsuarioId: linha.cartaoUsuarioId,
   }));
 }
 

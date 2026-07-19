@@ -18,6 +18,7 @@ type Lancamento = {
   categoriaRemovida: boolean;
   parcelaNumero: number | null;
   parcelaTotal: number | null;
+  titularNome: string | null;
 };
 
 type LancamentoItemProps = {
@@ -81,6 +82,12 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
       <div style={{ marginBottom: '0.5rem' }}>
         <strong>{formatarData(item.data)}</strong> -- {item.estabelecimento} --{' '}
         {formatarValorEmReais(item.valorCentavos)}
+        {item.titularNome !== null && (
+          <>
+            {' '}
+            <span className="titular-badge">{item.titularNome}</span>
+          </>
+        )}
         {/* Indicador de parcela só aparece quando os dois campos vêm preenchidos
             juntos (sempre gravados na mesma escrita, Story 5.1) -- avulso
             (parcelaTotal null ou 1) nunca ganha esse sufixo. */}

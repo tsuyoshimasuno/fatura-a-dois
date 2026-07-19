@@ -25,7 +25,7 @@ export default function UploadPage() {
   // Competência selecionada no formulário, capturada no momento do submit --
   // `form.reset()` (chamado logo abaixo em caso de sucesso) limpa os
   // `<select>`, então este é o único lugar em que o valor ainda está
-  // disponível para montar o link pós-sucesso para /gastos.
+  // disponível para montar o link pós-sucesso para /lancamentos.
   const [competenciaEnviada, setCompetenciaEnviada] = useState<{ mes: string; ano: string } | null>(
     null
   );
@@ -109,7 +109,7 @@ export default function UploadPage() {
         )}
         {result?.ok && competenciaEnviada && (
           <Link
-            href={`/gastos?mes=${competenciaEnviada.mes}&ano=${competenciaEnviada.ano}`}
+            href={`/lancamentos?mes=${competenciaEnviada.mes}&ano=${competenciaEnviada.ano}`}
             className="link"
           >
             Ver gastos de {MESES.find((mes) => mes.value === competenciaEnviada.mes)?.label ?? ''}{' '}

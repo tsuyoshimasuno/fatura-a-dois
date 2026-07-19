@@ -129,7 +129,7 @@ export default async function Home() {
               -- ainda não contado no total acima.
             </p>
           )}
-          <Link href={`/gastos?mes=${mesAtual}&ano=${anoAtual}`} className="link">
+          <Link href={`/lancamentos?mes=${mesAtual}&ano=${anoAtual}`} className="link">
             Ver gastos →
           </Link>
         </section>
