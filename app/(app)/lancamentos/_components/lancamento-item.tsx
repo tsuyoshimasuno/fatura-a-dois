@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatarData } from '@/lib/data';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { corrigirCategoriaLancamento } from '@/server/categorizacao/corrigir-categoria';
 
@@ -15,6 +16,8 @@ type Lancamento = {
   categoriaId: number | null;
   categoriaNome: string | null;
   categoriaRemovida: boolean;
+  parcelaNumero: number | null;
+  parcelaTotal: number | null;
 };
 
 type LancamentoItemProps = {
@@ -76,8 +79,14 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   return (
     <li className="card">
       <div style={{ marginBottom: '0.5rem' }}>
-        <strong>{item.data}</strong> -- {item.estabelecimento} --{' '}
+        <strong>{formatarData(item.data)}</strong> -- {item.estabelecimento} --{' '}
         {formatarValorEmReais(item.valorCentavos)}
+        {/* Indicador de parcela só aparece quando os dois campos vêm preenchidos
+            juntos (sempre gravados na mesma escrita, Story 5.1) -- avulso
+            (parcelaTotal null ou 1) nunca ganha esse sufixo. */}
+        {item.parcelaNumero !== null && item.parcelaTotal !== null && item.parcelaTotal > 1 && (
+          <> -- {item.parcelaNumero}/{item.parcelaTotal}</>
+        )}
       </div>
       <div className="hint" style={{ marginBottom: '0.75rem' }}>
         Categoria atual: {categoriaAtualLabel}

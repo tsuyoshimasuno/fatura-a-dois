@@ -32,6 +32,8 @@ export type LancamentoParaCorrecao = {
   categoriaId: number | null;
   categoriaNome: string | null;
   categoriaRemovida: boolean;
+  parcelaNumero: number | null;
+  parcelaTotal: number | null;
 };
 
 // Lista os lançamentos de uma competência com a categoria atual (se houver)
@@ -52,6 +54,8 @@ export async function listarLancamentosParaCorrecao(
       categoriaId: lancamento.categoriaId,
       categoriaNome: categoria.nome,
       categoriaRemovidoEm: categoria.removidoEm,
+      parcelaNumero: lancamento.parcelaNumero,
+      parcelaTotal: lancamento.parcelaTotal,
     })
     .from(lancamento)
     .leftJoin(categoria, eq(lancamento.categoriaId, categoria.id))
@@ -66,6 +70,8 @@ export async function listarLancamentosParaCorrecao(
     categoriaId: linha.categoriaId,
     categoriaNome: linha.categoriaNome,
     categoriaRemovida: linha.categoriaNome !== null && linha.categoriaRemovidoEm !== null,
+    parcelaNumero: linha.parcelaNumero,
+    parcelaTotal: linha.parcelaTotal,
   }));
 }
 

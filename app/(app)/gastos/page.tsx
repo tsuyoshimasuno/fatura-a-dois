@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { competenciaValida } from '@/lib/competencia';
+import { formatarData } from '@/lib/data';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { obterResumoGastos, type CategoriaResumo, type MotivoPendencia } from '@/server/visualizacao/resumo-gastos';
 
@@ -170,7 +171,7 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
           <ul className="card-list">
             {resumo.pendentes.itens.map((item) => (
               <li key={item.id}>
-                {item.data} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
+                {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
                 {MOTIVO_LABEL[item.motivo]}
               </li>
             ))}
