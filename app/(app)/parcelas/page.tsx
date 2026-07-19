@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { NOME_MES } from '@/lib/competencia';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { obterComprometimentoLimiteMensal } from '@/server/parcelas/comprometimento-limite';
@@ -50,7 +51,12 @@ export default async function ParcelasPage() {
                       </li>
                     ))}
                     {comprometimento.pendenteCentavos > 0 && (
-                      <li>Pendente -- {formatarValorEmReais(comprometimento.pendenteCentavos)}</li>
+                      <li>
+                        Pendente -- {formatarValorEmReais(comprometimento.pendenteCentavos)} --{' '}
+                        <Link href="/cartoes" className="link">
+                          Resolver em Cartões
+                        </Link>
+                      </li>
                     )}
                   </ul>
                 </>

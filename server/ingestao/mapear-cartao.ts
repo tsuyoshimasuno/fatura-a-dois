@@ -1,10 +1,57 @@
 'use server';
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
-import { cartao } from '@/db/schema';
+import { cartao, lancamento } from '@/db/schema';
+import { NOME_MES } from '@/lib/competencia';
 import { createAdminClient } from '@/lib/supabase/admin';
+
+// Limite de competências detalhadas na mensagem -- um cartão com muitos
+// meses de histórico não deveria virar uma linha gigante de texto no card
+// (defesa em profundidade; nenhum cartão real observado até hoje chega perto
+// disso, mas nada garante que um cartão antigo remapeado não tenha).
+const MAX_COMPETENCIAS_DETALHADAS = 5;
+
+// Monta o resumo de impacto exibido após um mapeamento bem-sucedido -- existe
+// para responder diretamente ao sintoma reportado ("mapeei e os totais não
+// mudaram"): a causa real mais provável é o lançamento existir numa
+// competência diferente da que está sendo olhada em /gastos ou /parcelas, e
+// esta mensagem torna isso visível sem o usuário precisar adivinhar o mês.
+// Nunca lança -- uma falha aqui não pode fazer um mapeamento já persistido
+// parecer uma falha para quem clicou (ver `mapearCartao`, que já fez o
+// UPDATE antes de chamar esta função).
+async function resumirImpacto(cartaoId: number): Promise<string> {
+  try {
+    const porCompetencia = await db
+      .select({
+        ano: lancamento.competenciaAno,
+        mes: lancamento.competenciaMes,
+        quantidade: sql<number>`count(*)::int`,
+      })
+      .from(lancamento)
+      .where(eq(lancamento.cartaoId, cartaoId))
+      .groupBy(lancamento.competenciaAno, lancamento.competenciaMes)
+      .orderBy(lancamento.competenciaAno, lancamento.competenciaMes);
+
+    if (porCompetencia.length === 0) {
+      return 'Cartão atribuído. Nenhum lançamento existente neste cartão ainda.';
+    }
+
+    const total = porCompetencia.reduce((soma, item) => soma + item.quantidade, 0);
+    const restantes = porCompetencia.length - MAX_COMPETENCIAS_DETALHADAS;
+    const detalhe = porCompetencia
+      .slice(0, MAX_COMPETENCIAS_DETALHADAS)
+      .map((item) => `${NOME_MES[item.mes] ?? `mês ${item.mes}`}/${item.ano}: ${item.quantidade}`)
+      .join(', ');
+    const sufixo = restantes > 0 ? ` e mais ${restantes} competência(s)` : '';
+
+    return `Cartão atribuído. ${total} lançamento(s) existente(s) agora conta(m) para essa pessoa (${detalhe}${sufixo}).`;
+  } catch (error) {
+    console.error('Falha ao resumir impacto do mapeamento de cartão:', error);
+    return 'Cartão atribuído.';
+  }
+}
 
 export async function listarContasCasal(): Promise<{ id: string; email: string }[]> {
   try {
@@ -54,7 +101,9 @@ export async function mapearCartao(
 
   revalidatePath('/cartoes');
 
-  return { ok: true };
+  const message = await resumirImpacto(cartaoId);
+
+  return { ok: true, message };
 }
 
 export async function rejeitarCartaoTerceiro(

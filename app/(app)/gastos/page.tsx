@@ -173,6 +173,15 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
               <li key={item.id}>
                 {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
                 {MOTIVO_LABEL[item.motivo]}
+                {item.motivo === 'titular_pendente' && (
+                  <>
+                    {' '}
+                    --{' '}
+                    <Link href="/cartoes" className="link">
+                      Resolver em Cartões
+                    </Link>
+                  </>
+                )}
               </li>
             ))}
           </ul>
