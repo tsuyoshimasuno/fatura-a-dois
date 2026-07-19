@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { competenciaValida } from '@/lib/competencia';
 import { listarLancamentosParaCorrecao } from '@/server/categorizacao/corrigir-categoria';
 import { listarCategorias } from '@/server/categorizacao/gerenciar-categorias';
@@ -19,12 +20,17 @@ const MESES = [
 ];
 
 type LancamentosPageProps = {
-  searchParams: Promise<{ mes?: string; ano?: string }>;
+  searchParams: Promise<{ mes?: string; ano?: string; visao?: string }>;
 };
 
 export default async function LancamentosPage({ searchParams }: LancamentosPageProps) {
   const params = await searchParams;
   const { mes, ano } = competenciaValida(params.mes, params.ano);
+  // `/lancamentos` não tem conceito próprio de "visão" (individual/combinada,
+  // exclusivo de /gastos) -- só repassa o valor recebido de volta no link de
+  // retorno, para o ida-e-volta Gastos -> Lançamentos -> Gastos não perder a
+  // visão selecionada (ver spec: achado de review sobre round-trip).
+  const visao = params.visao;
 
   const [lancamentos, categorias] = await Promise.all([
     listarLancamentosParaCorrecao(ano, mes),
@@ -63,8 +69,13 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
             ))}
           </select>
         </label>
+        {visao && <input type="hidden" name="visao" value={visao} />}
         <button type="submit">Filtrar</button>
       </form>
+
+      <Link href={`/gastos?mes=${mes}&ano=${ano}${visao ? `&visao=${visao}` : ''}`} className="link">
+        Ver gastos desta competência
+      </Link>
 
       {lancamentos.length === 0 ? (
         <p className="empty-state">Nenhum lançamento nesta competência.</p>

@@ -98,3 +98,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-ux-nav-mobile-responsiva.md`
   summary: Sem transicao/animacao ao abrir/fechar o menu mobile (display:none <-> flex instantaneo) e o icone de tres barras nao se transforma visualmente em "X" quando aberto -- so o aria-label/aria-expanded indicam o estado para tecnologia assistiva.
   evidence: Polimento visual nao pedido no escopo desta story; app inteiro ja tem postura de "sem sombra/animacao decorativa" (DESIGN.md), entao a ausencia de transicao e consistente com o resto do sistema, nao uma lacuna isolada.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-competencia-persistente.md`
+  summary: O novo link de atalho entre /gastos e /lancamentos nao tem landmark/skip-link ao redor, entao usuarios de teclado/leitor de tela precisam passar por ele (tab) antes de chegar ao conteudo da tela em toda carga de pagina.
+  evidence: Real, mas o app inteiro ja nao tem nenhum skip-link em nenhuma tela -- gap pre-existente e transversal, nao especifico desta story; melhor enderecado num passe de acessibilidade dedicado.

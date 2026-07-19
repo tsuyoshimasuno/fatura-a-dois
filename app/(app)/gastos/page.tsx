@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { competenciaValida } from '@/lib/competencia';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { obterResumoGastos, type CategoriaResumo, type MotivoPendencia } from '@/server/visualizacao/resumo-gastos';
@@ -116,6 +117,10 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
         </div>
         <button type="submit">Filtrar</button>
       </form>
+
+      <Link href={`/lancamentos?mes=${mes}&ano=${ano}&visao=${visao}`} className="link">
+        Ver lançamentos desta competência
+      </Link>
 
       {visao === 'combinada' ? (
         <section className="card">
