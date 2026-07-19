@@ -71,6 +71,20 @@ export async function listarCartoesPendentes() {
     .orderBy(cartao.createdAt);
 }
 
+// Cartões marcados "Não é do casal" (Story 2.3) -- exibidos numa seção
+// separada em /cartoes para permitir desfazer, já que antes disso não havia
+// nenhuma tela que os mostrasse (achado 2 desta auditoria, deferred-work.md
+// spec-2-3). Filtro idêntico ao guard `REJEITADO` de `desfazerRejeicaoCartao`
+// (defesa em profundidade: um cartão listado aqui sempre pode de fato ser
+// desfeito, nunca aparece com "Desfazer rejeição" retornando falha).
+export async function listarCartoesRejeitados() {
+  return db
+    .select()
+    .from(cartao)
+    .where(and(eq(cartao.terceiro, true), isNull(cartao.usuarioId)))
+    .orderBy(cartao.createdAt);
+}
+
 // Cartão só pode ser resolvido (mapeado ou rejeitado) enquanto ainda está
 // pendente -- essa condição vai no WHERE das duas funções abaixo, não só na
 // consulta da lista, para não sobrescrever silenciosamente um cartão já
@@ -117,6 +131,31 @@ export async function rejeitarCartaoTerceiro(
 
   if (atualizados.length === 0) {
     return { ok: false, message: 'Cartão já foi resolvido ou não existe.' };
+  }
+
+  revalidatePath('/cartoes');
+
+  return { ok: true };
+}
+
+// Reverte `rejeitarCartaoTerceiro` -- guard simétrico ao de `PENDENTE`: só
+// atua sobre o estado exato que a rejeição produz (`terceiro = true`,
+// `usuarioId` ainda nulo), nunca sobre um cartão em qualquer outro estado.
+// Não escreve em `lancamento`: a agregação já é um join ao vivo via
+// `cartao.usuarioId`/`cartao.terceiro` (achado 2 desta auditoria), então os
+// lançamentos existentes desse cartão voltam a aparecer como "pendente de
+// titular" na próxima leitura sem nenhuma escrita adicional aqui.
+const REJEITADO = and(eq(cartao.terceiro, true), isNull(cartao.usuarioId));
+
+export async function desfazerRejeicaoCartao(cartaoId: number): Promise<{ ok: boolean; message?: string }> {
+  const atualizados = await db
+    .update(cartao)
+    .set({ terceiro: false })
+    .where(and(eq(cartao.id, cartaoId), REJEITADO))
+    .returning();
+
+  if (atualizados.length === 0) {
+    return { ok: false, message: 'Cartão não está rejeitado.' };
   }
 
   revalidatePath('/cartoes');
