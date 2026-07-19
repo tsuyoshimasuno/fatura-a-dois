@@ -90,3 +90,11 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-ux-feedback-acoes-silenciosas.md`
   summary: `CategoriaItem`'s input é não-controlado (`defaultValue={item.nome}`) e `editarCategoria` faz `trim()` no servidor -- se o usuário digitar espaços extras, o campo continua mostrando o texto não-trimado mesmo após "Categoria salva.", divergindo do que foi persistido. A mensagem de sucesso também nunca some (sem timeout/dismissal).
   evidence: Padrão de input não-controlado já existia antes desta story (mesmo `defaultValue={item.nome}` no `<form action={renomear}>` original); a mensagem de sucesso é nova nesta story mas é cosmética -- não afeta a correção do dado persistido, só a exatidão visual do campo entre um render e o próximo `router.refresh()`.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-nav-mobile-responsiva.md`
+  summary: O menu mobile (hamburguer) nao fecha com tecla Escape, nao fecha ao clicar fora dele, e nao move o foco para dentro da lista ao abrir nem de volta ao botao ao fechar -- padrao completo de "disclosure menu" acessivel exigiria os tres.
+  evidence: Fora do escopo desta story (que pedia so: botao operavel por teclado, aria-label/aria-expanded, fechar ao navegar) -- nenhum destes e uma regressao, sao melhorias reais de acessibilidade para um passe dedicado futuro.
+  
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-nav-mobile-responsiva.md`
+  summary: Sem transicao/animacao ao abrir/fechar o menu mobile (display:none <-> flex instantaneo) e o icone de tres barras nao se transforma visualmente em "X" quando aberto -- so o aria-label/aria-expanded indicam o estado para tecnologia assistiva.
+  evidence: Polimento visual nao pedido no escopo desta story; app inteiro ja tem postura de "sem sombra/animacao decorativa" (DESIGN.md), entao a ausencia de transicao e consistente com o resto do sistema, nao uma lacuna isolada.
