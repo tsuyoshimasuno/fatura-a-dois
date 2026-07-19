@@ -102,3 +102,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-ux-competencia-persistente.md`
   summary: O novo link de atalho entre /gastos e /lancamentos nao tem landmark/skip-link ao redor, entao usuarios de teclado/leitor de tela precisam passar por ele (tab) antes de chegar ao conteudo da tela em toda carga de pagina.
   evidence: Real, mas o app inteiro ja nao tem nenhum skip-link em nenhuma tela -- gap pre-existente e transversal, nao especifico desta story; melhor enderecado num passe de acessibilidade dedicado.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-ux-dashboard-inicial.md`
+  summary: Todo o app resolve "mes/ano atual" via `new Date()` local do servidor, sem ancoragem explicita a America/Sao_Paulo. Antes desta story isso so decidia quais anos populavam um <select> (inofensivo se errado por um mes); agora tambem decide qual dos 3 estados o dashboard mostra e a competencia contada nos badges da nav -- perto da meia-noite em Brasilia, se o servidor rodar em UTC, o dashboard pode mostrar o estado do mes errado por algumas horas.
+  evidence: Padrao pre-existente em competenciaValida (lib/competencia.ts), /upload, /gastos, /lancamentos -- nao introduzido por esta story, mas elevado em importancia real. Corrigir direito exige auditar todo ponto de resolucao de data com uma decisao real de fuso horario (ex: Intl.DateTimeFormat com timeZone explicito), nao um patch pontual numa unica story.

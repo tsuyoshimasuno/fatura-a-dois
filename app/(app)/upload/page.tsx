@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { processarUpload } from '@/server/ingestao/upload';
 
@@ -21,6 +22,13 @@ const MESES = [
 export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  // Competência selecionada no formulário, capturada no momento do submit --
+  // `form.reset()` (chamado logo abaixo em caso de sucesso) limpa os
+  // `<select>`, então este é o único lugar em que o valor ainda está
+  // disponível para montar o link pós-sucesso para /gastos.
+  const [competenciaEnviada, setCompetenciaEnviada] = useState<{ mes: string; ano: string } | null>(
+    null
+  );
 
   // anoAtual-1..anoAtual+1 cobre a virada de ano mesmo se a página for
   // prerenderizada estaticamente num build anterior (ex: build em julho/2026
@@ -36,11 +44,16 @@ export default function UploadPage() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const mesSelecionado = String(formData.get('competencia_mes') ?? '');
+    const anoSelecionado = String(formData.get('competencia_ano') ?? '');
 
     try {
       const response = await processarUpload(formData);
       setResult(response);
-      if (response.ok) form.reset();
+      if (response.ok) {
+        setCompetenciaEnviada({ mes: mesSelecionado, ano: anoSelecionado });
+        form.reset();
+      }
     } catch {
       setResult({ ok: false, message: 'Falha inesperada ao enviar. Tente novamente.' });
     } finally {
@@ -93,6 +106,15 @@ export default function UploadPage() {
           >
             {result.message}
           </p>
+        )}
+        {result?.ok && competenciaEnviada && (
+          <Link
+            href={`/gastos?mes=${competenciaEnviada.mes}&ano=${competenciaEnviada.ano}`}
+            className="link"
+          >
+            Ver gastos de {MESES.find((mes) => mes.value === competenciaEnviada.mes)?.label ?? ''}{' '}
+            de {competenciaEnviada.ano} →
+          </Link>
         )}
         <button type="submit" disabled={loading}>
           {loading ? 'Enviando...' : 'Enviar'}

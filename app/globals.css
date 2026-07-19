@@ -8,6 +8,7 @@
   --accent-hover: #1d4399;
   --accent-foreground: #ffffff;
   --danger: #c0362c;
+  --pending: #b8860b;
   --radius: 10px;
 }
 
@@ -22,6 +23,7 @@
     --accent-hover: #8db0ff;
     --accent-foreground: #0b0d12;
     --danger: #ff8377;
+    --pending: #e0b64d;
   }
 }
 
@@ -114,6 +116,22 @@ h3 {
   color: var(--foreground);
   border-bottom-color: var(--accent);
   font-weight: 600;
+}
+
+.badge-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  margin-left: 0.375rem;
+  padding: 0 0.35rem;
+  border-radius: 9999px;
+  background: var(--pending);
+  color: var(--accent-foreground);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .app-nav-toggle {

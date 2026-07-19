@@ -14,9 +14,21 @@ const LINKS = [
   { href: '/cartoes', label: 'Cartões' },
 ];
 
-export function Nav() {
+type NavProps = {
+  pendentesCartoes?: number;
+  pendentesLancamentos?: number;
+};
+
+// Contagem de pendência por rota de nav -- só "Cartões" e "Lançamentos" têm
+// badge (spec-ux-dashboard-inicial.md); qualquer outro link nunca exibe.
+export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps) {
   const pathname = usePathname();
   const [menuAberto, setMenuAberto] = useState(false);
+
+  const badgePorRota: Record<string, number> = {
+    '/cartoes': pendentesCartoes,
+    '/lancamentos': pendentesLancamentos,
+  };
 
   // Ajusta o estado durante a renderização (padrão recomendado pelo React
   // para "resetar estado quando uma prop muda") em vez de useEffect -- fecha
@@ -46,6 +58,7 @@ export function Nav() {
       <ul id="app-nav-list" className={menuAberto ? 'app-nav-list aberto' : 'app-nav-list'}>
         {LINKS.map((link) => {
           const ativo = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+          const badge = badgePorRota[link.href] ?? 0;
           return (
             <li key={link.href}>
               <Link
@@ -55,6 +68,11 @@ export function Nav() {
                 onClick={() => setMenuAberto(false)}
               >
                 {link.label}
+                {badge > 0 && (
+                  <span className="badge-pending" aria-label={`${badge} pendente(s)`}>
+                    {badge}
+                  </span>
+                )}
               </Link>
             </li>
           );
