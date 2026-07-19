@@ -51,6 +51,7 @@ NFR8: Resiliência a mudança de layout do Itaú é um risco conhecido e aceito,
 - `categoria` e `regra_categorizacao` nunca recebem coluna de escopo por usuário — são compartilhadas pelas duas contas, sempre (nenhuma story deve introduzir particionamento por usuário nessas tabelas).
 - Toda rota de dado exige sessão válida do Supabase Auth, validada em middleware antes de qualquer route handler (FR1).
 - Ambiente único de produção nesta fase; dev local via Supabase CLI + `next dev`; sem staging formal (revisitar se a escala crescer).
+- Datas exibidas ao usuário (lançamentos) usam o formato brasileiro `DD-MM-AAAA`, nunca o `AAAA-MM-DD` cru da coluna `date` do Postgres/Drizzle — requisito retroativo (auditoria 2026-07-19, achado 3): nenhuma story original especificava formato de exibição de data, o que permitiu o formato ISO cru vazar para a UI sem violar nenhum AC. `lib/data.ts` (`formatarData`) é o único ponto de conversão.
 
 ### UX Design Requirements
 
@@ -257,6 +258,14 @@ So that todo lançamento fique atribuído à pessoa certa.
 **When** o sistema tenta processar o upload
 **Then** o upload inteiro é rejeitado com aviso específico, exigindo resolução manual antes de prosseguir
 
+**Given** um cartão associado a uma conta (AC acima)
+**When** o mapeamento é confirmado
+**Then** TODOS os lançamentos já existentes daquele cartão (não só os futuros) passam a contar para essa pessoa em toda visão agregada (Épico 4, Épico 5) na próxima leitura — a atribuição é sempre resolvida em leitura via o titular do cartão, nunca precisa de reprocessamento/backfill dos lançamentos já salvos *(AC adicionado retroativamente — auditoria 2026-07-19, achado 2: a palavra "futuros" no AC original nunca excluiu os existentes na implementação real, mas a ambiguidade do texto era real; a mensagem de confirmação do mapeamento também passou a informar quantos lançamentos existentes e em quais competências foram afetados, para tornar esse efeito visível)*
+
+**Given** um cartão marcado como "não é do casal" por engano
+**When** o casal acessa a tela de mapeamento
+**Then** existe uma forma de desfazer essa marcação, devolvendo o cartão ao estado pendente de mapeamento *(AC adicionado retroativamente — auditoria 2026-07-19: o AC original não previa nenhum caminho de reversão para essa decisão)*
+
 ### Story 2.4: Merge por delta em reenvio da mesma competência
 
 As a pessoa do casal,
@@ -393,6 +402,10 @@ So that ele possa ser rastreado ao longo dos meses.
 **Given** duas parcelas da mesma compra em faturas diferentes
 **When** ambas são processadas
 **Then** são reconhecidas como pertencentes à mesma compra original via a chave titular/cartão + estabelecimento normalizado + valor da parcela + total de parcelas (AD-4, AD-9)
+
+**Given** um lançamento identificado como parcela (`parcelaNumero`/`parcelaTotal` preenchidos)
+**When** ele aparece em qualquer tela que lista lançamentos individuais (não só `/parcelas`, Story 5.2 — inclui `/lancamentos`, Épico 4)
+**Then** o número da parcela é visível junto ao lançamento (ex: "3/12") — dado identificado e nunca exposto é equivalente, do ponto de vista do usuário, a nunca ter sido identificado *(AC adicionado retroativamente — auditoria 2026-07-19, achado 1: o AC original só cobria a identificação/escrita do dado, nenhum AC desta story ou de `/lancamentos` (Story 3.3, que criou a tela) exigia sua exibição — gap real que permitiu o dado existir desde este Épico sem nunca aparecer em `/lancamentos`)*
 
 ### Story 5.2: Projeção de parcelas futuras
 
