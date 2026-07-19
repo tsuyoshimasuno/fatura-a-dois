@@ -2,8 +2,9 @@
 title: 'Unificar /lancamentos e /gastos numa única visão'
 type: 'feature'
 created: '2026-07-19'
-status: 'in-review'
+status: 'done'
 baseline_revision: '6f17f07726df041eccf85a2a5db2048325ac96d1'
+final_revision: 'fb0d836'
 review_loop_iteration: 1
 followup_review_recommended: true
 context: []
