@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
 status: final
-updated: 2026-07-18
+updated: 2026-07-19
 colors:
   background: '#ffffff'
   background-dark: '#0b0d12'
@@ -69,6 +69,7 @@ spacing:
   page-padding-mobile: 1.5rem
   page-max-width: 720px
   page-max-width-narrow: 400px
+  page-max-width-wide: 1150px # proposto 2026-07-19 (rodada 4) — exceção só para /lancamentos, ver Layout & Spacing
 components:
   button-primary:
     background: '{colors.accent}'
@@ -127,6 +128,8 @@ Uma única família (`Geist Sans`, com fallback de sistema) e uma escala pequena
 ## Layout & Spacing
 
 Layout de coluna única, `{spacing.page-max-width}` (720px) centralizado — deliberadamente estreito porque o conteúdo é sempre uma lista vertical de lançamentos/cartões/categorias, nunca um dashboard multi-coluna. Telas de autenticação e formulários curtos (login, upload, esqueci/redefinir senha, remover categoria) usam `{spacing.page-max-width-narrow}` (400px), reforçando visualmente "isto é uma ação pontual", não uma tela de navegação.
+
+`[PROPOSTO]` **exceção deliberada (2026-07-19, rodada 4):** `/lancamentos` passa a usar duas colunas em `≥768px` — lista rolante à esquerda + painel de filtro/total estático à direita (ver `EXPERIENCE.md` → "Lista Rolante + Total Central Estático") — a pedido explícito do usuário, que quer o total sempre visível sem rolar a lista longa (100+ itens/competência). Isto substitui `{spacing.page-max-width}` (720px) por uma largura maior nesta tela específica (`{spacing.page-max-width-wide}` `[PROPOSTO]`, sugerido 1100–1200px — suficiente para duas colunas sem ficar excessivamente largo) — as demais telas continuam em 720px coluna única, esta é a única exceção do produto. Conflito com a decisão anterior ("nunca um dashboard multi-coluna") é reconhecido e resolvido a favor do novo pedido do usuário, por ser mais específico (uma tela, um motivo funcional concreto) que o princípio geral que o precedeu.
 
 Padding lateral de página é `{spacing.page-padding-mobile}` em qualquer largura — não há breakpoint de padding hoje, e não precisa: como o conteúdo já é estreito, a mesma margem funciona de 360px a desktop. **Onde o layout atual não escala bem é a navegação** (ver EXPERIENCE.md → Responsive & Platform), não o conteúdo de página.
 

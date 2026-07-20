@@ -10,6 +10,10 @@
   --danger: #c0362c;
   --pending: #b8860b;
   --radius: 10px;
+  /* Exceção de largura escopada só a /lancamentos (spec-ux-lista-rolante-
+     total-estatico) -- layout de 2 colunas precisa de mais espaço que o
+     `.page` padrão (720px) do resto do produto. */
+  --page-max-width-wide: 1150px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -213,6 +217,67 @@ h3 {
 
 .page--narrow {
   max-width: 400px;
+}
+
+.page--wide {
+  max-width: var(--page-max-width-wide);
+}
+
+/* /lancamentos -- lista rolante + painel estático (spec-ux-lista-rolante-
+   total-estatico). Abaixo de 768px (mesmo breakpoint já usado pela nav):
+   3 blocos empilhados na ordem do próprio DOM -- filtro/resumo, lista,
+   pendentes -- sem contêiner de rolagem próprio na lista, pra evitar scroll
+   dentro de scroll numa tela pequena. */
+.lancamentos-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.lancamentos-filtro-resumo,
+.lancamentos-pendentes {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  /* CSS Grid (não flex) porque filtro/resumo e pendentes precisam ficar
+     empilhados numa MESMA coluna à direita da lista -- 3 irmãos numa `flex-
+     direction: row` ficariam em 3 colunas separadas. `grid-template-areas`
+     resolve isso sem duplicar DOM nem depender de `order`. Faixas em `fr`
+     (não `%`) -- percentuais não descontam o `gap` do Grid, o que faria as
+     colunas somarem mais que 100% da largura do contêiner. */
+  .lancamentos-columns {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    grid-template-areas:
+      'lista filtro'
+      'lista pendentes';
+    align-items: start;
+    gap: 1.75rem;
+  }
+
+  .lancamentos-filtro-resumo {
+    grid-area: filtro;
+  }
+
+  .lancamentos-lista {
+    grid-area: lista;
+    min-width: 0;
+    /* Teto ligado à viewport, mas com piso -- protege contra o cabeçalho
+       quebrar em 2 linhas numa largura logo acima de 768px (tablet estreito),
+       o que reduziria o orçamento de altura disponível e reintroduziria
+       scroll duplo (o problema que este layout existe pra evitar). */
+    max-height: min(calc(100vh - 220px), 70vh);
+    min-height: 320px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+
+  .lancamentos-pendentes {
+    grid-area: pendentes;
+  }
 }
 
 .page-header {

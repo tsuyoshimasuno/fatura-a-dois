@@ -390,7 +390,13 @@ So that a gente saiba rapidamente pra onde foi o dinheiro sem reler a planilha.
 **When** o casal seleciona uma pessoa específica num filtro
 **Then** tanto o resumo agregado quanto a lista de lançamentos individuais mostram só os dados dessa pessoa, e o alternador combinada/individual (AC acima) deixa de ser exibido enquanto o filtro estiver ativo *(AC adicionado retroativamente — auditoria 2026-07-19, rodada 3: refinamento direto do AC "alterno entre visão combinada e individual" já existente, estreitando-o a uma pessoa específica)*
 
+**Given** a visão de gastos por competência
+**When** o casal seleciona uma categoria específica num filtro
+**Then** tanto o total quanto a lista de lançamentos individuais mostram só os dados dessa categoria, o total recalcula sem exigir novo carregamento de página, e o bloco "pendente de revisão" continua mostrando todos os pendentes independente desse filtro (mesmo princípio já aplicado ao filtro de pessoa) *(AC adicionado retroativamente — auditoria 2026-07-19, rodada 4: capacidade nova e visível — nenhum AC anterior cobria filtrar por categoria — mas cabe no escopo já mapeado do épico "ver quanto cada um gastou e em que categorias"; refinamento direto, não um épico/story novo)*
+
 **Nota de implementação (2026-07-19, rodada 3):** `/gastos` (rota original desta story) e `/lancamentos` (Story 3.3) foram unificadas numa única tela em `/lancamentos` — decisão de UX documentada em `EXPERIENCE.md`, seção "Unificação de Lançamentos e Gastos numa Única Visão". `/gastos?...` continua resolvendo via redirect (preserva querystring), não é uma rota removida do produto, só da navegação.
+
+**Nota de implementação (2026-07-19, rodada 4):** layout de `/lancamentos` reorganizado em duas colunas (`≥768px`) — lista de lançamentos com rolagem própria à esquerda, painel de filtro/resumo/total/pendentes à direita, sem rolagem própria por já caber sempre na tela — decisão de UX documentada em `EXPERIENCE.md`, seção "Lista Rolante + Total Central Estático". Puramente apresentacional (nenhum dado novo além do necessário para o filtro de categoria acima); exceção documentada em `DESIGN.md` ao padrão de coluna única do resto do produto, escopada só a esta tela.
 
 ## Epic 5: Parcelas Futuras e Comprometimento de Limite
 
