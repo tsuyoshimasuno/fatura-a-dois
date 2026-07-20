@@ -2,12 +2,13 @@
 title: 'Lista rolante lateral + total central estático em /lancamentos'
 type: 'feature'
 created: '2026-07-19'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context: []
 warnings: []
 baseline_revision: '15efe31fa6a3ae720fe33af0c7b9193797414a15'
+final_revision: '969f2e9'
 ---
 
 <intent-contract>
@@ -107,3 +108,25 @@ O ponto não-óbvio é *onde* o filtro de Pessoa/Categoria deixa de ser server-s
 
 **Manual checks (if no CLI):**
 - Script descartável (somente leitura) tentado contra o Supabase de produção real -- bloqueado pelo classificador de segurança da sessão antes de rodar (mesmo tipo de bloqueio de ações sensíveis já visto em rodadas anteriores desta run). Não executado; risco residual documentado no `Auto Run Result`. `tsc`/`eslint`/`build` (todos limpos) e a leitura de código de `listarLancamentosParaCorrecao`/`obterResumoGastos` (campos `categoriaId`/`valorCentavos`/`titularUsuarioId` já existentes, sem mudança de assinatura) foram a verificação disponível nesta passada.
+
+## Auto Run Result
+
+Status: done
+
+**Resumo:** `/lancamentos` reorganizada em layout de 2 colunas (`≥768px`, CSS Grid): lista de lançamentos com rolagem própria à esquerda, painel de filtro/resumo/total/pendentes sem rolagem própria à direita. Novo filtro de Categoria (Todas/uma categoria/Sem categoria); Pessoa e Categoria passaram a ser reativos no cliente (recalculam lista e Total instantaneamente, sem reload); Mês/Ano continuam via `GET`. `<768px` empilha em ordem filtro→Total→lista→pendentes, lista sem contêiner de rolagem próprio.
+
+**Arquivos alterados:**
+- `app/(app)/lancamentos/_components/lancamentos-view.tsx` (novo) -- Client Component com todo o estado de filtro e a lógica derivada (lista filtrada, Total, resumo condicional).
+- `app/(app)/lancamentos/page.tsx` -- simplificado para Server Component que só busca Mês/Ano via GET e passa dado completo da competência para `LancamentosView`.
+- `app/globals.css` -- `--page-max-width-wide`, `.page--wide`, `.lancamentos-columns`/`.lancamentos-filtro-resumo`/`.lancamentos-lista`/`.lancamentos-pendentes` (CSS Grid em `≥768px`).
+- `bmad-output/planning-artifacts/epics.md` -- AC retroativo na Story 4.1 (filtro de categoria) + nota de implementação sobre o layout.
+- `bmad-output/planning-artifacts/ux-designs/ux-fatura-a-dois-2026-07-18/{DESIGN,EXPERIENCE}.md` -- nova seção "Lista Rolante + Total Central Estático"; reconciliação de tags `[PROPOSTO]`→`[IMPLEMENTADO]` da rodada anterior (unificação Lançamentos+Gastos), já em produção mas ainda não reconciliada no doc.
+
+**Review findings breakdown:** 6 patches aplicados (1 alto, 3 médios, 2 baixos), 0 deferidos, 5 rejeitados (com justificativa registrada no Review Triage Log). Achado alto: ordem mobile no DOM violava o próprio AC de responsivo -- corrigido com CSS Grid `grid-template-areas` reposicionando os 3 blocos por breakpoint sem duplicar DOM.
+
+**Verificação realizada:** `tsc --noEmit`, `eslint`, `npm run build` -- todos limpos após os patches. Verificação contra o Supabase de produção real **não realizada**: o classificador de segurança da sessão bloqueou a execução do script descartável de leitura antes de rodar.
+
+**Riscos residuais:**
+- Comportamento de filtro/total não foi confirmado visualmente em navegador real nem contra dado de produção real (bloqueio do classificador) -- a lógica foi verificada por leitura de código e tipos, não por execução.
+- `?visao=` na URL não é mais atualizado ao trocar o toggle no cliente (rejeitado como aceitável, ver Review Triage Log).
+- Bookmarks antigos com `?pessoa=` não pré-selecionam mais a pessoa ao carregar (Pessoa virou estado 100% client-side) -- nenhum link interno do produto usa esse parâmetro, então não quebra navegação existente, só bookmarks externos manuais, se existirem.
