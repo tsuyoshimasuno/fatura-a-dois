@@ -31,6 +31,11 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   const emVooRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<{ ok: boolean; message: string } | null>(null);
+  // Form de correção some por padrão -- deixa a lista "clean" pra revisar
+  // 100+ itens de uma vez. O ícone revela o form inline (sem modal, sem
+  // perder o lugar na lista); fecha sozinho após uma correção bem-sucedida.
+  const [editando, setEditando] = useState(false);
+  const painelId = `corrigir-categoria-${item.id}`;
 
   const categoriaAtualLabel = item.categoriaRemovida
     ? 'Categoria removida'
@@ -65,6 +70,7 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
     try {
       const resposta = await corrigirCategoriaLancamento(item.id, categoriaId);
       if (resposta.ok) {
+        setEditando(false);
         router.refresh();
       } else {
         setResultado({ ok: false, message: resposta.message ?? 'Falha ao corrigir categoria.' });
@@ -95,27 +101,50 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
           <> -- {item.parcelaNumero}/{item.parcelaTotal}</>
         )}
       </div>
-      <div className="hint" style={{ marginBottom: '0.75rem' }}>
-        Categoria atual: {categoriaAtualLabel}
+      <div className="field-inline" style={{ marginBottom: editando ? '0.75rem' : 0 }}>
+        <span className="hint">Categoria atual: {categoriaAtualLabel}</span>
+        {categorias.length > 0 && (
+          <button
+            type="button"
+            className="icon-button"
+            aria-expanded={editando}
+            aria-controls={painelId}
+            aria-label={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
+            title={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
+            onClick={() => setEditando((valor) => !valor)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
       </div>
       {categorias.length === 0 ? (
         <p className="hint">Nenhuma categoria cadastrada ainda -- crie uma em /categorias antes de corrigir.</p>
       ) : (
-        <form onSubmit={handleSubmit} className="field-inline">
-          <select name="categoria_id" defaultValue={categoriaAtualSelecionavel} required disabled={loading}>
-            <option value="" disabled>
-              Selecione a categoria
-            </option>
-            {categorias.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.nome}
+        editando && (
+          <form id={painelId} onSubmit={handleSubmit} className="field-inline">
+            <select name="categoria_id" defaultValue={categoriaAtualSelecionavel} required disabled={loading}>
+              <option value="" disabled>
+                Selecione a categoria
               </option>
-            ))}
-          </select>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Corrigindo...' : 'Corrigir'}
-          </button>
-        </form>
+              {categorias.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nome}
+                </option>
+              ))}
+            </select>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Corrigindo...' : 'Corrigir'}
+            </button>
+          </form>
+        )
       )}
       {resultado && !resultado.ok && (
         <p role="alert" className="alert-error" style={{ marginTop: '0.5rem' }}>
