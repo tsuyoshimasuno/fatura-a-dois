@@ -11,15 +11,31 @@
 # implementation-readiness (ver dispatch.md: "bmad-dev-auto... deriva
 # contexto de epico/story sozinho") -- ou seja, nada nesse caminho re-pergunta
 # "isso deveria virar AC numa story?" a nao ser que alguem lembre de checar.
-# Estendida para incluir o especialista de UX na mesma avaliacao (nao so
-# PM+tech-lead): o gap real que motivou esta regra desde o inicio foi um
-# "consultar o agente de UX" tratado como conversa informal dentro do turno,
-# em vez do dispatch formal bmad-ux intent=update que deixa rastro em
-# EXPERIENCE.md/DESIGN.md -- UX precisa ser parte do MESMO gate, nao uma
-# etapa separada que pode ser pulada silenciosamente. Como persistent_fact,
-# esta regra e carregada automaticamente em toda ativacao do goal-engine
-# (SKILL.md Step 2), virando parte estrutural do workflow em vez de uma
-# convencao que so existe se o memlog for lido com cuidado.
+#
+# Estendida em 3 rodadas de refinamento com o usuario:
+# (1) incluir o especialista de UX na mesma avaliacao, nao so PM+tech-lead --
+#     o gap real que motivou toda esta regra foi um "consultar o agente de
+#     UX" tratado como conversa informal dentro do turno, em vez do dispatch
+#     formal que deixa rastro em EXPERIENCE.md/DESIGN.md.
+# (2) nao existe uma persona "tech lead" no roster de agentes do BMad
+#     instalado aqui (John=PM, Winston=System Architect, Amelia=Dev,
+#     Sally=UX, Paige=Tech Writer) -- "tech lead" mapeia para Winston
+#     (bmad-agent-architect), a persona mais proxima do julgamento tecnico/
+#     de escopo que o papel exigia.
+# (3) os tres papeis devem ser agentes de verdade rodando em paralelo
+#     (Agent tool, subagentes independentes que nao se veem antes de eu
+#     reconciliar), no mesmo espirito do Blind Hunter + Edge Case Hunter do
+#     bmad-dev-auto -- nao mais eu raciocinando sozinho pelos tres papeis no
+#     mesmo contexto (padrao usado ate aqui, ver linha 90 do memlog: "fiz eu
+#     mesmo o julgamento PM+tech-lead... e apliquei via edicao direta").
+#     Escopado a mudancas substanciais (nova capacidade/tela/fluxo visivel)
+#     para nao pagar o custo de 3 subagentes paralelos em todo ajuste
+#     pequeno -- decisao consciente de custo/beneficio, nao esquecimento.
+#
+# Como persistent_fact, esta regra e carregada automaticamente em toda
+# ativacao do goal-engine (SKILL.md Step 2), virando parte estrutural do
+# workflow em vez de uma convencao que so existe se o memlog for lido com
+# cuidado.
 persistent_facts = [
-  "Antes de qualquer dispatch de bmad-dev-auto -- incluindo (e principalmente) dispatch freeform/Categoria 3, sem story formal do epics.md -- faca uma avaliacao conjunta de tres papeis, nunca so um deles isoladamente: (1) especialista de UX (Sally/bmad-ux) avalia o impacto na experiencia/interacao -- preferencialmente via bmad-ux intent=update de verdade (headless), atualizando EXPERIENCE.md/DESIGN.md, nao uma conversa informal dentro do turno; (2) PM e (3) tech-lead decidem juntos, a partir do que a UX trouxe, se a mudanca exige um AC novo numa story existente, uma story/epic nova, ou nenhuma alteracao em epics.md (nao e capacidade nova visivel ao usuario). Registre essa decisao no memlog (--type decision), citando o que cada papel concluiu, ANTES de despachar o bmad-dev-auto -- nunca retroativamente depois do commit. Regra permanente do usuario, valida para toda run deste projeto, nao so a que a originou.",
+  "Antes de qualquer dispatch de bmad-dev-auto que represente uma mudanca substancial (nova capacidade/tela/fluxo visivel ao usuario, nao um ajuste cosmetico pequeno) -- incluindo (e principalmente) dispatch freeform/Categoria 3, sem story formal do epics.md -- despache John (bmad-agent-pm), Winston (bmad-agent-architect, no papel de tech-lead) e Sally (bmad-agent-ux-designer) como tres agentes de verdade em PARALELO (Agent tool, subagentes independentes, cada um sem ver a conclusao dos outros dois antes de terminar sua propria analise), nunca como raciocinio sequencial de um so orquestrador pelos tres papeis. Cada agente recebe o mesmo contexto da mudanca proposta (goal atual, artefatos relevantes: epics.md, EXPERIENCE.md/DESIGN.md, codigo/telas afetadas) e devolve seu veredito independente: Sally avalia impacto na experiencia/interacao (preferencialmente formalizando via bmad-ux intent=update, atualizando EXPERIENCE.md/DESIGN.md); John e Winston avaliam, cada um a partir do que Sally trouxe, se a mudanca exige um AC novo numa story existente, uma story/epic nova, ou nenhuma alteracao em epics.md. Depois de coletar os tres, reconcilie divergencias (se um pedir escopo maior que os outros dois, o mais abrangente prevalece, registrado como tal) e registre a decisao final no memlog (--type decision), citando o veredito de cada um dos tres, ANTES de despachar o bmad-dev-auto -- nunca retroativamente depois do commit. Para ajustes pequenos/cosmeticos que nao envolvam capacidade nova, o julgamento pode continuar sendo feito diretamente pelo orquestrador (sem pagar o custo de 3 subagentes), mas isso deve ser justificado explicitamente no memlog como 'mudanca pequena, avaliacao direta' antes de prosseguir -- nunca por omissao silenciosa. Regra permanente do usuario, valida para toda run deste projeto, nao so a que a originou.",
 ]
