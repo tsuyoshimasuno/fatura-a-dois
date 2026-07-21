@@ -1,0 +1,25 @@
+[workflow]
+
+# Regra permanente do usuario (ver bmad-output/planning-artifacts/goal-engine/
+# goal-fatura-a-dois-2026-07-16/.memlog.md, linha 89): antes desta
+# customizacao, a checagem PM+tech-lead contra epics.md so acontecia porque
+# alguem lembrava de aplica-la manualmente a cada objetivo -- e dependia de
+# ler o memlog inteiro pra recupera-la. Isso e especialmente fragil pros
+# dispatches freeform de bmad-dev-auto (Categoria 3 do dispatch.md, quando o
+# input e uma secao de EXPERIENCE.md/DESIGN.md em vez de uma story formal),
+# que ja pulam de proposito bmad-create-epics-and-stories/bmad-check-
+# implementation-readiness (ver dispatch.md: "bmad-dev-auto... deriva
+# contexto de epico/story sozinho") -- ou seja, nada nesse caminho re-pergunta
+# "isso deveria virar AC numa story?" a nao ser que alguem lembre de checar.
+# Estendida para incluir o especialista de UX na mesma avaliacao (nao so
+# PM+tech-lead): o gap real que motivou esta regra desde o inicio foi um
+# "consultar o agente de UX" tratado como conversa informal dentro do turno,
+# em vez do dispatch formal bmad-ux intent=update que deixa rastro em
+# EXPERIENCE.md/DESIGN.md -- UX precisa ser parte do MESMO gate, nao uma
+# etapa separada que pode ser pulada silenciosamente. Como persistent_fact,
+# esta regra e carregada automaticamente em toda ativacao do goal-engine
+# (SKILL.md Step 2), virando parte estrutural do workflow em vez de uma
+# convencao que so existe se o memlog for lido com cuidado.
+persistent_facts = [
+  "Antes de qualquer dispatch de bmad-dev-auto -- incluindo (e principalmente) dispatch freeform/Categoria 3, sem story formal do epics.md -- faca uma avaliacao conjunta de tres papeis, nunca so um deles isoladamente: (1) especialista de UX (Sally/bmad-ux) avalia o impacto na experiencia/interacao -- preferencialmente via bmad-ux intent=update de verdade (headless), atualizando EXPERIENCE.md/DESIGN.md, nao uma conversa informal dentro do turno; (2) PM e (3) tech-lead decidem juntos, a partir do que a UX trouxe, se a mudanca exige um AC novo numa story existente, uma story/epic nova, ou nenhuma alteracao em epics.md (nao e capacidade nova visivel ao usuario). Registre essa decisao no memlog (--type decision), citando o que cada papel concluiu, ANTES de despachar o bmad-dev-auto -- nunca retroativamente depois do commit. Regra permanente do usuario, valida para toda run deste projeto, nao so a que a originou.",
+]
