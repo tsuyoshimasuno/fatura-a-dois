@@ -5,21 +5,6 @@ import { listarContasCasal } from '@/server/ingestao/mapear-cartao';
 import { obterResumoGastos } from '@/server/visualizacao/resumo-gastos';
 import { LancamentosView } from './_components/lancamentos-view';
 
-const MESES = [
-  { value: '1', label: 'Janeiro' },
-  { value: '2', label: 'Fevereiro' },
-  { value: '3', label: 'Março' },
-  { value: '4', label: 'Abril' },
-  { value: '5', label: 'Maio' },
-  { value: '6', label: 'Junho' },
-  { value: '7', label: 'Julho' },
-  { value: '8', label: 'Agosto' },
-  { value: '9', label: 'Setembro' },
-  { value: '10', label: 'Outubro' },
-  { value: '11', label: 'Novembro' },
-  { value: '12', label: 'Dezembro' },
-];
-
 // Qualquer valor além de 'combinada' (ausente, malformado) cai no default
 // 'individual' -- mesmo princípio de não deixar a tela num estado inválido.
 // Só usado como valor inicial do toggle Individual/Combinada, que agora vive
@@ -69,30 +54,6 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
         </p>
       </div>
 
-      <form method="GET" className="form-row">
-        <label className="field">
-          Mês
-          <select name="mes" defaultValue={String(mes)}>
-            {MESES.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          Ano
-          <select name="ano" defaultValue={String(ano)}>
-            {anos.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">Filtrar</button>
-      </form>
-
       <LancamentosView
         lancamentos={lancamentos}
         categorias={categorias}
@@ -100,6 +61,9 @@ export default async function LancamentosPage({ searchParams }: LancamentosPageP
         resumoPessoas={resumo.pessoas}
         pendentes={pendentes}
         visaoAtual={visao}
+        mes={mes}
+        ano={ano}
+        anos={anos}
       />
     </main>
   );

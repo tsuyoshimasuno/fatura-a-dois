@@ -228,16 +228,16 @@ h3 {
 
 /* /lancamentos -- lista rolante + painel estático (spec-ux-lista-rolante-
    total-estatico). Abaixo de 768px (mesmo breakpoint já usado pela nav):
-   3 blocos empilhados na ordem do próprio DOM -- filtro/resumo, lista,
-   pendentes -- sem contêiner de rolagem próprio na lista, pra evitar scroll
-   dentro de scroll numa tela pequena. */
+   3 blocos empilhados na ordem do próprio DOM -- resumo, lista, pendentes --
+   sem contêiner de rolagem próprio na lista, pra evitar scroll dentro de
+   scroll numa tela pequena. */
 .lancamentos-columns {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
 }
 
-.lancamentos-filtro-resumo,
+.lancamentos-resumo,
 .lancamentos-pendentes {
   display: flex;
   flex-direction: column;
@@ -245,13 +245,16 @@ h3 {
 }
 
 @media (min-width: 768px) {
-  /* CSS Grid (não flex) porque filtro/resumo e pendentes precisam ficar
-     empilhados numa MESMA coluna à direita da lista -- 3 irmãos numa `flex-
-     direction: row` ficariam em 3 colunas separadas. `grid-template-areas`
-     resolve isso sem duplicar DOM nem depender de `order`. Faixas em `fr`
-     (não `%`) -- percentuais não descontam o `gap` do Grid, o que faria as
-     colunas somarem mais que 100% da largura do contêiner. */
+  /* Teto compartilhado entre a lista e o painel da direita -- ver
+     `.lancamentos-painel` abaixo. Precisa ser uma variável (não repetir o
+     `calc()` duas vezes): CSS Grid só consegue igualar a altura visual das
+     duas colunas (`align-items: stretch`, já o default) quando ambas têm o
+     MESMO teto explícito -- um teto em `%`/`height:100%` não funciona aqui
+     porque é circular para fins de dimensionamento do Grid (o navegador
+     cai de volta para o tamanho intrínseco do conteúdo, que é quem tem mais
+     itens "vence" e infla a linha inteira, o oposto do pedido do usuário). */
   .lancamentos-columns {
+    --lancamentos-coluna-altura: min(calc(100vh - 220px), 70vh);
     display: grid;
     /* Lista menor, painel de gastos maior -- invertido do 3fr:2fr original
        (60/40 a favor da lista) para 2fr:3fr (40/60 a favor do painel), a
@@ -259,28 +262,21 @@ h3 {
        painel (resumo por pessoa/categoria) é o que ele quer ver com mais
        destaque num relance. */
     grid-template-columns: 2fr 3fr;
-    grid-template-areas:
-      'lista filtro'
-      'lista pendentes';
-    align-items: start;
+    grid-template-areas: 'lista painel';
     gap: 1.75rem;
   }
 
-  .lancamentos-filtro-resumo {
-    grid-area: filtro;
-  }
-
-  .lancamentos-lista {
-    grid-area: lista;
-    min-width: 0;
-    /* Teto ligado à viewport, mas com piso -- protege contra o cabeçalho
-       quebrar em 2 linhas numa largura logo acima de 768px (tablet estreito),
-       o que reduziria o orçamento de altura disponível e reintroduziria
-       scroll duplo (o problema que este layout existe pra evitar). */
-    max-height: min(calc(100vh - 220px), 70vh);
+  /* Resumo e pendentes ficam dentro de UM wrapper (`.lancamentos-painel`)
+     que compartilha o mesmo teto/rolagem da lista -- assim as duas colunas
+     têm SEMPRE a mesma altura visual (feedback do usuário: o painel de
+     resumo crescia livre com muitas categorias enquanto a lista ficava
+     baixa e "cortada" com um teto independente). Cada lado rola internamente
+     o que exceder o teto compartilhado. */
+  .lancamentos-lista,
+  .lancamentos-painel {
+    max-height: var(--lancamentos-coluna-altura);
     min-height: 320px;
     overflow-y: auto;
-    padding-right: 0.25rem;
     /* Scrollbar fina/discreta -- ela fica mais perto da borda real da
        coluna agora, mas ainda precisa parecer intencional, não a barra
        crua do SO no meio do card. */
@@ -288,21 +284,34 @@ h3 {
     scrollbar-color: var(--border) transparent;
   }
 
-  .lancamentos-lista::-webkit-scrollbar {
+  .lancamentos-lista::-webkit-scrollbar,
+  .lancamentos-painel::-webkit-scrollbar {
     width: 8px;
   }
 
-  .lancamentos-lista::-webkit-scrollbar-track {
+  .lancamentos-lista::-webkit-scrollbar-track,
+  .lancamentos-painel::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .lancamentos-lista::-webkit-scrollbar-thumb {
+  .lancamentos-lista::-webkit-scrollbar-thumb,
+  .lancamentos-painel::-webkit-scrollbar-thumb {
     background-color: var(--border);
     border-radius: 9999px;
   }
 
-  .lancamentos-pendentes {
-    grid-area: pendentes;
+  .lancamentos-lista {
+    grid-area: lista;
+    min-width: 0;
+    padding-right: 0.25rem;
+  }
+
+  .lancamentos-painel {
+    grid-area: painel;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding-right: 0.25rem;
   }
 }
 

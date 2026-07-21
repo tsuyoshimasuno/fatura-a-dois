@@ -3,6 +3,7 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { formatarData } from '@/lib/data';
+import { MESES } from '@/lib/meses';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { primeiroNome } from '@/lib/pessoa';
 import type { LancamentoParaCorrecao } from '@/server/categorizacao/corrigir-categoria';
@@ -24,6 +25,9 @@ type LancamentosViewProps = {
   resumoPessoas: PessoaResumo[];
   pendentes: ItemPendente[];
   visaoAtual: 'combinada' | 'individual';
+  mes: number;
+  ano: number;
+  anos: number[];
 };
 
 // Soma o detalhamento por categoria das duas pessoas num único conjunto de
@@ -56,6 +60,9 @@ export function LancamentosView({
   resumoPessoas,
   pendentes,
   visaoAtual,
+  mes,
+  ano,
+  anos,
 }: LancamentosViewProps) {
   // Pessoa e Categoria são 100% client-side: recalculam lista/total via
   // filter()/reduce() sobre `lancamentos` (já carregado pelo Server
@@ -155,191 +162,224 @@ export function LancamentosView({
   const algumFiltroAtivo = pessoaSelecionada !== null || categoriaSelecionada !== 'todas';
 
   return (
-    <div className="lancamentos-columns">
-      {/* Ordem no mobile (coluna única, sem CSS Grid): filtro/resumo -> lista
-          -> pendentes, exatamente a ordem exigida pela spec (AC responsivo).
-          No desktop (>=768px), `.lancamentos-columns` vira CSS Grid com
-          `grid-template-areas` que reposiciona os 3 blocos em 2 colunas sem
-          precisar duplicar DOM nem depender de `order` (que não resolveria:
-          filtro/resumo e pendentes precisam ficar empilhados na MESMA coluna
-          direita, ao lado da lista, não em 3 colunas separadas). */}
-      <div className="lancamentos-filtro-resumo">
-        {/* Não é um <form> de verdade -- Pessoa/Categoria/Visão são reativos
-            no cliente (useState), sem submit nem reload (spec: nenhum novo
-            request ao servidor para esses filtros). Reaproveita a classe
-            `.form-row` só pelo layout. */}
-        <div className="form-row">
+    <>
+      {/* Barra única de filtro: Mês/Ano (form GET de verdade, recarrega a
+          página) e Pessoa/Categoria/Visão (reativos no cliente, sem reload)
+          lado a lado na mesma linha visual -- antes eram duas áreas de
+          filtro separadas (uma no topo da página, outra dentro do painel de
+          resumo), o que não ficava agradável (feedback do usuário + revisão
+          de UX). `display: contents` no <form> faz seus campos participarem
+          do mesmo flex row externo sem criar uma caixa própria, preservando
+          o submit GET real de Mês/Ano sem duplicar o layout. */}
+      <div className="form-row">
+        <form method="GET" style={{ display: 'contents' }}>
           <label className="field">
-            Pessoa
-            <select value={pessoaSelecionada ?? ''} onChange={handlePessoaChange}>
-              <option value="">Todos</option>
-              {contas.map((conta) => (
-                <option key={conta.id} value={conta.id}>
-                  {primeiroNome(conta.email)}
+            Mês
+            <select name="mes" defaultValue={String(mes)}>
+              {MESES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            Categoria
-            <select
-              value={categoriaSelecionada === 'todas' ? '' : categoriaSelecionada === 'sem_categoria' ? 'sem' : String(categoriaSelecionada)}
-              onChange={handleCategoriaChange}
-            >
-              <option value="">Todas as categorias</option>
-              {categorias.length > 0 && <option value="sem">Sem categoria</option>}
-              {categorias.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.nome}
+            Ano
+            <select name="ano" defaultValue={String(ano)}>
+              {anos.map((item) => (
+                <option key={item} value={item}>
+                  {item}
                 </option>
               ))}
             </select>
           </label>
-          {/* Toggle Individual/Combinada não faz sentido quando só uma pessoa
-              está no recorte, nem quando uma categoria específica está
-              selecionada (o painel vira só "Total", visão não se aplica) --
-              some da tela em vez de ficar desabilitado (mesmo princípio
-              herdado de page.tsx antes desta mudança). */}
-          {pessoaSelecionada === null && categoriaSelecionada === 'todas' && (
-            <div className="field">
-              Visão
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <label className="field-inline">
-                  <input
-                    type="radio"
-                    name="visao"
-                    value="individual"
-                    checked={visao === 'individual'}
-                    onChange={() => setVisao('individual')}
-                  />
-                  Individual
-                </label>
-                <label className="field-inline">
-                  <input
-                    type="radio"
-                    name="visao"
-                    value="combinada"
-                    checked={visao === 'combinada'}
-                    onChange={() => setVisao('combinada')}
-                  />
-                  Combinada
-                </label>
-              </div>
+          <button type="submit">Filtrar</button>
+        </form>
+        <label className="field">
+          Pessoa
+          <select value={pessoaSelecionada ?? ''} onChange={handlePessoaChange}>
+            <option value="">Todos</option>
+            {contas.map((conta) => (
+              <option key={conta.id} value={conta.id}>
+                {primeiroNome(conta.email)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          Categoria
+          <select
+            value={categoriaSelecionada === 'todas' ? '' : categoriaSelecionada === 'sem_categoria' ? 'sem' : String(categoriaSelecionada)}
+            onChange={handleCategoriaChange}
+          >
+            <option value="">Todas as categorias</option>
+            {categorias.length > 0 && <option value="sem">Sem categoria</option>}
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.nome}
+              </option>
+            ))}
+          </select>
+        </label>
+        {/* Toggle Individual/Combinada não faz sentido quando só uma pessoa
+            está no recorte, nem quando uma categoria específica está
+            selecionada (o painel vira só "Total", visão não se aplica) --
+            some da tela em vez de ficar desabilitado (mesmo princípio
+            herdado de page.tsx antes desta mudança). */}
+        {pessoaSelecionada === null && categoriaSelecionada === 'todas' && (
+          <div className="field">
+            Visão
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <label className="field-inline">
+                <input
+                  type="radio"
+                  name="visao"
+                  value="individual"
+                  checked={visao === 'individual'}
+                  onChange={() => setVisao('individual')}
+                />
+                Individual
+              </label>
+              <label className="field-inline">
+                <input
+                  type="radio"
+                  name="visao"
+                  value="combinada"
+                  checked={visao === 'combinada'}
+                  onChange={() => setVisao('combinada')}
+                />
+                Combinada
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="lancamentos-columns">
+        {/* Ordem no mobile (coluna única, sem CSS Grid): resumo+pendentes ->
+            lista, resumo sempre antes da lista (o usuário quer ver o Total
+            sem precisar rolar a lista primeiro). No desktop (>=768px),
+            `.lancamentos-columns` vira CSS Grid com `grid-template-areas`
+            que posiciona a lista e o painel lado a lado. Resumo e pendentes
+            ficam num único wrapper (`.lancamentos-painel`) que compartilha o
+            mesmo teto/rolagem da lista -- as duas colunas sempre têm a
+            mesma altura visual (feedback do usuário: painel crescia livre
+            com muitas categorias enquanto a lista ficava desproporcional). */}
+        <div className="lancamentos-painel">
+          <div className="lancamentos-resumo">
+            {categoriaSelecionada !== 'todas' ? (
+              <section className="card">
+                <h2 style={{ marginBottom: '0.75rem' }}>Total -- {formatarValorEmReais(totalFiltrado)}</h2>
+                {totalFiltradoIncluiTitularPendente && (
+                  <p className="hint">Inclui lançamento(s) com titular ainda não identificado.</p>
+                )}
+              </section>
+            ) : pessoaSelecionada ? (
+              <section className="card">
+                <h2 style={{ marginBottom: '0.75rem' }}>
+                  {nomePorConta.get(pessoaSelecionada) ?? 'Pessoa'} --{' '}
+                  {formatarValorEmReais(pessoaResumo?.totalCentavos ?? 0)}
+                </h2>
+                {!pessoaResumo || pessoaResumo.categorias.length === 0 ? (
+                  <p className="hint">Nenhum gasto resolvido nesta competência.</p>
+                ) : (
+                  <ul className="card-list">
+                    {pessoaResumo.categorias.map((item) => (
+                      <li key={item.categoriaId}>
+                        {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ) : visao === 'combinada' ? (
+              <section className="card">
+                <h2 style={{ marginBottom: '0.75rem' }}>Casal -- {formatarValorEmReais(totalCombinado)}</h2>
+                {categoriasCombinadas.length === 0 ? (
+                  <p className="hint">Nenhum gasto resolvido nesta competência.</p>
+                ) : (
+                  <ul className="card-list">
+                    {categoriasCombinadas.map((item) => (
+                      <li key={item.categoriaId}>
+                        {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ) : resumoPessoas.length === 0 ? (
+              <p className="empty-state">Nenhuma conta do casal encontrada -- tente novamente em instantes.</p>
+            ) : (
+              resumoPessoas.map((pessoa) => (
+                <section key={pessoa.usuarioId} className="card">
+                  <h2 style={{ marginBottom: '0.75rem' }}>
+                    {primeiroNome(pessoa.email)} -- {formatarValorEmReais(pessoa.totalCentavos)}
+                  </h2>
+                  {pessoa.categorias.length === 0 ? (
+                    <p className="hint">Nenhum gasto resolvido nesta competência.</p>
+                  ) : (
+                    <ul className="card-list">
+                      {pessoa.categorias.map((item) => (
+                        <li key={item.categoriaId}>
+                          {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))
+            )}
+          </div>
+
+          {pendentes.length > 0 && (
+            <div className="lancamentos-pendentes">
+              <section className="card">
+                <h2 style={{ marginBottom: '0.75rem' }}>
+                  Pendente de revisão -- {formatarValorEmReais(totalPendentes)}
+                </h2>
+                {algumFiltroAtivo && (
+                  <p className="hint" style={{ marginBottom: '0.75rem' }}>
+                    Titular ainda não identificado -- independe dos filtros de pessoa e categoria acima.
+                  </p>
+                )}
+                <ul className="card-list">
+                  {pendentes.map((item) => (
+                    <li key={item.id}>
+                      {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
+                      Titular pendente de mapeamento --{' '}
+                      <Link href="/cartoes" className="link">
+                        Resolver em Cartões
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             </div>
           )}
         </div>
 
-        {categoriaSelecionada !== 'todas' ? (
-          <section className="card">
-            <h2 style={{ marginBottom: '0.75rem' }}>Total -- {formatarValorEmReais(totalFiltrado)}</h2>
-            {totalFiltradoIncluiTitularPendente && (
-              <p className="hint">Inclui lançamento(s) com titular ainda não identificado.</p>
-            )}
-          </section>
-        ) : pessoaSelecionada ? (
-          <section className="card">
-            <h2 style={{ marginBottom: '0.75rem' }}>
-              {nomePorConta.get(pessoaSelecionada) ?? 'Pessoa'} --{' '}
-              {formatarValorEmReais(pessoaResumo?.totalCentavos ?? 0)}
-            </h2>
-            {!pessoaResumo || pessoaResumo.categorias.length === 0 ? (
-              <p className="hint">Nenhum gasto resolvido nesta competência.</p>
-            ) : (
-              <ul className="card-list">
-                {pessoaResumo.categorias.map((item) => (
-                  <li key={item.categoriaId}>
-                    {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : visao === 'combinada' ? (
-          <section className="card">
-            <h2 style={{ marginBottom: '0.75rem' }}>Casal -- {formatarValorEmReais(totalCombinado)}</h2>
-            {categoriasCombinadas.length === 0 ? (
-              <p className="hint">Nenhum gasto resolvido nesta competência.</p>
-            ) : (
-              <ul className="card-list">
-                {categoriasCombinadas.map((item) => (
-                  <li key={item.categoriaId}>
-                    {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : resumoPessoas.length === 0 ? (
-          <p className="empty-state">Nenhuma conta do casal encontrada -- tente novamente em instantes.</p>
-        ) : (
-          resumoPessoas.map((pessoa) => (
-            <section key={pessoa.usuarioId} className="card">
-              <h2 style={{ marginBottom: '0.75rem' }}>
-                {primeiroNome(pessoa.email)} -- {formatarValorEmReais(pessoa.totalCentavos)}
-              </h2>
-              {pessoa.categorias.length === 0 ? (
-                <p className="hint">Nenhum gasto resolvido nesta competência.</p>
-              ) : (
-                <ul className="card-list">
-                  {pessoa.categorias.map((item) => (
-                    <li key={item.categoriaId}>
-                      {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))
-        )}
-      </div>
-
-      <div className="lancamentos-lista">
-        {lancamentosFiltrados.length === 0 ? (
-          <p className="empty-state">
-            {algumFiltroAtivo ? 'Nenhum lançamento encontrado para este filtro.' : 'Nenhum lançamento nesta competência.'}
-          </p>
-        ) : (
-          <ul className="card-list">
-            {lancamentosFiltrados.map((item) => {
-              const { titularUsuarioId, ...dadosLancamento } = item;
-              const titularNome = titularUsuarioId !== null ? (nomePorConta.get(titularUsuarioId) ?? null) : null;
-              return (
-                <LancamentoItem
-                  key={item.id}
-                  item={{ ...dadosLancamento, titularNome }}
-                  categorias={categorias}
-                />
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      {pendentes.length > 0 && (
-        <div className="lancamentos-pendentes">
-          <section className="card">
-            <h2 style={{ marginBottom: '0.75rem' }}>
-              Pendente de revisão -- {formatarValorEmReais(totalPendentes)}
-            </h2>
-            {algumFiltroAtivo && (
-              <p className="hint" style={{ marginBottom: '0.75rem' }}>
-                Titular ainda não identificado -- independe dos filtros de pessoa e categoria acima.
-              </p>
-            )}
+        <div className="lancamentos-lista">
+          {lancamentosFiltrados.length === 0 ? (
+            <p className="empty-state">
+              {algumFiltroAtivo ? 'Nenhum lançamento encontrado para este filtro.' : 'Nenhum lançamento nesta competência.'}
+            </p>
+          ) : (
             <ul className="card-list">
-              {pendentes.map((item) => (
-                <li key={item.id}>
-                  {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
-                  Titular pendente de mapeamento --{' '}
-                  <Link href="/cartoes" className="link">
-                    Resolver em Cartões
-                  </Link>
-                </li>
-              ))}
+              {lancamentosFiltrados.map((item) => {
+                const { titularUsuarioId, ...dadosLancamento } = item;
+                const titularNome = titularUsuarioId !== null ? (nomePorConta.get(titularUsuarioId) ?? null) : null;
+                return (
+                  <LancamentoItem
+                    key={item.id}
+                    item={{ ...dadosLancamento, titularNome }}
+                    categorias={categorias}
+                  />
+                );
+              })}
             </ul>
-          </section>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
