@@ -1,5 +1,5 @@
 # generated: 2026-07-16
-# last_updated: 2026-07-17
+# last_updated: 2026-07-21
 # project: Fatura a Dois
 # project_key: NOKEY
 # tracking_system: file-system
@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-16
-last_updated: 2026-07-17
+last_updated: 2026-07-21
 project: Fatura a Dois
 project_key: NOKEY
 tracking_system: file-system
@@ -74,3 +74,6 @@ development_status:
   5-2-projecao-de-parcelas-futuras: done
   5-3-comprometimento-do-limite-mensal: done
   epic-5-retrospective: optional
+  epic-6: done
+  6-1-repasse-e-desfazer-repasse-de-lancamento: done
+  epic-6-retrospective: optional
