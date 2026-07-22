@@ -11,6 +11,10 @@ export type ItemParcelaProjetada = {
   valorCentavos: number;
   competenciaAno: number;
   competenciaMes: number;
+  // Repasse (Epic 6, Story 6.1) herdado da parcela real mais recente
+  // conhecida da compra, junto com os demais campos abaixo -- propaga
+  // automaticamente sem exigir repasse mês a mês.
+  responsavelId: string | null;
 };
 
 export type CompetenciaProjetada = {
@@ -38,6 +42,7 @@ type UltimaParcelaReal = {
   competenciaMes: number;
   totalParcelas: number;
   valorParcelaCentavos: number;
+  responsavelId: string | null;
 };
 
 // Projeta em leitura, nunca em `lancamento` nem em tabela cacheada (AD-7): a
@@ -61,6 +66,7 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
       totalParcelas: compraParcelada.totalParcelas,
       valorParcelaCentavos: compraParcelada.valorParcelaCentavos,
       cartaoTerceiro: cartao.terceiro,
+      responsavelId: lancamento.responsavelId,
     })
     .from(lancamento)
     .innerJoin(compraParcelada, eq(lancamento.compraParceladaId, compraParcelada.id))
@@ -99,6 +105,7 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
         competenciaMes: linha.competenciaMes,
         totalParcelas: linha.totalParcelas,
         valorParcelaCentavos: linha.valorParcelaCentavos,
+        responsavelId: linha.responsavelId,
       });
     }
   }
@@ -135,6 +142,7 @@ export async function projetarParcelasFuturas(): Promise<CompetenciaProjetada[]>
         valorCentavos: ultima.valorParcelaCentavos,
         competenciaAno: competencia.ano,
         competenciaMes: competencia.mes,
+        responsavelId: ultima.responsavelId,
       });
     }
   }

@@ -26,6 +26,7 @@ FR10: Corrigir manualmente a categoria de um lançamento cria ou atualiza uma re
 FR11: Visão de gastos por pessoa e por categoria, agrupada pela competência da fatura (não pelo mês calendário); lançamentos com titular pendente de mapeamento ou marcados "categoria removida" aparecem num grupo visível separado ("pendente de revisão"), nunca ausentes silenciosamente.
 FR12: Projeção de parcelas futuras por mês — sempre computada em leitura, nunca materializada como lançamento —, reconciliada contra a parcela real quando ela aparece de fato numa fatura processada (por chave de compra original, FR9), realinhando se um mês for pulado.
 FR13: Comprometimento do limite mensal por mês futuro, somando as parcelas projetadas daquele mês, por pessoa e combinado para o casal.
+FR14: Qualquer um dos dois pode marcar um lançamento (titular já mapeado) como repassado para o parceiro — valor passa a contar no total/lista do parceiro, autoria (titular do cartão) continua sempre visível; reversível; propaga automaticamente a parcelas futuras da mesma compra; sobrevive a reenvio da competência; mantém registro mínimo de quem/quando. *(adicionado 2026-07-21, avaliação PM+tech-lead+UX)*
 
 ### NonFunctional Requirements
 
@@ -458,3 +459,48 @@ So that eu possa decidir uma compra maior com o número real na frente.
 **Given** parcelas projetadas para um mês futuro específico (Story 5.2)
 **When** acesso esse mês na tela de parcelas
 **Then** vejo a soma de todas as parcelas projetadas para aquele mês, separadas por pessoa e agregada no total do casal
+
+## Epic 6: Repasse de Responsabilidade Financeira entre o Casal
+
+*(adicionado 2026-07-21, avaliação PM+tech-lead+UX sobre novo objetivo do usuário — ver `.memlog.md` do goal-engine para o veredito completo dos 3 papéis)*
+
+O casal consegue marcar um lançamento como responsabilidade financeira da outra pessoa, mesmo tendo caído no próprio cartão — sem perder a informação de quem de fato fez a compra.
+**FRs covered:** FR14
+
+### Story 6.1: Repasse e desfazer repasse de lançamento
+
+As a pessoa do casal,
+I want marcar um gasto que caiu no meu cartão como responsabilidade do meu parceiro (e poder desfazer isso depois),
+So that o total e a lista de gastos de cada um reflitam quem realmente deve pagar por aquilo, sem perder o registro de quem fez a compra.
+
+**Acceptance Criteria:**
+
+**Given** um lançamento com titular já mapeado (Epic 2, Story 2.3)
+**When** marco esse lançamento como "repassado" para o parceiro
+**Then** o valor deixa de contar no total/detalhamento por categoria de quem fez a compra (Story 4.1) e passa a contar no do parceiro, mas o titular do cartão (quem de fato gastou) continua visível junto ao lançamento, com um indicador distinto do titular-badge normal informando que foi repassado
+
+**Given** um lançamento com titular ainda pendente de mapeamento (motivo `titular_pendente`, Story 2.3)
+**When** vejo esse lançamento na lista
+**Then** a ação de repassar não está disponível — não é possível repassar algo cujo titular ainda é desconhecido
+
+**Given** um lançamento já repassado
+**When** acesso a ação de desfazer o repasse
+**Then** o lançamento volta a contar no total/lista de quem originalmente fez a compra, e a ação pode ser repetida (repassar/desfazer) qualquer número de vezes
+
+**Given** dois cliques/dispositivos tentando repassar (ou desfazer) o mesmo lançamento ao mesmo tempo
+**When** a segunda ação chega depois da primeira já ter sido aplicada
+**Then** a segunda é rejeitada com uma mensagem clara (estado já mudou), nunca aplicada silenciosamente por cima — mesmo padrão de guard já usado em `mapearCartao`/`rejeitarCartaoTerceiro` (Story 2.3)
+
+**Given** um lançamento identificado como parcela de uma compra em andamento (Epic 5, Story 5.1)
+**When** repasso essa parcela
+**Then** o repasse propaga automaticamente às parcelas futuras já projetadas da mesma compra (Story 5.2) e ao comprometimento de limite mensal (Story 5.3) — o casal não precisa repetir o repasse mês a mês; quando a parcela real do mês seguinte chegar por um novo upload (Epic 2, Story 2.2), ela herda o mesmo repasse da parcela mais recente conhecida da mesma compra
+
+**Given** um lançamento repassado manualmente
+**When** a mesma competência é reenviada (Epic 2, Story 2.4, merge por delta) e o lançamento corresponde pela chave de delta
+**Then** o repasse não é perdido nem revertido pelo reenvio — mesma garantia já dada para categoria corrigida manualmente
+
+**Given** um repasse feito ou desfeito
+**When** consulto o dado do lançamento
+**Then** existe um registro mínimo de quem fez a ação e quando, mesmo sem uma tela de histórico dedicada — suficiente para investigar uma divergência encontrada meses depois
+
+**Nota de implementação:** desenho de dado, regras de agregação e propagação a parcelas documentados na avaliação técnica (Winston/tech-lead) registrada no `.memlog.md` do goal-engine em 2026-07-21 — coluna `responsavelId` (nullable, override de `cartao.usuarioId` só para fins de total/agregação) + `repassadoPor`/`repassadoEm` (rastro mínimo) em `lancamento`, sem tabela de histórico separada. Desenho de UX (badge de repasse, botão de ação por item, comportamento dos filtros) documentado em `EXPERIENCE.md`/`DESIGN.md` (workspace `ux-fatura-a-dois-2026-07-18`), seção "Repasse de Lançamento para a Outra Pessoa".

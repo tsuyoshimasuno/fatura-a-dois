@@ -2,7 +2,7 @@
 title: Fatura a Dois
 status: final
 created: 2026-07-14
-updated: 2026-07-16
+updated: 2026-07-21
 ---
 
 # PRD: Fatura a Dois
@@ -207,6 +207,24 @@ O sistema mostra, por mês futuro, quanto do limite mensal já está comprometid
 
 **Notas:** "Limite mensal comprometido" refere-se ao valor da fatura projetada daquele mês, não ao limite de crédito total do cartão — confirmado com o casal.
 
+### 4.6 Repasse de Responsabilidade Financeira entre o Casal
+
+**Descrição:** *(adicionado 2026-07-21, avaliação PM+tech-lead+UX)* Um gasto que caiu no cartão de uma pessoa pode, mesmo assim, ser de responsabilidade financeira da outra — qualquer um dos dois pode marcar um lançamento específico como "repassado" para o parceiro. A autoria (quem efetivamente fez a compra, titular do cartão) permanece sempre visível; o que muda é para quem o valor conta nos totais e listas de gasto (FR-11).
+
+#### FR-14: Repasse de responsabilidade financeira de lançamento
+
+Qualquer um dos dois pode marcar um lançamento (com titular já mapeado, FR-6) como repassado para o parceiro; o valor passa a contar no total e na lista de gastos do parceiro, não mais na de quem fez a compra, mas a informação de quem efetivamente gastou nunca é ocultada. A ação é reversível a qualquer momento.
+
+**Consequências (testáveis):**
+- Um lançamento repassado deixa de contar no total/detalhamento por categoria de quem fez a compra (FR-11) e passa a contar no de quem recebeu o repasse — em ambos os casos, quem foi o titular do cartão continua visível junto ao lançamento, distinto do indicador de repasse.
+- Só é possível repassar um lançamento com titular já mapeado (FR-6); um lançamento em "pendente de revisão" por titular desconhecido não pode ser repassado.
+- Repassar e desfazer o repasse são ações simétricas e reversíveis a qualquer momento, sem limite de quantas vezes — desfazer devolve o lançamento à conta de quem originalmente fez a compra.
+- Um lançamento identificado como parcela (FR-9) que é repassado propaga o repasse automaticamente às parcelas futuras já projetadas da mesma compra (FR-12) e ao comprometimento de limite mensal (FR-13) — o casal não precisa repetir o repasse mês a mês, parcela a parcela.
+- Um repasse feito manualmente não é perdido quando a mesma competência é reenviada (FR-5) e o lançamento corresponde pela chave de delta — mesma garantia já dada para categoria corrigida manualmente.
+- Existe um registro mínimo de quem repassou e quando, mesmo sem uma tela de histórico dedicada — o suficiente para investigar uma divergência encontrada meses depois.
+
+**Notas:** avaliação conjunta PM+tech-lead+UX (2026-07-21) tratou isso como capacidade nova (mutação de dado, não refinamento de visualização), distinta de FR-11 — ver `epics.md` Epic 6.
+
 ## 5. Não-Objetivos (Explícito)
 
 - O app não vai suportar múltiplos bancos ou formatos de fatura nesta fase — o parser é feito sob medida para o layout do Itaú.
@@ -228,6 +246,7 @@ O sistema mostra, por mês futuro, quanto do limite mensal já está comprometid
 - Visão de gastos por pessoa e categoria, por competência de fatura.
 - Visão de parcelas futuras e comprometimento de limite mensal por mês seguinte.
 - Autenticação obrigatória, 2 contas.
+- Repasse (e desfazer repasse) de responsabilidade financeira de um lançamento entre as duas contas do casal.
 
 ### 6.2 Fora do Escopo do MVP
 

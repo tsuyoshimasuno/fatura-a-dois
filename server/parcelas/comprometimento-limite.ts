@@ -63,7 +63,9 @@ export async function obterComprometimentoLimiteMensal(
     let pendenteCentavos = 0;
 
     for (const item of competencia.itens) {
-      const usuarioId = usuarioIdPorCartao.get(item.cartaoId) ?? null;
+      // Repasse (Epic 6, Story 6.1) sobrepõe o titular do cartão só para
+      // fins de total -- mesmo princípio de `resumo-gastos.ts`.
+      const usuarioId = item.responsavelId ?? usuarioIdPorCartao.get(item.cartaoId) ?? null;
       const titularConfirmado = usuarioId !== null && contaPorId.has(usuarioId);
 
       if (!titularConfirmado) {

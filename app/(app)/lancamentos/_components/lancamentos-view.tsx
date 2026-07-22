@@ -95,7 +95,12 @@ export function LancamentosView({
 
   const lancamentosFiltrados = useMemo(() => {
     return lancamentos.filter((item) => {
-      if (pessoaSelecionada && item.titularUsuarioId !== pessoaSelecionada) return false;
+      // Repasse (Epic 6, Story 6.1): filtro de Pessoa passa a comparar contra
+      // o responsável efetivo (destinatário do repasse, quando houver;
+      // titular original, quando não houver) -- extensão direta do que
+      // "Pessoa = X" já significava.
+      const responsavelEfetivo = item.responsavelId ?? item.titularUsuarioId;
+      if (pessoaSelecionada && responsavelEfetivo !== pessoaSelecionada) return false;
 
       if (categoriaSelecionada === 'sem_categoria') {
         return item.categoriaId === null;
@@ -366,12 +371,42 @@ export function LancamentosView({
           ) : (
             <ul className="card-list">
               {lancamentosFiltrados.map((item) => {
-                const { titularUsuarioId, ...dadosLancamento } = item;
+                const { titularUsuarioId, responsavelId, ...dadosLancamento } = item;
                 const titularNome = titularUsuarioId !== null ? (nomePorConta.get(titularUsuarioId) ?? null) : null;
+                // Repasse (Epic 6, Story 6.1): "outro" é sempre a mesma
+                // pessoa relativa ao titular do cartão, seja como alvo do
+                // toggle (não repassado) ou como destinatário já exibido no
+                // badge (repassado) -- só existe quando titular está mapeado
+                // e as duas contas do casal foram carregadas com sucesso.
+                // `contas.length === 2` explícito (não só `.find`) -- o casal
+                // é sempre exatamente duas contas (FR1, sem auto-cadastro),
+                // mas se `listarContasCasal()` alguma vez degradar para uma
+                // contagem diferente, a ação de repasse fica indisponível em
+                // vez de `.find` escolher uma conta arbitrária como alvo
+                // (achado repetido nas duas rodadas de review).
+                const outroConta =
+                  titularUsuarioId !== null && contas.length === 2
+                    ? contas.find((conta) => conta.id !== titularUsuarioId)
+                    : undefined;
+                const outroContaId = outroConta?.id ?? null;
+                const outroNome = outroConta ? primeiroNome(outroConta.email) : null;
+                // Nome exibido no badge resolvido direto por `responsavelId`
+                // via `nomePorConta` (mesmo mapa do titular-badge) -- robusto
+                // mesmo se `contas`/`outroConta` degradar, diferente do alvo
+                // do toggle acima (que precisa mesmo da semântica "a outra
+                // das duas contas"). Achado do review pass 1 (Edge Case Hunter).
+                const destinatarioNome = responsavelId !== null ? (nomePorConta.get(responsavelId) ?? null) : null;
                 return (
                   <LancamentoItem
                     key={item.id}
-                    item={{ ...dadosLancamento, titularNome }}
+                    item={{
+                      ...dadosLancamento,
+                      titularNome,
+                      repassado: responsavelId !== null,
+                      outroContaId,
+                      outroNome,
+                      destinatarioNome,
+                    }}
                     categorias={categorias}
                   />
                 );

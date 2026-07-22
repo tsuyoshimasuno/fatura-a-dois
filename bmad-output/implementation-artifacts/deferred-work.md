@@ -122,3 +122,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-ux-unificar-lancamentos-e-gastos.md`
   summary: Na visão combinada ("Casal") da tela unificada, "nenhuma conta do casal encontrada" (falha de `listarContasCasal()`) e "há contas mas nenhum gasto resolvido na competência" caem na mesma mensagem genérica ("Nenhum gasto resolvido nesta competência"), diferente da visão individual/por-pessoa que já distingue os dois casos.
   evidence: Comportamento herdado de `/gastos` antes da fusão (`categoriasCombinadas.length === 0` nunca diferenciou os dois motivos); agora mais visível por estar na mesma tela que a visão individual, que já trata isso corretamente -- correção pequena e mecânica, mas fora do escopo desta rodada de review.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-6-1-repasse-e-desfazer-repasse-lancamento.md`
+  summary: A FK de `cartao.usuarioId` para `auth.users` não tem `onDelete` (default RESTRICT) -- excluir uma conta do casal que possui qualquer cartão continuaria travando por violação de FK, mesmo após esta story adicionar `ON DELETE SET NULL` em `lancamento.responsavelId`/`repassadoPor`.
+  evidence: `db/schema/index.ts`, `cartao.usuarioId` (linha ~21) -- FK pré-existente desde Story 1.1/2.3, não introduzida por esta story; corrigir isso exigiria decidir o comportamento correto para "cartão sem dono" em todo o app (Story 2.3 trata `usuarioId is null` como "pendente de mapeamento", então `SET NULL` reintroduziria o cartão como pendente ao excluir a conta -- decisão de produto que nenhuma story pediu ainda).

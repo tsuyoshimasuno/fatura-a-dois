@@ -35,6 +35,9 @@ export type LancamentoParaCorrecao = {
   parcelaNumero: number | null;
   parcelaTotal: number | null;
   titularUsuarioId: string | null;
+  // Repasse (Epic 6, Story 6.1) -- destinatário efetivo do gasto, ou `null`
+  // se nunca repassado (nesse caso o efetivo é o próprio titular).
+  responsavelId: string | null;
 };
 
 // Lista os lançamentos de uma competência com a categoria atual (se houver)
@@ -60,6 +63,7 @@ export async function listarLancamentosParaCorrecao(
       parcelaNumero: lancamento.parcelaNumero,
       parcelaTotal: lancamento.parcelaTotal,
       cartaoUsuarioId: cartao.usuarioId,
+      responsavelId: lancamento.responsavelId,
     })
     .from(lancamento)
     .leftJoin(categoria, eq(lancamento.categoriaId, categoria.id))
@@ -78,6 +82,7 @@ export async function listarLancamentosParaCorrecao(
     parcelaNumero: linha.parcelaNumero,
     parcelaTotal: linha.parcelaTotal,
     titularUsuarioId: linha.cartaoUsuarioId,
+    responsavelId: linha.responsavelId,
   }));
 }
 

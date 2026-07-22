@@ -152,6 +152,21 @@ h3 {
   font-weight: 500;
 }
 
+/* Repasse de lançamento (Epic 6, Story 6.1) -- distinto de `.titular-badge`
+   (identidade, sempre neutro) e `.badge-pending` (aviso, cor de atenção):
+   repasse já é uma decisão resolvida, não uma pendência, por isso usa
+   `--accent` em vez de `--pending`. */
+.badge-repasse {
+  display: inline-flex;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .app-nav-toggle {
   display: none;
 }

@@ -79,6 +79,7 @@ export async function obterResumoGastos(
         categoriaRemovidoEm: categoria.removidoEm,
         cartaoUsuarioId: cartao.usuarioId,
         cartaoTerceiro: cartao.terceiro,
+        responsavelId: lancamento.responsavelId,
       })
       .from(lancamento)
       .leftJoin(cartao, eq(lancamento.cartaoId, cartao.id))
@@ -104,7 +105,11 @@ export async function obterResumoGastos(
     // mais uma pendência acionável nesta tela, é dinheiro de terceiro.
     if (linha.cartaoTerceiro) continue;
 
-    const usuarioId = linha.cartaoUsuarioId;
+    // Repasse (Epic 6, Story 6.1) sobrepõe o titular do cartão só para fins
+    // de total/agregação -- a exibição de titular (quem gastou) continua
+    // vindo de `cartaoUsuarioId` em outro lugar (ex. `listarLancamentosParaCorrecao`),
+    // nunca daqui.
+    const usuarioId = linha.responsavelId ?? linha.cartaoUsuarioId;
     const titularConfirmado = usuarioId !== null && contaPorId.has(usuarioId);
     const categoriaRemovida = linha.categoriaNome !== null && linha.categoriaRemovidoEm !== null;
     // Categoria referenciada mas sem linha correspondente (`categoriaId` não

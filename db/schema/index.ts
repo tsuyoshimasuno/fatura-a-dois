@@ -108,6 +108,15 @@ export const lancamento = pgTable(
     compraParceladaId: integer('compra_parcelada_id').references(() => compraParcelada.id),
     parcelaNumero: integer('parcela_numero'),
     parcelaTotal: integer('parcela_total'),
+    // Repasse de responsabilidade financeira (Epic 6, Story 6.1) -- override
+    // de `cartao.usuarioId` só para fins de total/agregação/filtro por
+    // pessoa; nulo preserva o comportamento histórico (dono = titular do
+    // cartão). A exibição de titular ("quem gastou") nunca lê esta coluna,
+    // sempre `cartao.usuarioId`. `repassadoPor`/`repassadoEm` registram só a
+    // última ação (repassar ou desfazer), não um histórico completo.
+    responsavelId: uuid('responsavel_id').references(() => authUsers.id, { onDelete: 'set null' }),
+    repassadoPor: uuid('repassado_por').references(() => authUsers.id, { onDelete: 'set null' }),
+    repassadoEm: timestamp('repassado_em'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (table) => [

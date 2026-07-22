@@ -9,7 +9,10 @@ import {
   type LancamentoExistente,
   type LancamentoNovoParaMerge,
 } from '../lancamento-matching';
-import { identificarOuCriarCompraParcelada } from '../parcelas/identificar-compra-parcelada';
+import {
+  identificarOuCriarCompraParcelada,
+  obterResponsavelHerdadoDaCompra,
+} from '../parcelas/identificar-compra-parcelada';
 import { retrairComprasSemLancamentos } from '../parcelas/retrair-compra-parcelada';
 import { parsePlanilhaItau } from './parse-planilha-itau';
 
@@ -188,6 +191,10 @@ export async function processarUpload(
         // `identificarOuCriarCompraParcelada` (AD-7) -- este módulo nunca
         // insere/seleciona nessa tabela diretamente.
         let compraParceladaId: number | null = null;
+        // Repasse (Epic 6, Story 6.1) herdado da parcela real mais recente
+        // conhecida da mesma compra -- sem isso, um repasse feito num mês
+        // "resetaria" assim que a parcela do mês seguinte fosse processada.
+        let responsavelHerdado: string | null = null;
         if (item.parcelaNumero !== null && item.parcelaTotal !== null && item.parcelaTotal > 1) {
           compraParceladaId = await identificarOuCriarCompraParcelada(tx, {
             cartaoId: item.cartaoId,
@@ -197,6 +204,7 @@ export async function processarUpload(
             competenciaAno: ano,
             competenciaMes: mes,
           });
+          responsavelHerdado = await obterResponsavelHerdadoDaCompra(tx, compraParceladaId);
         }
 
         await tx.insert(lancamento).values({
@@ -210,6 +218,7 @@ export async function processarUpload(
           parcelaTotal: item.parcelaTotal,
           categoriaId,
           compraParceladaId,
+          responsavelId: responsavelHerdado,
         });
       }
 

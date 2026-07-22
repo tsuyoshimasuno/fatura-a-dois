@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { compraParcelada } from '@/db/schema';
+import { compraParcelada, lancamento } from '@/db/schema';
 import { normalizarEstabelecimento } from '@/server/shared/normalizar-estabelecimento';
 
 // `db` e uma transação (`tx`) expõem os mesmos métodos de consulta usados
@@ -84,4 +84,28 @@ export async function identificarOuCriarCompraParcelada(
   }
 
   return existente.id;
+}
+
+// Repasse (Epic 6, Story 6.1) precisa propagar de uma parcela real para a
+// próxima da mesma compra assim que ela chegar via upload -- mesmo mecanismo
+// de herança já usado em `projetar-parcelas-futuras.ts` (parcela de maior
+// `parcelaNumero` conhecida é sempre a fonte da verdade), aplicado aqui no
+// momento do insert em vez de em leitura. `null` (sem repasse, ou nenhuma
+// parcela anterior encontrada) preserva o comportamento padrão.
+export async function obterResponsavelHerdadoDaCompra(
+  executor: Executor,
+  compraParceladaId: number
+): Promise<string | null> {
+  const [ultima] = await executor
+    .select({ responsavelId: lancamento.responsavelId })
+    .from(lancamento)
+    .where(eq(lancamento.compraParceladaId, compraParceladaId))
+    // Tiebreaker por `id` -- se duas parcelas empatarem no maior
+    // `parcelaNumero` (dado duplicado/corrida), desempata de forma
+    // determinística, mesmo raciocínio do `ORDER BY` obrigatório em
+    // `projetar-parcelas-futuras.ts`/`upload.ts`.
+    .orderBy(desc(lancamento.parcelaNumero), desc(lancamento.id))
+    .limit(1);
+
+  return ultima?.responsavelId ?? null;
 }

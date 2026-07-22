@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
 status: final
-updated: 2026-07-19
+updated: 2026-07-21
 colors:
   background: '#ffffff'
   background-dark: '#0b0d12'
@@ -98,6 +98,15 @@ components:
     background: '{colors.pending}'
     color: '{colors.accent-foreground}'
     radius: '{rounded.full}'
+  badge-repasse:
+    # proposto 2026-07-21 (rodada 5) — sinaliza lancamento repassado para a
+    # outra pessoa, ver EXPERIENCE.md -> "Repasse de Lancamento para a Outra
+    # Pessoa". Fundo transparente (nao solido, ao contrario de badge-pending)
+    # porque e um indicador ao lado do titular-badge, nao um contador isolado.
+    background: transparent
+    color: '{colors.accent}'
+    border: '1px solid {colors.accent}'
+    radius: '{rounded.full}'
   empty-state:
     color: '{colors.muted-foreground}'
     border: '1px dashed {colors.border}'
@@ -119,6 +128,7 @@ Esta seção descreve o sistema **como ele já é** implementado, destilado dire
 - **`{colors.accent}`** — a única cor "de marca" do sistema: usado em links, botão primário, item de navegação ativo, foco de input. Uso deliberadamente escasso — se tudo é azul, nada é.
 - **`{colors.danger}`** — reservado para mensagens de erro (`role="alert"`) e, futuramente, para confirmação de ações destrutivas (ver Do's and Don'ts). Nunca usado decorativamente.
 - **`{colors.pending}`** *(proposto)* — hoje o sistema não tem uma cor semântica de "atenção/pendência" distinta de erro; estados como "cartão pendente de mapeamento" ou "lançamento pendente de revisão" usam texto neutro (`hint`) idêntico a qualquer outra informação secundária, o que faz pendências reais se misturarem visualmente com texto informativo comum. Proposto um terceiro tom (âmbar) exclusivamente para *coisas que esperam uma ação do casal* — nunca para erro, nunca para sucesso.
+- **`{colors.accent}` em `badge-repasse`** *(proposto 2026-07-21, rodada 5)* — primeiro uso de `{colors.accent}` fora de link/botão primário/nav ativo/foco. Justificado porque um lançamento repassado é uma decisão deliberada do casal (não identidade neutra como `titular-badge`, não espera de ação como `{colors.pending}`, não erro/destrutivo como `{colors.danger}`) — nenhuma cor existente comunica "isto foi redirecionado por escolha". Ver `EXPERIENCE.md` → "Repasse de Lançamento para a Outra Pessoa".
 - **Dark mode** já existe e é completo: cada token acima tem seu par `-dark`, ativado via `prefers-color-scheme: dark` (sem toggle manual). Qualquer novo token (como `pending`) precisa do par dark antes de ir para produção.
 
 ## Typography
@@ -148,6 +158,7 @@ Cantos levemente arredondados (`{rounded.DEFAULT}` = 10px em cards, 8px em input
 - **Card** (`card`) — contêiner de item de lista (lançamento, cartão pendente, categoria) e de bloco de resumo (pessoa em Gastos, mês em Parcelas). Um único componente visual serve papéis diferentes hoje (item individual vs. seção agregada) sem diferenciação — funciona, mas os dois usos merecem nomes distintos em EXPERIENCE.md (`item-card` vs `summary-card`) para as regras comportamentais não se confundirem.
 - **Input/select** (`input`) — borda `{colors.border}`, foco com anel `{colors.accent}` 2px. Consistente em toda tela.
 - **Badge de pendência** (`badge-pending`) *(proposto, não existe hoje)* — pequeno indicador numérico (contagem) usando `{colors.pending}`, para sinalizar em texto de navegação/menu que há itens esperando ação (cartões não mapeados, lançamentos pendentes de revisão) sem o casal precisar abrir a tela para descobrir. Ver EXPERIENCE.md → Key Flows.
+- **Badge de repasse** (`badge-repasse`) *(proposto 2026-07-21, rodada 5, não existe hoje)* — indicador ao lado do `titular-badge` num lançamento repassado para a outra pessoa: fundo transparente, texto/borda `{colors.accent}`, mesma forma (`{rounded.full}`, borda 1px) do `titular-badge`, mas com cor para deixar claro que é uma decisão deliberada, não identidade neutra. Nunca sólido como `badge-pending` — não é um contador, é um qualificador ao lado de um nome que já está lá. Ver EXPERIENCE.md → "Repasse de Lançamento para a Outra Pessoa".
 - **Empty state** (`empty-state`) — borda tracejada, texto centralizado, `{colors.muted-foreground}`. Já presente e consistente em toda tela de lista (cartões, categorias, lançamentos, parcelas, gastos). Manter esse padrão para qualquer lista nova.
 - **Alert de erro** (`alert-error`) — `role="alert"`, cor `{colors.danger}`. Presente em login, upload, esqueci-senha, redefinir-senha. **Ausente** nos Server Actions de cartões/categorias/lançamentos (falham hoje só com `console.error`, invisível ao casal) — o componente já existe e está especificado; falta apenas ser usado nessas telas. Ver EXPERIENCE.md → State Patterns.
 
