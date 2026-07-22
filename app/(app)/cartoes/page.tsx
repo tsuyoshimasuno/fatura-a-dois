@@ -30,7 +30,7 @@ export default async function CartoesPage() {
       )}
       {rejeitados.length > 0 && (
         <section>
-          <h2 style={{ marginBottom: '0.75rem' }}>Cartões marcados como não sendo do casal</h2>
+          <h2 className="section-title">Cartões marcados como não sendo do casal</h2>
           <ul className="card-list">
             {rejeitados.map((item) => (
               <CartaoRejeitadoItem key={item.id} item={item} />

@@ -338,11 +338,26 @@ h3 {
 
 .page-title {
   font-size: 1.5rem;
+  line-height: 1.2;
 }
 
 .page-subtitle {
   color: var(--muted-foreground);
   font-size: 0.9rem;
+}
+
+/* 0.75rem = 12px, valor confirmado na escala de espaçamento do SnowUI
+   (0/4/8/12/16/20/24/28/32/40/48/80px) amostrada via API do Figma nesta
+   sessão -- não é um valor arbitrário (ver spec-snowui-design-system-tokens.md
+   e DESIGN.md). font-weight/letter-spacing já vêm da regra `h1, h2, h3`
+   acima -- não repetir aqui. font-size é DELIBERADAMENTE deixado no padrão
+   do navegador (h2 sem font-size explícito, ~1.5em) -- NÃO vem daquela
+   regra (que não define font-size). O token DESIGN.md `section-title`
+   (1.1rem) continua propositalmente não implementado: aplicá-lo mudaria o
+   tamanho renderizado hoje (~22% menor), decisão fora do escopo desta
+   limpeza (ver Spec Change Log). */
+.section-title {
+  margin-bottom: 0.75rem;
 }
 
 /* Cards */

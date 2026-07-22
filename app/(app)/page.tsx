@@ -102,7 +102,7 @@ export default async function Home() {
 
       {faturaNaoEnviada ? (
         <section className="card">
-          <h2 style={{ marginBottom: '0.75rem' }}>
+          <h2 className="section-title">
             Fatura de {NOME_MES[mesAtual]} ainda não enviada
           </h2>
           <Link href="/upload" className="link">
@@ -111,7 +111,7 @@ export default async function Home() {
         </section>
       ) : pendentesCartoes.length > 0 ? (
         <section className="card">
-          <h2 style={{ marginBottom: '0.75rem' }}>
+          <h2 className="section-title">
             {pendentesCartoes.length} cartão(ões) pendente(s) de mapeamento
           </h2>
           <Link href="/cartoes" className="link">
@@ -120,7 +120,7 @@ export default async function Home() {
         </section>
       ) : (
         <section className="card">
-          <h2 style={{ marginBottom: '0.75rem' }}>
+          <h2 className="section-title">
             Gastos de {NOME_MES[mesAtual]}: {formatarValorEmReais(totalCombinado)}
           </h2>
           {resumo.pendentes.itens.length > 0 && (

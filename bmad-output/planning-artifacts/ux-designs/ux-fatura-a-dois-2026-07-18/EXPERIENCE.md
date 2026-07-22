@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
   - "{planning_artifacts}/epics.md"
-updated: 2026-07-21
+updated: 2026-07-22
 ---
 
 # Fatura a Dois — Experience Spine
@@ -19,12 +19,16 @@ updated: 2026-07-21
 > **Nota de reconciliação (2026-07-19, rodada 4):** o usuário pediu para reorganizar o layout de `/lancamentos` — lista de lançamentos em menu rolante na lateral esquerda, total de gastos fixo/estático no centro, atualizando dinamicamente conforme o filtro de categoria (novo) e o filtro de pessoa (já existente) são ajustados. Seção "Lista Rolante + Total Central Estático" adicionada ao final; suas propostas usam `[PROPOSTO]` até a implementação confirmar.
 >
 > **Nota de reconciliação (2026-07-21, rodada 5):** o usuário pediu poder marcar um lançamento específico como "repassado" para a outra pessoa do casal — autoria de quem gastou continua visível, mas o valor passa a contar no total/lista da pessoa destinatária. Seção "Repasse de Lançamento para a Outra Pessoa" adicionada ao final; suas propostas usam `[PROPOSTO]` até a implementação confirmar.
+>
+> **Nota de reconciliação (2026-07-22, rodada 6):** o usuário pediu avaliar a adoção do "SnowUI Design System" (kit de UI genérico da comunidade do Figma) como base visual do produto. Seção "Adoção do SnowUI Design System" adicionada ao final com a decisão (adoção seletiva de tokens/átomos visuais, rejeição do paradigma de layout de dashboard multi-widget do kit), o mapeamento de impacto tela-a-tela, e os próximos passos de implementação. Ver também `DESIGN.md` (Brand & Style, Layout & Spacing, Components).
 
 ## Foundation
 
 Web responsivo, single-tenant para duas pessoas (o casal) — sem app nativo, sem multiusuário (PRD §5). Next.js 16 + React 19, sem biblioteca de componentes (nenhum shadcn/MUI/Tailwind no projeto) — o sistema visual é CSS puro artesanal já documentado em `DESIGN.md`. Server Actions para toda mutação (`'use server'` inline nas páginas), Server Components para leitura — não há camada de API REST intermediária que o front consuma.
 
 As duas contas reais (Tsuyoshi e Milena, provisionadas na Story 1.1) enxergam os mesmos dados de fatura, mas cada lançamento pertence a um titular. Não há conceito de "meu espaço" vs. "espaço do parceiro" na navegação — é um único espaço compartilhado, o que já está correto e deve ser preservado (qualquer proposta abaixo mantém essa premissa).
+
+`[DECISÃO 2026-07-22, rodada 6]` Continua sem biblioteca de componentes em código (CSS puro, `app/globals.css`) — a avaliação do "SnowUI Design System" (kit Figma) não muda isso: SnowUI é adotado como **referência visual de design** (tokens + átomos, ver `DESIGN.md` → Brand & Style/Components), não como uma dependência de código instalada no projeto. Ver "Adoção do SnowUI Design System" ao final para o racional completo e o mapeamento de impacto por tela.
 
 ## Information Architecture
 
@@ -303,3 +307,62 @@ Quando Pessoa = destinatário (ou Todos), o item aparece na lista/total dela, ma
 
 - O rótulo exato do botão/ícone ("Repassar para {nome}" vs. um ícone só com tooltip) é uma escolha de implementação dentro do padrão já estabelecido (`icon-button` com `aria-label` explícito, mesmo padrão do lápis de Corrigir categoria) — não uma decisão de UX em aberto.
 - `badge-repasse` reaproveitando `{colors.accent}` é a proposta desta rodada; se a implementação achar que o contraste com `titular-badge` fica confuso lado a lado, o texto do badge (não a cor) é o primeiro ajuste a tentar antes de propor uma cor nova.
+
+## Adoção do SnowUI Design System (rodada 6, 2026-07-22)
+
+> O usuário quer adotar o "SnowUI Design System" — kit de UI genérico da comunidade do Figma (`file_key beubf9x3kZWqhsHLaGmKer`, node `8300:425`, https://www.figma.com/design/beubf9x3kZWqhsHLaGmKer/SnowUI-Design-System--Community-?node-id=8300-425) — extraindo tokens visuais (cor, tipografia, espaçamento, radius) e componentes atômicos para o Fatura a Dois. Estrutura do arquivo já investigada via API REST do Figma nesta rodada: páginas FOUNDATIONS + "Design system" (Variables/Colors/Text Styles/Effect Styles/Spacing-Size-Corner Radius, implementadas como Figma Variables — token de acesso disponível não tem escopo para ler valores em massa, só estrutura/nomes); página Base (node investigado) com os átomos Text, Icon, IconText, Frame (várias variantes de composição), Group, Button (+Active/Disabled), Image, Link, Navigation, Strip, Line, Tag, Badge, Chip, Separator, ButtonGroup; páginas Common/Mobile/Brand (variações, não investigadas em detalhe); e páginas de telas de exemplo — Dashboard, Settings, ChatGPT/AI Chat, Authentication.
+
+### A decisão: adoção seletiva, não total
+
+**Adoção seletiva** — tokens visuais (cor/tipografia/espaçamento/radius) e componentes atômicos do kit são adotados; o paradigma de layout multi-widget do Dashboard de exemplo **não é**. A estrutura de layout já decidida nas rodadas anteriores desta run (coluna única `{spacing.page-max-width}`, com a única exceção já escopada e justificada de `/lancamentos`, ver "Lista Rolante + Total Central Estático") permanece intacta.
+
+**Por que não adoção total:** as quatro páginas de exemplo do kit (Dashboard, Settings, ChatGPT/AI Chat, Authentication) são um SaaS genérico sem relação de domínio com um app financeiro doméstico de casal. Confrontando com a IA real do produto:
+
+| Página de exemplo SnowUI | Tela real equivalente | Grau de sobreposição |
+|---|---|---|
+| Authentication | `/login`, `/esqueci-senha`, `/redefinir-senha` | Parcial — mesma ideia de formulário curto centralizado, já é como `page--narrow` funciona hoje. Boa fonte de inspiração visual, sem tensão com a filosofia de layout. |
+| Dashboard | `/` (Início) | Parcial e só na ideia — cards de resumo, não a grade multi-widget do kit. `/` já é (`[IMPLEMENTADO 2026-07-18]`) um resumo vertical de 3 estados, não um dashboard de métricas soltas; **não vira uma grade de widgets** por causa do kit. |
+| Settings | *(nenhuma)* | Nenhuma tela do produto tem o papel de "configurações" — sem equivalente, sem ação a tomar. |
+| ChatGPT / AI Chat | *(nenhuma)* | Produto não tem chat/IA — sem equivalente, sem ação a tomar. |
+| *(nenhuma no kit)* | `/lancamentos`, `/cartoes`, `/categorias`, `/parcelas` | As telas financeiras reais — o coração do produto — **não têm contraparte no kit**. Exigem composição original com os átomos+fundações do SnowUI, não adaptação de um template existente. |
+
+Adotar "à risca" o kit (inclusive seus layouts multi-coluna) exigiria ou (a) inventar conteúdo de dashboard que o produto não tem só para preencher o template, ou (b) forçar as telas financeiras reais — desenhadas e refinadas ao longo de 5 rodadas de auditoria de UX documentadas nesta run — a se parecerem com um SaaS genérico sem que nenhum pedido do usuário jamais tenha apontado nessa direção. Isso desfaria decisões deliberadas e já justificadas (postura "recibo organizado, não app vitrine"; cor de destaque escassa; zero sombra decorativa; coluna única com uma única exceção funcional, não estética). Os átomos e tokens de fundação do kit, por outro lado, não carregam essa tensão — um `Button`, uma `Tag` ou uma escala de espaçamento servem qualquer arranjo de coluna única tão bem quanto serviriam um dashboard.
+
+### O que muda / o que não muda
+
+**Muda:**
+- Fonte de referência visual para tokens (cor/tipografia/espaçamento/radius) passa a ser o SnowUI, amostrado componente-a-componente durante a implementação (ver "Próximos passos" abaixo) — os valores atuais em `DESIGN.md`/`app/globals.css` continuam em produção até essa amostragem confirmar substituições concretas.
+- Vocabulário de componentes atômicos ganha uma referência formal externa (ver mapeamento em `DESIGN.md` → Components) para `button-primary`/`button-secondary`, `badge-pending`/`badge-repasse`/`titular-badge`, `icon-button`, divisores de lista e o toggle Individual/Combinada.
+- Telas com sobreposição parcial (`/login`, `/esqueci-senha`, `/redefinir-senha`, e a ideia de resumo de `/`) podem se inspirar mais diretamente na composição visual do SnowUI para esses papéis específicos.
+
+**Não muda:**
+- Information Architecture — nenhuma tela nova, removida ou renomeada por causa desta decisão.
+- Layout de coluna única como padrão do produto, e a exceção única/escopada de `/lancamentos` (não ampliada, não generalizada para outras telas).
+- Nenhum modal introduzido (produto continua sem essa camada, ver Information Architecture) mesmo que o kit possua padrões de overlay.
+- Filtros, fluxos, Key Flows, State Patterns, Accessibility Floor — nenhum comportamento muda; isto é puramente uma decisão de camada visual.
+- `Foundation` — continua sem biblioteca de componentes de código; SnowUI é referência de design, não uma dependência instalada.
+
+### Impacto por tela
+
+| Tela | Impacto |
+|---|---|
+| `/login`, `/esqueci-senha`, `/redefinir-senha` | Reskin direto — tokens novos (quando amostrados) + átomos `Button`/Text/Link do kit, layout `page--narrow` centralizado inalterado (mesmo papel do exemplo "Authentication" do kit). |
+| `/` (Início) | Reskin dos `summary-card`s dos 3 estados (Key Flow 1) usando os átomos do kit; **layout permanece vertical/coluna única** — nenhuma grade de widgets. |
+| `/lancamentos` | Reskin de `item-card`, `titular-badge`, `badge-repasse`, `badge-pending`, filtros e do toggle Individual/Combinada com os átomos do kit; **arranjo de 2 colunas (lista rolante + painel estático) permanece exatamente como já escopado** — o kit não amplia nem justifica mudança estrutural aqui. |
+| `/cartoes`, `/categorias`, `/categorias/[id]/remover`, `/parcelas` | Reskin de `item-card`/`summary-card`/`empty-state`/`alert-error`/botão destrutivo com os átomos do kit; composição original (sem template do kit para essas telas), layout de coluna única inalterado. |
+| Nav (`.app-nav`) | Reskin usando o átomo `Navigation` do kit; comportamento de colapso mobile (`[IMPLEMENTADO 2026-07-18]`) inalterado. |
+
+### Mapeamento de átomos
+
+Ver `DESIGN.md` → Components → "Mapeamento de átomos do SnowUI" para a tabela completa (Button, Tag/Badge/Chip, IconText/Icon, Line/Separator, Navigation, ButtonGroup, Frame/Group) — comportamento de cada componente já especificado nesta run permanece o mesmo; o mapeamento é só visual.
+
+### Próximos passos (fora do escopo desta rodada)
+
+1. **Amostragem componente-a-componente** dos Figma Variables reais (cor/tipografia/espaçamento/radius) — o token de API disponível não tem escopo para leitura em massa; requer inspeção manual na UI do Figma ou um token com escopo de `variables:read`. Resultado esperado: substituição concreta de valores no frontmatter de `DESIGN.md`, respeitando as restrições já registradas lá (par dark obrigatório, paleta enxuta, escassez do accent, radius uniforme, zero sombra).
+2. **Decisão de família tipográfica** (manter `Geist Sans` vs. adotar a fonte do SnowUI) — ver `DESIGN.md` → Typography para os critérios.
+3. **Protótipos de tela** para `/lancamentos`, `/cartoes`, `/categorias`, `/parcelas` (sem equivalente no kit) — composição original usando os átomos+tokens do SnowUI uma vez amostrados, mantendo a estrutura de IA/comportamento já especificada nesta run.
+
+### `[ASSUMPTION]`
+
+- Sem sessão de elicitação nova (rodada headless, via `bmad-goal-engine`) — a decisão de adoção seletiva vs. total foi tomada por Sally com base no confronto direto entre a estrutura real do kit (investigada via API do Figma) e a IA/filosofia de layout já registrada nesta run, não por preferência coletada do usuário nesta rodada especificamente. Se o usuário quiser reabrir para adoção total (inclusive dashboard multi-coluna), isso contradiria a premissa de produto pequeno/utilitário estabelecida desde `epics.md` e precisaria ser um pedido explícito e novo, não uma inferência desta rodada.
+- "Adoção seletiva" cobre tokens + átomos; não cobre os Effect Styles (sombra) do kit, deliberadamente excluídos (ver `DESIGN.md` → Elevation & Depth).

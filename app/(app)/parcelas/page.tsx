@@ -35,7 +35,7 @@ export default async function ParcelasPage() {
 
           return (
             <section key={chave} className="card">
-              <h2 style={{ marginBottom: '0.75rem' }}>
+              <h2 className="section-title">
                 {NOME_MES[competencia.competenciaMes]} de {competencia.competenciaAno} --{' '}
                 {formatarValorEmReais(competencia.totalCentavos)}
               </h2>

@@ -274,14 +274,14 @@ export function LancamentosView({
           <div className="lancamentos-resumo">
             {categoriaSelecionada !== 'todas' ? (
               <section className="card">
-                <h2 style={{ marginBottom: '0.75rem' }}>Total -- {formatarValorEmReais(totalFiltrado)}</h2>
+                <h2 className="section-title">Total -- {formatarValorEmReais(totalFiltrado)}</h2>
                 {totalFiltradoIncluiTitularPendente && (
                   <p className="hint">Inclui lançamento(s) com titular ainda não identificado.</p>
                 )}
               </section>
             ) : pessoaSelecionada ? (
               <section className="card">
-                <h2 style={{ marginBottom: '0.75rem' }}>
+                <h2 className="section-title">
                   {nomePorConta.get(pessoaSelecionada) ?? 'Pessoa'} --{' '}
                   {formatarValorEmReais(pessoaResumo?.totalCentavos ?? 0)}
                 </h2>
@@ -299,7 +299,7 @@ export function LancamentosView({
               </section>
             ) : visao === 'combinada' ? (
               <section className="card">
-                <h2 style={{ marginBottom: '0.75rem' }}>Casal -- {formatarValorEmReais(totalCombinado)}</h2>
+                <h2 className="section-title">Casal -- {formatarValorEmReais(totalCombinado)}</h2>
                 {categoriasCombinadas.length === 0 ? (
                   <p className="hint">Nenhum gasto resolvido nesta competência.</p>
                 ) : (
@@ -317,7 +317,7 @@ export function LancamentosView({
             ) : (
               resumoPessoas.map((pessoa) => (
                 <section key={pessoa.usuarioId} className="card">
-                  <h2 style={{ marginBottom: '0.75rem' }}>
+                  <h2 className="section-title">
                     {primeiroNome(pessoa.email)} -- {formatarValorEmReais(pessoa.totalCentavos)}
                   </h2>
                   {pessoa.categorias.length === 0 ? (
@@ -339,7 +339,7 @@ export function LancamentosView({
           {pendentes.length > 0 && (
             <div className="lancamentos-pendentes">
               <section className="card">
-                <h2 style={{ marginBottom: '0.75rem' }}>
+                <h2 className="section-title">
                   Pendente de revisão -- {formatarValorEmReais(totalPendentes)}
                 </h2>
                 {algumFiltroAtivo && (
