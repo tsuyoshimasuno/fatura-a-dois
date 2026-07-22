@@ -2,13 +2,26 @@
   --background: #ffffff;
   --foreground: #1a1f2b;
   --muted-foreground: #5b6472;
-  --surface: #f6f7f9;
+  --surface: #f9f9fa;
   --border: #e2e5ea;
-  --accent: #2554c7;
-  --accent-hover: #1d4399;
+  --accent: #000000;
+  --accent-hover: #262626;
   --accent-foreground: #ffffff;
-  --danger: #c0362c;
-  --pending: #b8860b;
+  /* #e00000 (era #ff3b30, depois #ed0d00 num pass anterior) -- o pass
+     anterior só verificou contraste contra #ffffff (4,51:1, ok), mas
+     `.alert-error`/`.btn-danger-outline` também renderizam dentro de
+     `<li className="card">`, ou seja, sobre --surface (#f9f9fa), onde
+     #ed0d00 caía para 4,28:1 (abaixo do mínimo). Escurecido mais um pouco
+     (mantendo H=0/S=100%) até 4,79:1 contra --surface e 5,04:1 contra
+     --background -- o par mais restritivo (surface) manda. */
+  --danger: #e00000;
+  /* #d07900 (era #ff9500) -- escurecido o MÍNIMO necessário para que o
+     contraste do texto branco (--accent-foreground) sobre este fundo não
+     regredisse em relação ao valor antigo pré-SnowUI (#b8860b, ~3,25:1):
+     novo valor fica em ~3,27:1, ou seja, ligeiramente melhor que o antigo,
+     não pior. Não atinge 4.5:1 pleno -- gap pré-existente, ver
+     deferred-work.md. */
+  --pending: #d07900;
   --radius: 10px;
   /* Exceção de largura escopada só a /lancamentos (spec-ux-lista-rolante-
      total-estatico) -- layout de 2 colunas precisa de mais espaço que o
@@ -20,16 +33,63 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0d12;
+    --background: #333333;
     --foreground: #edf0f5;
-    --muted-foreground: #9aa3b2;
-    --surface: #12151c;
-    --border: #262b36;
-    --accent: #6f9bff;
-    --accent-hover: #8db0ff;
-    --accent-foreground: #0b0d12;
-    --danger: #ff8377;
-    --pending: #e0b64d;
+    /* #c6cbd4 (era #9aa3b2) -- RE-verificado de novo contra o --surface FINAL
+       desta rodada (#464646, mais escuro que o #565656 do pass anterior):
+       5,80:1 contra --surface e 7,76:1 contra --background, ambos folgados
+       (o valor calibrado para o #565656 anterior continua válido porque o
+       novo --surface é mais escuro, não mais claro -- mais contraste, não
+       menos). Luminância continua bem abaixo de --foreground (0,59 vs
+       0,87), então ainda lê como texto secundário/"muted". */
+    --muted-foreground: #c6cbd4;
+    /* --surface-dark resolvido como incógnita de um sistema, não ajustado
+       isoladamente (bad_spec repair pass 2): #adadfb (--accent-dark, FIXO,
+       aprovado pelo usuário) precisa de >=4,5:1 de texto sobre --surface, e
+       esse contraste PIORA conforme --surface clareia. #565656 (valor do
+       pass anterior, escolhido só para ficar distinguível de --background)
+       deixava --accent-dark/--badge-repasse em ~3,54:1 (falha) e
+       --danger-dark (#ff6a6a, valor de um pass anterior) em ~3,38:1 (falha
+       de texto 4,5:1, mas passa o mínimo de borda 3:1). #464646 é o cinza
+       mais CLARO
+       (varredura completa, passo de 1 em 256) que ainda mantém --accent-dark
+       em >=4,5:1 (4,56:1 exato -- um passo acima, #474747, já cai para
+       4,49:1). Trade-off aceito e documentado: isso deixa --surface só a
+       1,34:1 de --background (menos "nitidamente distinguível" que os
+       1,72:1 do pass anterior), mas ainda MELHOR que o baseline pré-SnowUI
+       (--surface #12151c vs --background #0b0d12 = 1,06:1, commit
+       7c464ef) -- não regride, só não atinge o ideal de ~3:1 porque
+       --accent-dark (fixo) consome parte da folga de luminância disponível. */
+    --surface: #464646;
+    /* #929292 (era #7c7f85) -- reverificado contra o --surface FINAL desta
+       rodada e encontrada uma falha que nenhum pass anterior tinha checado:
+       --border só tinha sido validado contra --background (~3,15:1, ok),
+       nunca contra --surface, onde `.card`/`.titular-badge`/`.icon-button`
+       de fato desenham a borda do outro lado. Contra o --surface antigo
+       (#565656) já falhava (1,83:1); contra o novo (#464646) melhora mas
+       ainda falha (2,35:1) -- abaixo do mínimo 3:1 de elemento gráfico.
+       Clareado até 3,03:1 contra --surface (e 4,06:1 contra --background,
+       folgado) -- mesmo padrão de rigor aplicado ao resto da matriz. */
+    --border: #929292;
+    --accent: #adadfb;
+    --accent-hover: #c2c2fd;
+    /* Preto (#000000) é intencional aqui, não um erro: o SnowUI inverte os
+       papéis Black/White de --accent-foreground por modo (branco no claro,
+       preto no escuro, já que --accent-dark é um roxo-claro). Não
+       "corrigir" de volta para branco sem esse contexto. */
+    --accent-foreground: #000000;
+    /* #ff9999 (era #ff4747, depois #ff6a6a num pass anterior) -- o pass
+       anterior só verificou --danger-dark contra --background (4,53:1, ok),
+       mas `.btn-danger-outline` também renderiza dentro de
+       `<li className="card">`, ou seja, sobre --surface. Contra o
+       --surface FINAL desta rodada (#464646), #ff6a6a ficava em ~3,38:1
+       (falha só o mínimo de texto 4,5:1; passava o de borda 3:1). CLAREADO mais
+       (mantendo H=0/S=100%, mesmo caminho do pass anterior -- escurecer não
+       é matematicamente viável contra um fundo já escuro) até 4,62:1 contra
+       --surface e 6,18:1 contra --background -- o par mais restritivo
+       (surface, por ser mais claro) manda. */
+    --danger: #ff9999;
+    --pending: #ffb55b;
   }
 }
 
@@ -502,9 +562,10 @@ button:disabled {
   color: var(--accent);
   font-weight: 500;
   font-size: 0.9rem;
-}
-
-.link:hover {
+  /* Sempre sublinhado (não só no :hover) -- mitigação de WCAG 1.4.1 (uso de
+     cor): o --accent claro (#000000) fica visualmente próximo de
+     --foreground (#1a1f2b), então um link não pode depender só da cor para
+     ser identificável dentro de um parágrafo de texto comum. */
   text-decoration: underline;
 }
 

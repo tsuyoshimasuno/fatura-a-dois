@@ -7,26 +7,26 @@ sources:
 status: final
 updated: 2026-07-22
 colors:
-  background: '#ffffff'
-  background-dark: '#0b0d12'
-  foreground: '#1a1f2b'
-  foreground-dark: '#edf0f5'
-  muted-foreground: '#5b6472'
-  muted-foreground-dark: '#9aa3b2'
-  surface: '#f6f7f9'
-  surface-dark: '#12151c'
-  border: '#e2e5ea'
-  border-dark: '#262b36'
-  accent: '#2554c7'
-  accent-dark: '#6f9bff'
-  accent-hover: '#1d4399'
-  accent-hover-dark: '#8db0ff'
-  accent-foreground: '#ffffff'
-  accent-foreground-dark: '#0b0d12'
-  danger: '#c0362c'
-  danger-dark: '#ff8377'
-  pending: '#b8860b'
-  pending-dark: '#e0b64d'
+  background: '#ffffff' # sourced -- SnowUI-Light Background.1, identico ao valor atual
+  background-dark: '#333333' # sourced -- SnowUI-Dark Background.1 (era #0b0d12 -- mudanca real, modo escuro fica bem mais claro)
+  foreground: '#1a1f2b' # inalterado -- fora do escopo da troca de paleta aprovada (so accent/background/surface/danger/pending)
+  foreground-dark: '#edf0f5' # inalterado
+  muted-foreground: '#5b6472' # inalterado
+  muted-foreground-dark: '#c6cbd4' # [VERIFICACAO DE CONTRASTE, rodada 9 -- bad_spec repair pass 3, matriz completa] RE-verificado contra o surface-dark FINAL desta rodada ('#464646', mais escuro que o '#565656' do pass anterior): 5.80:1 contra surface-dark, 7.76:1 contra background-dark -- ambos folgados, valor mantido sem mudanca (o novo surface mais escuro so aumenta a folga).
+  surface: '#f9f9fa' # sourced -- SnowUI-Light Background.2 (era #f6f7f9, diferenca minima)
+  surface-dark: '#464646' # [VERIFICACAO DE CONTRASTE, rodada 9 -- bad_spec repair pass 3, matriz completa] RESOLVIDO COMO SISTEMA -- o valor anterior ('#565656', pass 2) deixava accent-dark ('#adadfb', SOURCED/FIXO) em ~3.54:1 contra surface (falha de texto para .link/.badge-repasse) e danger-dark em ~2.62:1 (falha dupla). '#464646' e o cinza mais CLARO (varredura completa de 0-255) que ainda mantem accent-dark em >=4.5:1 (4.56:1 exato -- um passo mais claro, '#474747', ja cai para 4.49:1, abaixo do minimo). TRADE-OFF ACEITO E DOCUMENTADO: isso deixa surface-dark a so 1.34:1 de background-dark (menos "nitidamente distinguivel" que os 1.72:1 do pass anterior), mas ainda MELHOR que o baseline pre-SnowUI (surface '#12151c' vs background '#0b0d12' = 1.06:1, commit 7c464ef) -- nao regride, so nao atinge o ideal de ~3:1 porque accent-dark fixo consome parte da folga de luminancia disponivel.
+  border: '#e2e5ea' # inalterado -- sem papel "Border" explicito no export do SnowUI, fora do escopo aprovado
+  border-dark: '#929292' # [VERIFICACAO DE CONTRASTE, rodada 9 -- bad_spec repair pass 3, matriz completa] AJUSTADO -- era '#7c7f85' (rodada 7b), validado so contra background-dark (3.15:1, ok) mas NUNCA contra surface-dark, onde .card/.titular-badge/.icon-button de fato desenham a borda do outro lado. Contra o surface-dark antigo ('#565656') ja falhava (1.83:1); contra o novo ('#464646') melhora mas ainda falha (2.35:1) -- abaixo do minimo 3:1 de elemento grafico. Clareado ate 3.03:1 contra surface-dark (e 4.06:1 contra background-dark, folgado).
+  accent: '#000000' # sourced -- SnowUI-Light Primary = Black.100% (era #2554c7 -- troca de identidade real, azul -> preto, decisao explicita do usuario apos ver Artifact comparativo)
+  accent-dark: '#adadfb' # sourced -- SnowUI-Dark Primary = Secondary.Indigo (era #6f9bff -- azul -> roxo-claro)
+  accent-hover: '#262626' # ESTIMADO -- sem papel de hover no export; leve clareamento do preto para dar feedback tatil
+  accent-hover-dark: '#c2c2fd' # ESTIMADO -- leve clareamento do roxo-claro
+  accent-foreground: '#ffffff' # sourced -- SnowUI-Light White.100% (papel de texto-sobre-accent do kit), inalterado
+  accent-foreground-dark: '#000000' # sourced -- SnowUI-Dark White.100% = #000000 (o kit inverte Black/White por modo; mesmo papel de texto-sobre-accent, nao e um valor inventado)
+  danger: '#e00000' # [VERIFICACAO DE CONTRASTE, rodada 9 -- bad_spec repair pass 3, matriz completa] AJUSTADO -- era '#ed0d00' (pass 2), validado so contra '#ffffff' (4.51:1, ok) mas .alert-error/.btn-danger-outline tambem renderizam dentro de <li className="card">, ou seja, sobre surface ('#f9f9fa'), onde '#ed0d00' caia para 4.28:1 (abaixo do minimo). Escurecido mais um pouco (mantendo H=0/S=100%) ate 4.79:1 contra surface e 5.04:1 contra background -- o par mais restritivo (surface) manda.
+  danger-dark: '#ff9999' # [VERIFICACAO DE CONTRASTE, rodada 9 -- bad_spec repair pass 3, matriz completa] AJUSTADO -- era '#ff6a6a' (pass 2), validado so contra background-dark (4.53:1, ok) mas .btn-danger-outline tambem renderiza sobre surface-dark. Contra o surface-dark FINAL desta rodada ('#464646'), '#ff6a6a' caia para ~2.62:1 (falha dupla: nem 4.5:1 de texto nem 3:1 de borda). CLAREADO mais (mantendo H=0/S=100%, escurecer nao e matematicamente viavel contra um fundo ja escuro) ate 4.62:1 contra surface-dark e 6.18:1 contra background-dark -- o par mais restritivo (surface, por ser mais claro) manda.
+  pending: '#d07900' # [VERIFICACAO DE CONTRASTE, rodada 8 -- bad_spec repair pass 2] AJUSTADO -- Secondary.Orange '#ff9500' (ESTIMADO) piorava o contraste pre-existente do texto branco (.badge-pending) de ~3.25:1 (valor antigo #b8860b) para ~2.20:1. Escurecido o minimo necessario para nao regredir: ~3.27:1 (levemente melhor que o antigo). Nao atinge 4.5:1 pleno -- gap pre-existente, ver deferred-work.md.
+  pending-dark: '#ffb55b' # ESTIMADO -- mesmo motivo (era #e0b64d)
 typography:
   font-family-base: 'var(--font-geist-sans), Arial, Helvetica, sans-serif'
   page-title:
@@ -121,7 +121,16 @@ Esta seção descreve o sistema **como ele já é** implementado, destilado dire
 
 `[DECISÃO 2026-07-22, rodada 6]` **Adoção do SnowUI Design System — seletiva, não total.** O usuário pediu para avaliar a adoção do "SnowUI Design System" (kit genérico de UI da comunidade do Figma, `beubf9x3kZWqhsHLaGmKer`) como base visual do produto. Decisão: **adotar seletivamente tokens visuais e componentes atômicos do kit, rejeitar seu paradigma de layout de dashboard multi-widget.** Razão: o kit inclui páginas de exemplo (Dashboard, Settings, ChatGPT/AI Chat, Authentication) que são SaaS genérico — sem equivalente real nas telas do produto, exceto uma sobreposição parcial e solta com `/login`+`/esqueci-senha`+`/redefinir-senha` (Authentication) e com `/` (Dashboard, só na ideia de "resumo em cards", não na grade multi-widget). As telas financeiras reais do produto (`/lancamentos`, `/cartoes`, `/categorias`, `/parcelas`) não têm contraparte no kit e exigiriam composição original de qualquer forma. Forçar essas telas reais a se parecerem com um dashboard de SaaS genérico desfaria cinco rodadas de decisão de UX deliberada e já registrada nesta run (postura "recibo organizado", coluna única, cor de destaque escassa, zero sombra decorativa) só para bater com um kit sem relação com o domínio do produto (finanças domésticas de um casal). Os **átomos** do kit (Text, Icon, IconText, Button+estados, Tag, Badge, Chip, Line, Separator, Navigation, ButtonGroup) e os **tokens de fundação** (cor, tipografia, espaçamento, raio) são, por outro lado, matéria-prima genuinamente reaproveitável — não carregam a decisão de layout junto, servem qualquer arranjo de coluna única. Ver detalhamento tela-a-tela e mapeamento de átomos em `EXPERIENCE.md` → "Adoção do SnowUI Design System".
 
-`[NOTA]` O token de acesso à API do Figma disponível nesta rodada não tem escopo para ler valores de Figma Variables em massa (só estrutura/nomes de página e componente). Por isso esta rodada **não substitui nenhum valor numérico** (hex, rem, px) do frontmatter abaixo — faria isso por suposição, o que a regra deste workflow proíbe ("nunca inventar"). Os valores atuais continuam sendo a fonte da verdade em produção até uma amostragem componente-a-componente (manual, na própria UI do Figma, ou com um token de acesso com escopo de variables) confirmar quais valores do SnowUI substituem quais tokens hoje existentes — trabalho de implementação, não desta etapa de design.
+`[NOTA, rodada 6]` O token de acesso à API do Figma disponível naquela rodada não tinha escopo para ler valores de Figma Variables em massa (só estrutura/nomes de página e componente) — por isso aquela rodada não substituiu nenhum valor numérico.
+
+`[DECISÃO 2026-07-22, rodada 7]` **Cores adotadas — o usuário exportou os tokens reais do Figma (plugin de export, formato W3C Design Tokens, 4 arquivos: `iOS-Light`/`iOS-Dark`/`SnowUI-Light`/`SnowUI-Dark`) e resolveu a limitação da rodada 6.** Usados os modos `SnowUI-Light`/`SnowUI-Dark` (não os `iOS-*`, que são um tema alternativo do mesmo kit). Gerado um comparativo visual (Artifact, componentes reais do produto renderizados nas duas paletas, claro e escuro) para o usuário decidir com o resultado final na frente, não só hex isolados — usuário confirmou explicitamente: "pode alterar para snowUI". Mudança pequena/cosmética (troca de valor de cor, zero impacto funcional) avaliada diretamente pelo orquestrador em vez de nova rodada de John/Winston/Sally, aplicando os 3 filtros que a própria rodada 6 já tinha pré-autorizado (ver nota abaixo) — registrado no memlog do goal-engine. Valores aplicados no frontmatter acima, cada um marcado `sourced` (lido direto do export) ou `ESTIMADO` (papel sem equivalente no export — hover, superfície translúcida, "pending"). Achado principal: **`{colors.accent}` deixa de ser azul e passa a ser preto (`#000000`) no modo claro e roxo-claro (`#adadfb`) no escuro** — o token `Primary` real do SnowUI, resolvido via `Black.100%`/`Secondary.Indigo`. `{colors.background-dark}` também muda de forma real (`#0b0d12` → `#333333`, bem mais claro) e `{colors.danger}` fica mais vívido (`#c0362c` → `#ff3b30`). `{colors.border}`/`{colors.foreground}`/`{colors.muted-foreground}` permanecem inalterados — fora do escopo do que foi comparado e aprovado.
+
+`[ATENÇÃO PARA IMPLEMENTAÇÃO, rodada 7]` `{colors.muted-foreground-dark}` (`#9aa3b2`) e `{colors.border-dark}` (`#262b36`) foram calculados originalmente contra o fundo escuro antigo (`#0b0d12`, quase preto) — com o novo `{colors.background-dark}` bem mais claro (`#333333`), o contraste de ambos precisa ser reverificado (WCAG AA: ≥4.5:1 para texto normal, ≥3:1 para elementos gráficos/bordas) e ajustado se necessário antes do commit.
+
+`[VERIFICAÇÃO DE CONTRASTE, rodada 7b]` Cálculo feito na implementação (luminância relativa WCAG 2.1, `(L1+0.05)/(L2+0.05)`):
+- `{colors.muted-foreground-dark}` `#9aa3b2` contra o novo `{colors.background-dark}` `#333333`: **4.97:1** (era 7.64:1 contra o `#0b0d12` antigo). Acima do mínimo de 4.5:1 para texto normal — **nenhum ajuste necessário**, valor mantido.
+- `{colors.border-dark}` `#262b36` contra o novo `{colors.background-dark}` `#333333`: **1.12:1** (era 1.37:1 contra o `#0b0d12` antigo). Muito abaixo do mínimo de ~3:1 — e `#262b36` é literalmente mais escura que o novo fundo `#333333`, o que tornaria a borda invisível/invertida (mais escura que o próprio card). **Ajustado** para `#7c7f85` (mantendo o leve matiz azulado original — B>G>R — só clareado), que atinge **3.15:1** contra `#333333`. Valor final aplicado em `app/globals.css` e no frontmatter `colors:` acima.
+- `{colors.accent-foreground}` sobre `{colors.accent}`: branco `#ffffff` sobre preto `#000000` (claro) = **21:1** (máximo teórico da escala, contraste perfeito). Preto `#000000` sobre roxo-claro `#adadfb` (escuro) = **10.15:1**, bem acima do mínimo — confirmado adequado nos dois modos, nenhum ajuste necessário.
 
 ## Colors
 
@@ -129,7 +138,7 @@ Esta seção descreve o sistema **como ele já é** implementado, destilado dire
 - **`{colors.surface}`** — fundo levemente destacado para `card`s (lançamentos, cartões pendentes, blocos de resumo). Diferença sutil o suficiente para não competir com o conteúdo do card.
 - **`{colors.muted-foreground}`** — texto secundário: subtítulos de página, rótulos de campo, hints. Nunca usado para números de valor — valores em reais são sempre `{colors.foreground}` ou dentro de um card.
 - **`{colors.border}`** — divisores e contornos de input/card. Nunca usado como cor de destaque.
-- **`{colors.accent}`** — a única cor "de marca" do sistema: usado em links, botão primário, item de navegação ativo, foco de input. Uso deliberadamente escasso — se tudo é azul, nada é.
+- **`{colors.accent}`** — a única cor "de marca" do sistema: usado em links, botão primário, item de navegação ativo, foco de input. Uso deliberadamente escasso — se tudo usa a cor de destaque, nada se destaca. `[ATUALIZADO rodada 7]` Era azul (`#2554c7`/`#6f9bff`), agora é o `Primary` real do SnowUI: preto (`#000000`) no claro, roxo-claro (`#adadfb`) no escuro — mesmo papel, cor nova.
 - **`{colors.danger}`** — reservado para mensagens de erro (`role="alert"`) e, futuramente, para confirmação de ações destrutivas (ver Do's and Don'ts). Nunca usado decorativamente.
 - **`{colors.pending}`** *(proposto)* — hoje o sistema não tem uma cor semântica de "atenção/pendência" distinta de erro; estados como "cartão pendente de mapeamento" ou "lançamento pendente de revisão" usam texto neutro (`hint`) idêntico a qualquer outra informação secundária, o que faz pendências reais se misturarem visualmente com texto informativo comum. Proposto um terceiro tom (âmbar) exclusivamente para *coisas que esperam uma ação do casal* — nunca para erro, nunca para sucesso.
 - **`{colors.accent}` em `badge-repasse`** *(proposto 2026-07-21, rodada 5)* — primeiro uso de `{colors.accent}` fora de link/botão primário/nav ativo/foco. Justificado porque um lançamento repassado é uma decisão deliberada do casal (não identidade neutra como `titular-badge`, não espera de ação como `{colors.pending}`, não erro/destrutivo como `{colors.danger}`) — nenhuma cor existente comunica "isto foi redirecionado por escolha". Ver `EXPERIENCE.md` → "Repasse de Lançamento para a Outra Pessoa".

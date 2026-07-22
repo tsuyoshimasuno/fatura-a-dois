@@ -130,3 +130,15 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-snowui-design-system-tokens.md`
   summary: `app/globals.css` mistura tamanhos de fonte em `rem` (assumindo raiz de 16px) com `body { font-size: 15px }` explícito e nenhuma regra em `html`/root para reconciliar os dois -- qualquer novo token em `rem` (page-title, page-subtitle, section-title, field, label, hint) resolve contra a raiz do navegador (16px), não contra os 15px do body, um descompasso sutil pré-existente.
   evidence: Confirmado via grep em `app/globals.css` -- nenhum seletor define `font-size` em `html`; `body` define 15px explicitamente. Pré-existente a esta spec (várias classes `rem`-based já existiam antes), só ficou mais carregado por esta mudança. Achado real do Blind Hunter durante a revisão da Story SnowUI, não causado por ela.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-paleta-de-cores.md`
+  summary: Nenhum teste/lint automático de regressão de contraste WCAG existe no repositório -- uma futura troca de valor de cor pode reintroduzir uma falha de acessibilidade sem nenhum aviso automatico, do mesmo jeito que aconteceu no pass 1 desta spec (danger/pending/surface-dark).
+  evidence: Confirmado por ambos os revisores (Blind Hunter + Edge Case Hunter) nesta spec -- a unica forma de pegar essas regressoes foi review manual/calculo explicito, nao ha CI/lint dedicado. Adicionar isso e um investimento de tooling transversal, fora do escopo de uma spec pontual de troca de paleta.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-paleta-de-cores.md`
+  summary: `.badge-pending` (texto branco sobre `--pending`) tem contraste WCAG AA insuficiente mesmo apos o ajuste desta spec -- era uma falha pre-existente (~3.26:1, antes do SnowUI) que so foi parcialmente mitigada, nao totalmente corrigida, para nao afastar demais o tom do laranja/ambar pretendido.
+  evidence: Confirmado por calculo WCAG explicito nesta spec (rodada de review). Corrigir totalmente exigiria escurecer --pending a ponto de perder a identidade "laranja vivo" do SnowUI Secondary.Orange, decisao de design que merece avaliacao propria, nao um ajuste reativo dentro desta spec de paleta.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-paleta-de-cores.md`
+  summary: `--border` no modo claro (`#e2e5ea`) tem contraste muito baixo contra `--surface`/`--background` claros (~1.2:1, bem abaixo do minimo 3:1 de elemento grafico) -- bordas de `.card`/`.titular-badge`/`input` sao pouco perceptiveis no modo claro.
+  evidence: Confirmado por calculo WCAG explicito durante a revisao da paleta SnowUI (pass 3). Pre-existente a esta spec -- `--border` claro nao foi alterado por nenhuma rodada desta iniciativa, e o deslocamento de `--surface` (`#f6f7f9` -> `#f9f9fa`, 3 unidades/canal) nao muda esse contraste de forma material. Corrigir exigiria escurecer `--border` claro, uma mudanca de paleta separada do escopo desta spec (troca de identidade SnowUI), que nunca teve autorizacao do usuario para alterar bordas no modo claro.
