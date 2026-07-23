@@ -29,6 +29,17 @@
      tanto o espaço morto lateral em telas grandes quanto o esticamento
      absurdo em ultra-wide. */
   --page-max-width-wide: 1360px;
+  /* Largura fixa da sidebar em >=768px (spec-snowui-sidebar-shell.md,
+     DESIGN.md rodada 10) -- substitui a nav horizontal sticky-top. */
+  --sidebar-width: 240px;
+  /* Destaque de LEITURA passiva (card "Total combinado"), distinto de
+     --accent (reservado a ação: link/botão-primário/nav-ativo/foco). Par
+     claro/escuro ESTIMADO em DESIGN.md (rodada 10, sem amostragem real do
+     Figma para este papel) -- contraste verificado na implementação
+     (luminância relativa WCAG 2.1): texto plausível --foreground (#1a1f2b)
+     sobre este --highlight (#ede9fe) = 13.87:1, muito acima do mínimo
+     4.5:1 -- nenhum ajuste de tom necessário. */
+  --highlight: #ede9fe;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -90,6 +101,13 @@
        (surface, por ser mais claro) manda. */
     --danger: #ff9999;
     --pending: #ffb55b;
+    /* Par escuro de --highlight (ver :root acima) -- luminância posicionada
+       entre --background (#333333) e --surface (#464646) com leve matiz
+       roxo (família de --accent, #adadfb), sem ser o mesmo valor.
+       Contraste verificado na implementação: texto plausível
+       --foreground (#edf0f5) sobre este --highlight (#3f3b54) = 9.36:1,
+       muito acima do mínimo 4.5:1 -- nenhum ajuste de tom necessário. */
+    --highlight: #3f3b54;
   }
 }
 
@@ -136,53 +154,160 @@ h3 {
   letter-spacing: -0.01em;
 }
 
-/* Nav */
+/* Sidebar (spec-snowui-sidebar-shell.md, DESIGN.md rodada 10) -- substitui
+   `.app-nav` horizontal. Desktop (>=768px): coluna fixa à esquerda,
+   `--sidebar-width`, altura total da viewport. Mobile (<768px, ver bloco
+   @media abaixo): recolhe para painel off-canvas, ver `.sidebar-toggle`/
+   `.sidebar-scrim`. */
 
-.app-nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-  padding: 1.125rem 2rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--background);
-  /* Estático (sticky) em todo o site -- mesmo componente compartilhado por
-     todas as rotas via app/(app)/layout.tsx, não só /lancamentos. */
-  position: sticky;
+.sidebar {
+  position: fixed;
   top: 0;
+  left: 0;
   z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: var(--sidebar-width);
+  height: 100vh;
+  padding: 1.5rem 1rem;
+  border-right: 1px solid var(--border);
+  background: var(--background);
+  overflow-y: auto;
 }
 
-.app-nav-title {
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sidebar-brand {
+  display: block;
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: -0.01em;
-  margin-right: 0.5rem;
 }
 
-.app-nav-list {
+/* Link discreto sempre visível para /upload (bad_spec repair pass 1) --
+   depois que a fatura do mês é enviada, "Início" deixa de linkar pra lá
+   (ver page.tsx `faturaNaoEnviada`), então a sidebar precisa de um caminho
+   de navegação próprio, sem virar um 6º item da lista principal. */
+.sidebar-upload-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sidebar-upload-link:hover {
+  color: var(--foreground);
+  border-color: var(--foreground);
+}
+
+.sidebar-nav-list {
   display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.25rem;
   list-style: none;
 }
 
-.app-nav-link {
-  padding: 0.3rem 0;
-  border-bottom: 2px solid transparent;
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid transparent;
+  border-radius: var(--radius);
   color: var(--muted-foreground);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.app-nav-link:hover {
+/* Destaque de hover/ativo dedicado (bad_spec repair pass 1) -- NÃO usa
+   var(--surface): no modo claro --surface (#f9f9fa) fica visualmente quase
+   idêntico a --background (#ffffff), ~1.05:1 de contraste, tornando o
+   destaque praticamente invisível. rgba() sobre --foreground/--background
+   garante contraste visível independente da proximidade dos dois tokens. */
+.sidebar-nav-link:hover {
   color: var(--foreground);
+  background: rgba(15, 15, 15, 0.05);
 }
 
-.app-nav-link.ativo {
+.sidebar-nav-link.ativo {
   color: var(--foreground);
-  border-bottom-color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(15, 15, 15, 0.05);
   font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sidebar-nav-link:hover,
+  .sidebar-nav-link.ativo {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* Seletor de conta do casal -- puramente visual, rodapé da sidebar (ver
+   nav.tsx: sem onClick, sem estado, não é botão nem link). */
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-couple-avatars {
+  display: flex;
+}
+
+.sidebar-couple-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sidebar-couple-avatar + .sidebar-couple-avatar {
+  margin-left: -0.5rem;
+}
+
+.sidebar-couple-names {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* Barra superior mobile (brand mark + hambúrguer) -- some em desktop,
+   substituída pela sidebar fixa. */
+.sidebar-toggle {
+  display: none;
+}
+
+/* Off-canvas fica sem estilo/oculto por padrão fora do breakpoint mobile
+   (bad_spec repair pass 1) -- mesmo padrão de `.sidebar-toggle` acima.
+   Evita um elemento solto/sem posicionamento no fluxo se a janela for
+   redimensionada para desktop com o painel ainda aberto (`menuAberto`
+   continua `true` no estado do React, só o CSS que muda por breakpoint). */
+.sidebar-scrim {
+  display: none;
 }
 
 .badge-pending {
@@ -227,17 +352,34 @@ h3 {
   font-weight: 500;
 }
 
-.app-nav-toggle {
-  display: none;
-}
-
+/* Sidebar -- mobile (<768px, spec-snowui-sidebar-shell.md). A sidebar fixa
+   não pode simplesmente empilhar/quebrar como a nav horizontal fazia --
+   recolhe para uma barra superior fina (brand mark + hambúrguer) e, ao
+   abrir, o painel off-canvas desliza da esquerda sobre o conteúdo com um
+   scrim atrás. Não é um modal: sem role="dialog", sem trap de foco
+   completo -- fecha em clique de link, Escape (onKeyDown no painel) ou
+   clique no scrim; foco vai para o primeiro link ao abrir (ver nav.tsx). */
 @media (max-width: 767px) {
-  .app-nav {
-    gap: 0.75rem;
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Maior que .sidebar-scrim (z-index 35, ver abaixo) -- bad_spec repair
+       pass 1: com o painel aberto, a barra mobile (brand + botão hambúrguer)
+       precisa continuar visível/clicável por cima do scrim, em vez de ficar
+       coberta por ele. */
+    z-index: 45;
+    height: 3.25rem;
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
   }
 
-  .app-nav-toggle {
+  .sidebar-toggle-button {
     display: inline-flex;
     flex-direction: column;
     justify-content: center;
@@ -251,7 +393,7 @@ h3 {
     cursor: pointer;
   }
 
-  .app-nav-toggle-bar {
+  .sidebar-toggle-bar {
     display: block;
     width: 1.1rem;
     height: 2px;
@@ -259,26 +401,86 @@ h3 {
     background: var(--foreground);
   }
 
-  .app-nav-list {
-    display: none;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: 100%;
-  }
-
-  .app-nav-list.aberto {
-    display: flex;
-    margin-top: 0.5rem;
-  }
-
-  .app-nav-link {
+  .sidebar-scrim {
     display: block;
-    padding: 0.6rem 0.25rem;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    border: none;
+    background: rgba(15, 15, 15, 0.4);
+    cursor: pointer;
   }
+
+  .sidebar {
+    z-index: 40;
+    width: 85%;
+    max-width: 320px;
+    /* Compensa a barra fixa `.sidebar-toggle` (altura 3.25rem, z-index 45)
+       que fica por cima do painel quando ele abre (bad_spec repair pass 2) --
+       sem isso, o brand row + link "+" do topo do painel ficam escondidos
+       atrás da barra. 4.75rem = 3.25rem da barra + folga visual. */
+    padding-top: 4.75rem;
+    transform: translateX(-100%);
+    visibility: hidden;
+    /* bad_spec repair pass 1: `visibility` só muda para `hidden` DEPOIS que
+       a transição de `transform` termina ao fechar (delay = duração da
+       transição de transform) -- antes disso, `visibility: hidden` aplicava
+       instantaneamente e a animação de fechar nunca chegava a ser vista.
+       `.sidebar.aberto` abaixo zera o delay para abrir imediatamente. */
+    transition: transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  .sidebar.aberto {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  /* bad_spec repair pass 3 -- a marca "Fatura a Dois" já aparece na barra
+     fixa `.sidebar-toggle` (sempre visível em mobile); repeti-la dentro do
+     painel (`.sidebar-brand-row`) duplicava visualmente a marca quando o
+     painel abria. Oculta só a marca de dentro do painel neste breakpoint,
+     mantendo o link "+" -- único item restante na linha, por isso
+     `justify-content: flex-end` (a regra base tem `space-between`, que com
+     um item só empurraria o "+" para a esquerda). */
+  .sidebar-brand-row {
+    justify-content: flex-end;
+  }
+
+  .sidebar-brand-row .sidebar-brand {
+    display: none;
+  }
+}
+
+/* bad_spec repair pass 2 -- respeita a preferência do usuário por menos
+   movimento: remove a transição de abrir/fechar do painel off-canvas
+   mobile. Não afeta a posição final (aberto/fechado), só a animação. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}
+
+.app-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-content {
   flex: 1;
+}
+
+@media (min-width: 768px) {
+  .app-content {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+@media (max-width: 767px) {
+  .app-content {
+    padding-top: 3.25rem;
+  }
 }
 
 /* Page layout */
@@ -422,11 +624,42 @@ h3 {
 
 /* Cards */
 
+/* [REVISADO 2026-07-22, rodada 10 -- ver DESIGN.md > Elevation & Depth]
+   Modo claro: fundo puro + sombra sutil substitui superfície+borda -- a
+   sombra é o mecanismo primário de profundidade, a borda fica redundante.
+   Modo escuro NÃO muda (ver override dentro do bloco
+   @media (prefers-color-scheme: dark) abaixo): sombra lê mal sobre um
+   fundo cinza-médio, então mantém superfície+borda, sem sombra -- decisão
+   deliberada por modo, não uma omissão. */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--background);
+  border: none;
+  box-shadow:
+    0 1px 2px rgba(15, 15, 15, 0.06),
+    0 1px 1px rgba(15, 15, 15, 0.04);
   border-radius: var(--radius);
   padding: 1.25rem;
+}
+
+/* Modo escuro mantém o mecanismo anterior (superfície + borda, sem
+   sombra) -- ver nota acima e DESIGN.md > Elevation & Depth. */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: none;
+  }
+}
+
+/* Fallback de borda para modo de alto contraste (bad_spec repair pass 1) --
+   `box-shadow` tipicamente não renderiza em `forced-colors` (Windows High
+   Contrast etc.), e o `.card` do modo claro depende só de sombra pra
+   contorno (border: none acima). CanvasText é a cor de sistema correta
+   nesse modo, não um valor fixo. */
+@media (forced-colors: active) {
+  .card {
+    border: 1px solid CanvasText;
+  }
 }
 
 .card-list {

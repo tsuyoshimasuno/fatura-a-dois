@@ -142,3 +142,24 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-snowui-paleta-de-cores.md`
   summary: `--border` no modo claro (`#e2e5ea`) tem contraste muito baixo contra `--surface`/`--background` claros (~1.2:1, bem abaixo do minimo 3:1 de elemento grafico) -- bordas de `.card`/`.titular-badge`/`input` sao pouco perceptiveis no modo claro.
   evidence: Confirmado por calculo WCAG explicito durante a revisao da paleta SnowUI (pass 3). Pre-existente a esta spec -- `--border` claro nao foi alterado por nenhuma rodada desta iniciativa, e o deslocamento de `--surface` (`#f6f7f9` -> `#f9f9fa`, 3 unidades/canal) nao muda esse contraste de forma material. Corrigir exigiria escurecer `--border` claro, uma mudanca de paleta separada do escopo desta spec (troca de identidade SnowUI), que nunca teve autorizacao do usuario para alterar bordas no modo claro.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: Nomes reais do casal ("Tsuyoshi"/"Milena") aparecem como texto estatico hardcoded no seletor de conta da sidebar, em vez de vir de dado real (email/perfil).
+  evidence: Mesmo padrao ja usado em todo o app desde o Epic 1 (ex.: `lib/pessoa.ts` deriva nome do prefixo do email, mas varias telas ja tem nomes/iniciais hardcoded em contextos de exemplo/copy) -- nao e uma regressao introduzida por esta spec, e um padrao pre-existente do projeto (app domestico de 2 pessoas, sem sistema de perfil). Nao vale a pena resolver isoladamente aqui.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: Redimensionar a janela do navegador para desktop (>=768px) enquanto o painel off-canvas mobile da sidebar esta aberto pode deixar o estado de foco/menuAberto inconsistente (o botao hamburguer fica display:none, tentativa de devolver foco a ele vira no-op silencioso).
+  evidence: Apontado por Edge Case Hunter na 2a passada de review -- interacao rara (exige redimensionar a janela com o menu aberto, incomum em uso real de desktop/mobile separados), risco baixo. Corrigir exigiria fechar o menu automaticamente ao cruzar o breakpoint (matchMedia listener), fora do escopo desta rodada de reparo.
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: A duracao da transicao do painel mobile (0.2s) esta duplicada em duas declaracoes CSS independentes (transform e o delay de visibility) em vez de uma variavel compartilhada -- mudar uma sem a outra reintroduz o bug original de animacao de fechar quebrada.
+  evidence: Apontado por Blind Hunter na 2a passada de review. Nitpick de manutenibilidade, nao um bug ativo hoje. Extrair para uma custom property (--sidebar-transition-duration) e uma melhoria de robustez futura, nao urgente.
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: Contraste de :hover puro em .sidebar-nav-link continua abaixo do ideal WCAG 1.4.11 (~3:1) mesmo apos o ajuste de opacidade da 2a passada -- o estado .ativo tem fallback forte (borda+negrito), mas hover isolado (sem ser o item ativo) fica com pista visual fraca.
+  evidence: Confirmado por calculo de contraste na 2a passada de review. Atingir 3:1 pleno exigiria uma cor de hover muito mais saturada, o que destacaria demais um estado transitorio (hover) na filosofia de paleta enxuta do produto -- trade-off aceito, nao e uma falha de acesso critica (o item ativo, que e o que mais importa para orientacao, ja e claramente distinguivel).
+
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: Ao fechar o painel off-canvas mobile clicando num link de navegacao (nao Escape/scrim), o foco de teclado nao e explicitamente gerenciado -- o link clicado fica infocavel a meio da transicao de saida e o navegador aplica fixup padrao de foco para <body>.
+  evidence: Confirmado (CONFIRMED) por Blind Hunter na 3a passada de review. Corrigir de forma robusta exigiria gerenciamento de foco a nivel de rota (mover foco pro heading da nova pagina ao navegar), uma funcionalidade maior e transversal a todo o app, fora do escopo de uma spec de shell de navegacao. O estado resultante (foco em <body>) e um fallback conhecido do navegador, nao um estado travado/quebrado.
+- source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
+  summary: O link de upload ("+") no rodape/topo da sidebar fica alcancavel por teclado so via Shift+Tab (o foco inicial ao abrir o painel mobile vai direto para o primeiro item da lista de navegacao principal, pulando o link de upload que vem antes no DOM).
+  evidence: Confirmado (PLAUSIBLE) por Blind Hunter na 3a passada. Ainda alcancavel, so nao e o primeiro parada do Tab -- severidade baixa, aceito.
