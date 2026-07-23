@@ -2,12 +2,13 @@
 title: 'Story 6.1: Repasse e desfazer repasse de lançamento'
 type: 'feature'
 created: '2026-07-21'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 1
 followup_review_recommended: true
 context: []
 warnings: ['oversized']
 baseline_revision: '5b5793636441b7a350b6617a1021e57d219ef75f'
+final_revision: '29412216357624c541fb58ced9fae8577ee56e15'
 ---
 
 <intent-contract>
