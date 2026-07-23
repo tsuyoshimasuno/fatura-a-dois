@@ -40,6 +40,25 @@
      sobre este --highlight (#ede9fe) = 13.87:1, muito acima do mínimo
      4.5:1 -- nenhum ajuste de tom necessário. */
   --highlight: #ede9fe;
+  /* Paleta fechada do `category-icon` (spec-snowui-lancamentos-highlight-e-
+     icone-categoria.md) -- 6 cores, cada uma redefinida no bloco dark
+     abaixo (mesma convenção do arquivo: uma propriedade por papel, não um
+     par de variáveis com sufixo `-dark`). `lib/categoria-cor.ts` mapeia
+     nome de categoria (texto livre) -> índice 0..5 por hash determinístico,
+     nunca por escolha manual de hex por categoria. Modo claro usa tons
+     saturados/escuros (mesmo padrão de --danger/--pending) porque o texto
+     da inicial usa `--accent-foreground` (branco no claro, preto no
+     escuro) -- reaproveitado de propósito: já é exatamente o token
+     "texto sobre preenchimento sólido que troca de cor por modo", sem
+     precisar duplicar essa lógica de flip num token novo. Todos os 6 pares
+     abaixo foram verificados (luminância relativa WCAG 2.1) e ficam
+     >=4.5:1 contra o `--accent-foreground` do respectivo modo. */
+  --category-color-1: #2563eb; /* azul -- 5.16:1 contra branco */
+  --category-color-2: #15803d; /* verde -- 5.01:1 contra branco */
+  --category-color-3: #b45309; /* âmbar -- 5.02:1 contra branco */
+  --category-color-4: #dc2626; /* vermelho -- 4.83:1 contra branco */
+  --category-color-5: #0f766e; /* teal -- 5.48:1 contra branco */
+  --category-color-6: #7c3aed; /* violeta -- 5.70:1 contra branco */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -108,6 +127,20 @@
        --foreground (#edf0f5) sobre este --highlight (#3f3b54) = 9.36:1,
        muito acima do mínimo 4.5:1 -- nenhum ajuste de tom necessário. */
     --highlight: #3f3b54;
+    /* Par escuro da paleta de `category-icon` (ver :root acima) -- tons
+       claros/pastel (mesmo padrão de --danger-dark/--pending-dark, que
+       também clareiam no modo escuro), pareados com `--accent-foreground`
+       preto neste modo. Verificados: todos >=4.5:1 contra preto (folga
+       generosa, 7.5:1 a 12.6:1) -- a maior folga aqui (vs. o mínimo
+       apertado de alguns pares acima) é intencional: pastéis mais claros
+       legíveis sobre um círculo pequeno importam mais que economizar
+       saturação. */
+    --category-color-1: #60a5fa; /* azul -- 8.26:1 contra preto */
+    --category-color-2: #22c55e; /* verde -- 9.22:1 contra preto */
+    --category-color-3: #fbbf24; /* âmbar -- 12.58:1 contra preto */
+    --category-color-4: #f87171; /* vermelho -- 7.59:1 contra preto */
+    --category-color-5: #2dd4bf; /* teal -- 11.29:1 contra preto */
+    --category-color-6: #a78bfa; /* violeta -- 7.72:1 contra preto */
   }
 }
 
@@ -350,6 +383,75 @@ h3 {
   color: var(--accent);
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+/* Ícone de categoria (spec-snowui-lancamentos-highlight-e-icone-categoria.md)
+   -- círculo pequeno com a inicial da categoria, inserido antes da linha
+   data/estabelecimento/valor em `lancamento-item.tsx`. Puramente
+   identificador visual, não interativo (sem cursor/hover/foco). A cor vem
+   de `lib/categoria-cor.ts` (hash determinístico nome -> `--category-color-
+   1..6`, ver tokens em :root/dark acima); o texto usa `--accent-foreground`
+   porque os pares claro/escuro da paleta foram calibrados especificamente
+   contra esse token (ver comentário nos tokens). */
+.category-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-right: 0.375rem;
+  border-radius: 9999px;
+  color: var(--accent-foreground);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Fallback neutro (categoria removida ou `categoriaNome === null`, I/O
+   Matrix da spec) -- círculo sem inicial (nunca "null"/"undefined"),
+   `--border` já é usado como cor neutra "sem preenchimento forte" em outros
+   lugares do arquivo (ex.: `.icon-button`), reaproveitado aqui pelo mesmo
+   motivo. */
+.category-icon--neutral {
+  background: var(--border);
+}
+
+.category-icon--cor-1 {
+  background: var(--category-color-1);
+}
+
+.category-icon--cor-2 {
+  background: var(--category-color-2);
+}
+
+.category-icon--cor-3 {
+  background: var(--category-color-3);
+}
+
+.category-icon--cor-4 {
+  background: var(--category-color-4);
+}
+
+.category-icon--cor-5 {
+  background: var(--category-color-5);
+}
+
+.category-icon--cor-6 {
+  background: var(--category-color-6);
+}
+
+/* Todo o sinal do `.category-icon` é a cor de fundo -- em `forced-colors`
+   (Windows High Contrast) preenchimentos arbitrários são ignorados pelo
+   navegador, então sem isto todas as variantes (incluindo a neutra)
+   colapsariam para o mesmo círculo indistinguível (achado de review real,
+   convergente entre os dois revisores). Mesmo tratamento já aplicado a
+   `.card-highlight` logo abaixo, por consistência. */
+@media (forced-colors: active) {
+  .category-icon {
+    border: 1px solid CanvasText;
+  }
 }
 
 /* Sidebar -- mobile (<768px, spec-snowui-sidebar-shell.md). A sidebar fixa
@@ -660,6 +762,19 @@ h3 {
   .card {
     border: 1px solid CanvasText;
   }
+}
+
+/* Variante de `.card` para destaque de LEITURA passiva (card "Casal" na
+   visão combinada sem filtro, spec-snowui-lancamentos-highlight-e-icone-
+   categoria.md). Usada em conjunto com `.card` (`className="card
+   card-highlight"`), nunca sozinha -- só sobrescreve `background`, herdando
+   borda/sombra/radius/padding (claro, escuro e forced-colors) direto de
+   `.card` acima, sem duplicar as regras nem arriscar as duas divergirem se
+   `.card` mudar no futuro (achado de review real: a primeira versão
+   duplicava tudo byte a byte). Aditiva: não é um card novo, é a mesma seção
+   existente ganhando uma classe a mais condicionalmente. */
+.card-highlight {
+  background: var(--highlight);
 }
 
 .card-list {

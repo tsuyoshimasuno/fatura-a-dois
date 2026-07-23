@@ -298,7 +298,15 @@ export function LancamentosView({
                 )}
               </section>
             ) : visao === 'combinada' ? (
-              <section className="card">
+              // card-highlight (spec-snowui-lancamentos-highlight-e-icone-
+              // categoria.md): esta branch só é alcançada quando
+              // `pessoaSelecionada === null` e `categoriaSelecionada ===
+              // 'todas'` (as duas condições já filtram as branches acima),
+              // exatamente o cruzamento "visão combinada sem filtro" do I/O
+              // Matrix -- não precisa repetir a checagem aqui. `card-highlight`
+              // é sempre usada junto de `card` (só sobrescreve o background,
+              // ver globals.css).
+              <section className="card card-highlight">
                 <h2 className="section-title">Casal -- {formatarValorEmReais(totalCombinado)}</h2>
                 {categoriasCombinadas.length === 0 ? (
                   <p className="hint">Nenhum gasto resolvido nesta competência.</p>

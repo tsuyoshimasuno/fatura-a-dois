@@ -6,6 +6,7 @@ import { formatarData } from '@/lib/data';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { corrigirCategoriaLancamento } from '@/server/categorizacao/corrigir-categoria';
 import { criarCategoria } from '@/server/categorizacao/gerenciar-categorias';
+import { classeCorCategoria } from '@/lib/categoria-cor';
 import { desfazerRepasse, repassarLancamento } from '@/server/visualizacao/repasse-lancamento';
 
 type Categoria = { id: number; nome: string };
@@ -133,6 +134,28 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
     ? 'Categoria removida'
     : (item.categoriaNome ?? 'Sem categoria');
 
+  // category-icon (spec-snowui-lancamentos-highlight-e-icone-categoria.md):
+  // fallback neutro (sem inicial, `.category-icon--neutral`) para categoria
+  // removida ou ausente -- nunca renderiza "null"/"undefined". `.trim()`
+  // cobre o caso degenerado de um nome só com espaços (mesmo raciocínio de
+  // `primeiroNome` em lib/pessoa.ts: nunca deixar a UI vazia/quebrada por um
+  // dado inesperado); `validarNome` em gerenciar-categorias.ts já garante
+  // que todo nome persistido é trim()ado e não-vazio, então isto é defesa em
+  // profundidade, não um caminho alcançável na prática. A cor usa o nome
+  // completo (não só a inicial), então "Mercado" e "Moradia" podem cair em
+  // cores diferentes. `Array.from(...)[0]` (não `.charAt(0)`) evita cortar
+  // um par substituto ao meio quando o nome começa com um caractere fora do
+  // BMP (ex.: emoji) -- achado de review real, categorias são texto livre.
+  const categoriaNomeValido =
+    !item.categoriaRemovida && item.categoriaNome !== null ? item.categoriaNome.trim() : '';
+  const categoriaIcone =
+    categoriaNomeValido.length > 0
+      ? {
+          inicial: Array.from(categoriaNomeValido)[0].toUpperCase(),
+          classeCor: classeCorCategoria(categoriaNomeValido),
+        }
+      : null;
+
   const categoriaAtualSelecionavel =
     !item.categoriaRemovida && item.categoriaId !== null ? String(item.categoriaId) : '';
 
@@ -229,6 +252,17 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   return (
     <li className="card">
       <div style={{ marginBottom: '0.5rem' }}>
+        {categoriaIcone ? (
+          <span
+            className={`category-icon ${categoriaIcone.classeCor}`}
+            aria-label={`Categoria: ${categoriaNomeValido}`}
+            title={categoriaNomeValido}
+          >
+            {categoriaIcone.inicial}
+          </span>
+        ) : (
+          <span className="category-icon category-icon--neutral" aria-hidden="true" />
+        )}
         <strong>{formatarData(item.data)}</strong> -- {item.estabelecimento} --{' '}
         {formatarValorEmReais(item.valorCentavos)}
         {item.titularNome !== null && (
