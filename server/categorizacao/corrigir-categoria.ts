@@ -31,6 +31,11 @@ export type LancamentoParaCorrecao = {
   valorCentavos: number;
   categoriaId: number | null;
   categoriaNome: string | null;
+  // Ícone escolhido pelo casal para a categoria (spec-icone-categoria-
+  // escolhido.md) -- mesmo tratamento de `categoriaNome`: `null` quando a
+  // categoria foi removida (o ícone nunca deve aparecer para uma categoria
+  // removida) ou quando o casal nunca escolheu um.
+  categoriaIcone: string | null;
   categoriaRemovida: boolean;
   parcelaNumero: number | null;
   parcelaTotal: number | null;
@@ -59,6 +64,7 @@ export async function listarLancamentosParaCorrecao(
       valorCentavos: lancamento.valorCentavos,
       categoriaId: lancamento.categoriaId,
       categoriaNome: categoria.nome,
+      categoriaIcone: categoria.icone,
       categoriaRemovidoEm: categoria.removidoEm,
       parcelaNumero: lancamento.parcelaNumero,
       parcelaTotal: lancamento.parcelaTotal,
@@ -71,19 +77,26 @@ export async function listarLancamentosParaCorrecao(
     .where(and(eq(lancamento.competenciaAno, ano), eq(lancamento.competenciaMes, mes)))
     .orderBy(lancamento.data);
 
-  return linhas.map((linha) => ({
-    id: linha.id,
-    data: linha.data,
-    estabelecimento: linha.estabelecimento,
-    valorCentavos: linha.valorCentavos,
-    categoriaId: linha.categoriaId,
-    categoriaNome: linha.categoriaNome,
-    categoriaRemovida: linha.categoriaNome !== null && linha.categoriaRemovidoEm !== null,
-    parcelaNumero: linha.parcelaNumero,
-    parcelaTotal: linha.parcelaTotal,
-    titularUsuarioId: linha.cartaoUsuarioId,
-    responsavelId: linha.responsavelId,
-  }));
+  return linhas.map((linha) => {
+    const categoriaRemovida = linha.categoriaNome !== null && linha.categoriaRemovidoEm !== null;
+
+    return {
+      id: linha.id,
+      data: linha.data,
+      estabelecimento: linha.estabelecimento,
+      valorCentavos: linha.valorCentavos,
+      categoriaId: linha.categoriaId,
+      categoriaNome: linha.categoriaNome,
+      // Mesmo tratamento de `categoriaNome`: categoria removida nunca
+      // surface o ícone escolhido (I/O Matrix da spec).
+      categoriaIcone: categoriaRemovida ? null : linha.categoriaIcone,
+      categoriaRemovida,
+      parcelaNumero: linha.parcelaNumero,
+      parcelaTotal: linha.parcelaTotal,
+      titularUsuarioId: linha.cartaoUsuarioId,
+      responsavelId: linha.responsavelId,
+    };
+  });
 }
 
 // Corrige a categoria de um lançamento e memoriza a regra por padrão de

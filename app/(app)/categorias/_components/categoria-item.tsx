@@ -3,8 +3,9 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { editarCategoria } from '@/server/categorizacao/gerenciar-categorias';
+import { IconePicker } from './icone-picker';
 
-type Categoria = { id: number; nome: string };
+type Categoria = { id: number; nome: string; icone: string | null };
 
 type CategoriaItemProps = {
   item: Categoria;
@@ -25,9 +26,22 @@ export function CategoriaItem({ item }: CategoriaItemProps) {
 
     const formData = new FormData(event.currentTarget);
     const nome = String(formData.get('nome') ?? '');
+    // `formData.get('icone')` só retorna `null` quando NENHUM radio do grupo
+    // está marcado -- só acontece quando `item.icone` já é um valor fora do
+    // enum conhecido hoje (dado obsoleto de uma chave removida numa rodada
+    // futura, já que a UI sempre marca "Nenhum" por padrão quando o valor é
+    // nulo). Nesse caso preserva o valor atual em vez de apagá-lo -- sem
+    // isto, salvar a categoria por qualquer outro motivo (ex. só renomear)
+    // apagaria silenciosamente um ícone que o usuário nunca pediu para
+    // remover (achado de review real, convergente entre os dois revisores).
+    // Quando o usuário de fato marca "Nenhum", o radio existe e está
+    // presente no FormData com valor `''`, então este fallback nunca
+    // interfere nesse caminho.
+    const iconeBruto = formData.get('icone');
+    const icone = iconeBruto === null ? (item.icone ?? '') : String(iconeBruto);
 
     try {
-      const resposta = await editarCategoria(item.id, nome);
+      const resposta = await editarCategoria(item.id, nome, icone);
       if (resposta.ok) {
         setResultado({ ok: true, message: 'Categoria salva.' });
         router.refresh();
@@ -46,6 +60,7 @@ export function CategoriaItem({ item }: CategoriaItemProps) {
     <li className="card">
       <form onSubmit={handleSubmit} className="field-inline" style={{ marginBottom: '0.75rem' }}>
         <input type="text" name="nome" defaultValue={item.nome} required disabled={loading} />
+        <IconePicker valorAtual={item.icone} disabled={loading} />
         <button type="submit" disabled={loading}>
           {loading ? 'Salvando...' : 'Salvar'}
         </button>

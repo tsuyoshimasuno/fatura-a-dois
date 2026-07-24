@@ -57,6 +57,13 @@
       "when": 1784685599513,
       "tag": "0007_absurd_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784851905001,
+      "tag": "0008_material_scarecrow",
+      "breakpoints": true
     }
   ]
 }

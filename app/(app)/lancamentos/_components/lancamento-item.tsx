@@ -7,6 +7,7 @@ import { formatarValorEmReais } from '@/lib/moeda';
 import { corrigirCategoriaLancamento } from '@/server/categorizacao/corrigir-categoria';
 import { criarCategoria } from '@/server/categorizacao/gerenciar-categorias';
 import { classeCorCategoria } from '@/lib/categoria-cor';
+import { ehIconeCategoriaValido, ICONE_CATEGORIA_COMPONENTE } from '@/lib/categoria-icones';
 import { desfazerRepasse, repassarLancamento } from '@/server/visualizacao/repasse-lancamento';
 
 type Categoria = { id: number; nome: string };
@@ -18,6 +19,11 @@ type Lancamento = {
   valorCentavos: number;
   categoriaId: number | null;
   categoriaNome: string | null;
+  // Ícone escolhido pelo casal para a categoria (spec-icone-categoria-
+  // escolhido.md) -- `null` quando a categoria não tem ícone escolhido ou
+  // quando `categoriaRemovida`/sem categoria (o servidor já aplica esse
+  // tratamento em `corrigir-categoria.ts`, mesmo cuidado de `categoriaNome`).
+  categoriaIcone: string | null;
   categoriaRemovida: boolean;
   parcelaNumero: number | null;
   parcelaTotal: number | null;
@@ -148,11 +154,22 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   // BMP (ex.: emoji) -- achado de review real, categorias são texto livre.
   const categoriaNomeValido =
     !item.categoriaRemovida && item.categoriaNome !== null ? item.categoriaNome.trim() : '';
-  const categoriaIcone =
+  // Ícone escolhido (spec-icone-categoria-escolhido.md): mesmo guard de
+  // `categoriaNomeValido` (nunca para categoria removida/ausente) mais
+  // validação contra o enum fechado -- defesa em profundidade contra um
+  // valor desatualizado/adulterado no banco, mesmo raciocínio de
+  // `categoriaNomeValido` acima (na prática `corrigir-categoria.ts` já
+  // garante os dois cuidados no servidor).
+  const categoriaIconeValido =
+    categoriaNomeValido.length > 0 && item.categoriaIcone !== null && ehIconeCategoriaValido(item.categoriaIcone)
+      ? item.categoriaIcone
+      : null;
+  const categoriaCirculo =
     categoriaNomeValido.length > 0
       ? {
           inicial: Array.from(categoriaNomeValido)[0].toUpperCase(),
           classeCor: classeCorCategoria(categoriaNomeValido),
+          IconeEscolhido: categoriaIconeValido ? ICONE_CATEGORIA_COMPONENTE[categoriaIconeValido] : null,
         }
       : null;
 
@@ -252,13 +269,17 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   return (
     <li className="card">
       <div style={{ marginBottom: '0.5rem' }}>
-        {categoriaIcone ? (
+        {categoriaCirculo ? (
           <span
-            className={`category-icon ${categoriaIcone.classeCor}`}
+            className={`category-icon ${categoriaCirculo.classeCor}`}
             aria-label={`Categoria: ${categoriaNomeValido}`}
             title={categoriaNomeValido}
           >
-            {categoriaIcone.inicial}
+            {categoriaCirculo.IconeEscolhido ? (
+              <categoriaCirculo.IconeEscolhido className="category-icon-svg" />
+            ) : (
+              categoriaCirculo.inicial
+            )}
           </span>
         ) : (
           <span className="category-icon category-icon--neutral" aria-hidden="true" />

@@ -321,6 +321,10 @@ So that eu possa classificar meus gastos do jeito que faz sentido pra gente.
 **When** recuso escolher uma substituta
 **Then** os lançamentos afetados ficam marcados "categoria removida" até reclassificação manual — nunca perdem a informação silenciosamente
 
+**Given** estou criando ou editando uma categoria
+**When** opcionalmente escolho um ícone de um conjunto fechado de 7 opções (ou deixo "Nenhum")
+**Then** o ícone escolhido fica associado à categoria e passa a ser exibido em `/lancamentos` junto de cada lançamento dessa categoria; categorias sem ícone escolhido continuam usando o indicador padrão (círculo com a inicial do nome) *(AC adicionado retroativamente — 2026-07-23: capacidade nova e visível pedida explicitamente pelo usuário após ver o indicador padrão em produção — nenhum AC anterior cobria escolha de ícone — avaliada como extensão desta story por PM+tech-lead+UX (convergência unânime), não epic/story nova, por caber inteiramente no escopo já cartografado "classificar meus gastos do jeito que faz sentido pra gente". Desenho completo (rejeição de inferência automática por palavra-chave e de emoji real, conjunto de 7 ícones, interação de grade/sticker-picker) documentado em `EXPERIENCE.md`/`DESIGN.md` (workspace `ux-fatura-a-dois-2026-07-18`), seção "Ícone de categoria")*
+
 ### Story 3.2: Sugestão automática de categoria
 
 As a pessoa do casal,

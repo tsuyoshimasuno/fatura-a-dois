@@ -32,6 +32,13 @@ export const categoria = pgTable(
   {
     id: serial('id').primaryKey(),
     nome: text('nome').notNull(),
+    // Ícone escolhido opcionalmente pelo casal (spec-icone-categoria-
+    // escolhido.md) -- chave curta validada em código contra um enum
+    // fechado de 7 opções (`lib/categoria-icones.tsx`), nunca um `pgEnum` do
+    // Postgres (evita fricção de migration para adicionar uma 8ª chave numa
+    // rodada futura) nem string livre. `null` é o estado padrão/fallback
+    // permanente (círculo + inicial em vez do SVG), não um estado transitório.
+    icone: text('icone'),
     removidoEm: timestamp('removido_em'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },

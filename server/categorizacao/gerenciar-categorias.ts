@@ -4,6 +4,7 @@ import { and, count, eq, isNull, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
 import { categoria, lancamento, regraCategorizacao } from '@/db/schema';
+import { ehIconeCategoriaValido } from '@/lib/categoria-icones';
 
 type ResultadoOperacao = { ok: boolean; message?: string };
 
@@ -49,6 +50,26 @@ function validarNome(nome: string): string | null {
   }
 
   return nomeTratado;
+}
+
+// Ícone é sempre opcional (spec-icone-categoria-escolhido.md, Never: nunca
+// obrigatório, nunca badge de pendência) -- ausente/vazio/inválido tratado
+// da mesma forma, "nenhum ícone escolhido", nunca um erro. Só uma chave que
+// não pertence ao enum fechado (`ICONES_CATEGORIA_VALIDOS`, ex. manipulação
+// direta de requisição via DevTools) cai no fallback `null`; nunca persiste
+// uma chave arbitrária.
+function validarIcone(icone: string | null): string | null {
+  if (icone === null) {
+    return null;
+  }
+
+  const iconeTratado = icone.trim();
+
+  if (!iconeTratado || !ehIconeCategoriaValido(iconeTratado)) {
+    return null;
+  }
+
+  return iconeTratado;
 }
 
 // `db` e uma transação (`tx`) expõem os mesmos métodos de consulta usados
@@ -106,13 +127,16 @@ export async function contarRegrasPorCategoria(categoriaId: number): Promise<num
 }
 
 export async function criarCategoria(
-  nome: string
+  nome: string,
+  icone: string | null = null
 ): Promise<ResultadoOperacao & { categoria?: typeof categoria.$inferSelect }> {
   const nomeTratado = validarNome(nome);
 
   if (!nomeTratado) {
     return { ok: false, message: `Informe um nome de até ${NOME_MAX_LENGTH} caracteres para a categoria.` };
   }
+
+  const iconeTratado = validarIcone(icone);
 
   if (await existeCategoriaAtivaComNome(db, nomeTratado)) {
     return { ok: false, message: 'Já existe uma categoria ativa com esse nome.' };
@@ -121,7 +145,7 @@ export async function criarCategoria(
   let nova: typeof categoria.$inferSelect;
 
   try {
-    [nova] = await db.insert(categoria).values({ nome: nomeTratado }).returning();
+    [nova] = await db.insert(categoria).values({ nome: nomeTratado, icone: iconeTratado }).returning();
   } catch (error) {
     if (isUniqueViolation(error)) {
       return { ok: false, message: 'Já existe uma categoria ativa com esse nome.' };
@@ -142,13 +166,16 @@ export async function criarCategoria(
 
 export async function editarCategoria(
   categoriaId: number,
-  nome: string
+  nome: string,
+  icone: string | null = null
 ): Promise<ResultadoOperacao> {
   const nomeTratado = validarNome(nome);
 
   if (!nomeTratado) {
     return { ok: false, message: `Informe um nome de até ${NOME_MAX_LENGTH} caracteres para a categoria.` };
   }
+
+  const iconeTratado = validarIcone(icone);
 
   if (await existeCategoriaAtivaComNome(db, nomeTratado, categoriaId)) {
     return { ok: false, message: 'Já existe uma categoria ativa com esse nome.' };
@@ -161,7 +188,7 @@ export async function editarCategoria(
     // removida nunca reativa a linha silenciosamente.
     atualizados = await db
       .update(categoria)
-      .set({ nome: nomeTratado })
+      .set({ nome: nomeTratado, icone: iconeTratado })
       .where(and(eq(categoria.id, categoriaId), isNull(categoria.removidoEm)))
       .returning();
   } catch (error) {

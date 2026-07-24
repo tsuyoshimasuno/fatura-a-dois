@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { criarCategoria } from '@/server/categorizacao/gerenciar-categorias';
+import { IconePicker } from './icone-picker';
 
 // `criarCategoria` não tem guarda de deduplicação no banco (ao contrário de
 // mapearCartao/rejeitarCartaoTerceiro, que têm um WHERE-clause guard) -- um
@@ -27,9 +28,10 @@ export function CriarCategoriaForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const nome = String(formData.get('nome') ?? '');
+    const icone = String(formData.get('icone') ?? '');
 
     try {
-      const resposta = await criarCategoria(nome);
+      const resposta = await criarCategoria(nome, icone);
       if (resposta.ok) {
         form.reset();
         router.refresh();
@@ -47,6 +49,7 @@ export function CriarCategoriaForm() {
   return (
     <form onSubmit={handleSubmit} className="form-row">
       <input type="text" name="nome" placeholder="Nova categoria" required disabled={loading} />
+      <IconePicker disabled={loading} />
       <button type="submit" disabled={loading}>
         {loading ? 'Criando...' : 'Criar'}
       </button>

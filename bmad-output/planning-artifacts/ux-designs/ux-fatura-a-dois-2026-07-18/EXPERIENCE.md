@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
   - "{planning_artifacts}/epics.md"
-updated: 2026-07-22
+updated: 2026-07-23
 ---
 
 # Fatura a Dois — Experience Spine
@@ -402,7 +402,19 @@ Em `/lancamentos`, os `summary-card`s de resumo (hoje: um por pessoa, ou "Casal"
 
 ### Ícone de categoria
 
-Cada `item-card` de lançamento em `/lancamentos` ganha um `category-icon` (ver `DESIGN.md` → Components) à esquerda da linha data/estabelecimento/valor — puramente identificador visual, não interativo (não abre nada ao clicar, não substitui o `<select>` de correção de categoria já existente, que continua sendo a única forma de mudar a categoria de um lançamento). O protótipo aprovado usou emoji como placeholder; qual fonte de glifo usar em produção (emoji real / biblioteca de ícones SVG / inicial da categoria colorida) e qual regra deriva a cor de fundo a partir da categoria (índice rotativo sobre uma paleta pequena e fechada é a abordagem recomendada por Sally, ver `DESIGN.md` → Do's and Don'ts) **não estão decididos nesta rodada** — próximo passo de implementação.
+Cada `item-card` de lançamento em `/lancamentos` ganha um `category-icon` (ver `DESIGN.md` → Components) à esquerda da linha data/estabelecimento/valor — puramente identificador visual, não interativo (não abre nada ao clicar, não substitui o `<select>` de correção de categoria já existente, que continua sendo a única forma de mudar a categoria de um lançamento).
+
+`[IMPLEMENTADO 2026-07-22]` Fase 1 (rodada 10, spec-snowui-lancamentos-highlight-e-icone-categoria.md): cor de fundo derivada da categoria por índice determinístico (hash do nome) sobre uma paleta fechada de 6 tons (`--category-color-1..6`, ver `DESIGN.md` → Colors), com a **inicial maiúscula do nome da categoria** como glifo. Funciona para qualquer categoria (texto livre, sem enum) sem exigir curadoria.
+
+`[DECIDIDO 2026-07-22, rodada 11]` Fase 2 — fonte do glifo para categorias comuns: o protótipo original aprovado usou emoji como placeholder de baixa fidelidade (não uma decisão de linguagem visual). Avaliação PM+tech-lead+UX (John, Winston, Sally) convergiu de forma unânime, sem divergência a arbitrar:
+
+- **Rejeitado:** inferir o ícone automaticamente por palavra-chave no nome da categoria. Categoria é texto livre — uma heurística de palavras-chave falha silenciosamente (ou pior, casa errado com confiança visual) para qualquer nome fora do dicionário, o que é estruturalmente pior que o fallback neutro atual. É a mesma violação, em espírito, do princípio "paleta enxuta e não arbitrária" já aplicado à cor (ver `DESIGN.md` → Do's and Don'ts).
+- **Adotado:** o casal **escolhe** o ícone ao criar ou editar uma categoria, de um conjunto curado e **fechado** de 7 opções (mesma disciplina de escassez já aplicada à paleta de cor, 6 tons). Campo sempre **opcional** — nunca obrigatório, nunca com pressão de completude (não é pendência que bloqueia decisão financeira, como cartão não mapeado ou categoria sem revisão; é puramente estético).
+- **Fallback círculo+inicial: permanente, não um estado transitório.** Categoria sem ícone escolhido continua exibindo o círculo+inicial indefinidamente — é a resposta estruturalmente correta para o fato de categoria ser texto livre (sempre vai existir categoria fora do conjunto curado de 7), não uma versão incompleta aguardando preenchimento.
+- **Estilo do glifo:** SVG inline, `stroke="currentColor"`, monocromático — mesma linguagem visual dos ícones funcionais já existentes em `lancamento-item.tsx` (lápis de editar, seta de repasse). Nunca emoji real: quebraria o tema/contraste AA já calibrado (emoji não respeita `currentColor` nem dark mode, renderiza de forma inconsistente entre sistemas operacionais) e reabriria a classe de bug de glifo composto (par substituto cortado ao meio) já corrigida na Fase 1.
+- **Conjunto de 7 ícones** (chave curta → SVG, mapeamento em `DESIGN.md` → Components): Mercado/Compras (carrinho), Transporte (carro), Saúde (cruz), Lazer (claquete), Moradia (casa), Contas/Serviços (documento), Outro (etiqueta — para quem quer escolher "algo" sem se encaixar nos outros 6).
+- **Interação no formulário de categoria** (`/categorias`, Story 3.1): grade pequena de botões-ícone clicáveis (radio group estilizado, "sticker picker"), não dropdown de texto — ícone é reconhecido visualmente, um dropdown textual inverteria o canal errado de reconhecimento. Opção "Nenhum" (= sem ícone, cai no fallback círculo+inicial) sempre presente e pré-selecionada por padrão.
+- **Dado:** campo novo `categoria.icone`, nullable, chave curta validada em código contra o enum fechado das 7 opções (mesmo padrão de `validarNome`) — nunca emoji livre, nunca Postgres enum type (menos fricção para adicionar uma 8ª opção no futuro). Migration aditiva, sem backfill — categorias existentes nascem com `icone = null` e continuam no fallback até o casal optar por definir um.
 
 ### O que NÃO muda
 
