@@ -11,11 +11,20 @@ import { test as authTest } from '../fixtures/auth';
 const MODOS_DE_COR = ['light', 'dark'] as const;
 
 // /lancamentos, /categorias e / exigem sessão autenticada (grupo `(app)`) --
-// usam a fixture de perfil persistente (e2e/fixtures/auth.ts).
+// usam a fixture de perfil persistente (e2e/fixtures/auth.ts). /redefinir-senha
+// também entra aqui (achado real ao capturar o baseline desta story): não está
+// em PUBLIC_PATHS (lib/supabase/middleware.ts) -- sem sessão, o middleware
+// redireciona para /login antes da página renderizar, então o "screenshot da
+// tela" seria na verdade o login. O middleware só trata como caso especial a
+// combinação usuário-autenticado+"/login" (redireciona pra "/"); para
+// qualquer outro path autenticado (incluindo /redefinir-senha) a página
+// normal renderiza -- usar a mesma sessão comum da fixture é suficiente para
+// amostrar o formulário real, sem precisar simular uma sessão de recovery.
 const ROTAS_AUTENTICADAS = [
   { path: '/lancamentos', slug: 'lancamentos' },
   { path: '/categorias', slug: 'categorias' },
   { path: '/', slug: 'inicio' },
+  { path: '/redefinir-senha', slug: 'redefinir-senha' },
 ];
 
 for (const colorScheme of MODOS_DE_COR) {
@@ -53,13 +62,49 @@ for (const colorScheme of MODOS_DE_COR) {
     });
   }
 
-  // /login é pública -- um contexto autenticado seria redirecionado para "/"
-  // pelo middleware (lib/supabase/middleware.ts, `user && pathname === '/login'`),
-  // nunca renderizando a tela de fato. Usa o contexto padrão (deslogado).
-  baseTest(`login (${colorScheme}) -- screenshot`, async ({ page }) => {
+  // /login e /esqueci-senha são as únicas rotas realmente públicas
+  // (PUBLIC_PATHS em lib/supabase/middleware.ts) -- um contexto autenticado
+  // em /login seria redirecionado para "/" pelo middleware. Usa o contexto
+  // padrão (deslogado).
+  const ROTAS_PUBLICAS = [
+    { path: '/login', slug: 'login' },
+    { path: '/esqueci-senha', slug: 'esqueci-senha' },
+  ];
+
+  for (const { path, slug } of ROTAS_PUBLICAS) {
+    baseTest(`${slug} (${colorScheme}) -- screenshot`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.goto(path);
+      await expect(page).toHaveScreenshot(`${slug}-${colorScheme}.png`, {
+        fullPage: true,
+        mask: [page.locator('nextjs-portal')],
+        caret: 'initial',
+      });
+    });
+  }
+
+  // Estados de erro (Alert destructive) das duas telas de auth de baixo
+  // tráfego (Story 7.4) -- achado real do review adversarial: sem isso, a
+  // única superfície visual nova desta story (o Alert de erro) nunca era
+  // amostrada, deixando uma regressão de estilo nele invisível ao gate.
+  baseTest(`esqueci-senha link expirado (${colorScheme}) -- screenshot`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
-    await page.goto('/login');
-    await expect(page).toHaveScreenshot(`login-${colorScheme}.png`, {
+    await page.goto('/esqueci-senha?error=link_invalido');
+    await expect(page).toHaveScreenshot(`esqueci-senha-link-expirado-${colorScheme}.png`, {
+      fullPage: true,
+      mask: [page.locator('nextjs-portal')],
+      caret: 'initial',
+    });
+  });
+
+  authTest(`redefinir-senha senhas divergentes (${colorScheme}) -- screenshot`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme });
+    await page.goto('/redefinir-senha');
+    await page.getByLabel('Nova senha', { exact: true }).fill('senha-123');
+    await page.getByLabel('Confirmar nova senha').fill('outra-senha-456');
+    await page.getByRole('button', { name: 'Salvar nova senha' }).click();
+    await expect(page.getByText('As senhas não coincidem.')).toBeVisible();
+    await expect(page).toHaveScreenshot(`redefinir-senha-erro-${colorScheme}.png`, {
       fullPage: true,
       mask: [page.locator('nextjs-portal')],
       caret: 'initial',

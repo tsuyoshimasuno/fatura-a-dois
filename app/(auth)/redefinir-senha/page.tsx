@@ -2,6 +2,11 @@
 
 import { useState, type FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function RedefinirSenhaPage() {
   const [password, setPassword] = useState('');
@@ -55,51 +60,59 @@ export default function RedefinirSenhaPage() {
 
   return (
     <main className="page page--narrow">
-      <div className="page-header">
-        <h1 className="page-title">Redefinir senha</h1>
-      </div>
-      <form onSubmit={handleSubmit} className="form">
-        <label className="field">
-          Nova senha
-          <input
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </label>
-        <label className="field">
-          Confirmar nova senha
-          <input
-            type="password"
-            name="confirmPassword"
-            autoComplete="new-password"
-            minLength={6}
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            required
-          />
-        </label>
-        {error && (
-          <p role="alert" className="alert-error">
-            {error}
-            {sessionExpired && (
-              <>
-                {' '}
-                <a href="/esqueci-senha" className="link">
-                  Solicitar novo link
-                </a>
-              </>
+      <Card>
+        <CardHeader>
+          <CardTitle>Redefinir senha</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Nova senha</Label>
+              <Input
+                id="password"
+                type="password"
+                name="password"
+                autoComplete="new-password"
+                minLength={6}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                autoComplete="new-password"
+                minLength={6}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {error}
+                  {sessionExpired && (
+                    <>
+                      {' '}
+                      <a href="/esqueci-senha" className="link">
+                        Solicitar novo link
+                      </a>
+                    </>
+                  )}
+                </AlertDescription>
+              </Alert>
             )}
-          </p>
-        )}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Salvando...' : 'Salvar nova senha'}
-        </button>
-      </form>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar nova senha'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

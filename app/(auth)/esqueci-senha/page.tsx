@@ -3,6 +3,11 @@
 import { Suspense, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 function EsqueciSenhaForm() {
   const searchParams = useSearchParams();
@@ -36,40 +41,51 @@ function EsqueciSenhaForm() {
   if (submitted) {
     return (
       <main className="page page--narrow">
-        <div className="page-header">
-          <h1 className="page-title">Esqueci minha senha</h1>
-        </div>
-        <p className="hint">Se esse e-mail tiver uma conta, um link de redefinição foi enviado.</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Esqueci minha senha</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="hint">Se esse e-mail tiver uma conta, um link de redefinição foi enviado.</p>
+          </CardContent>
+        </Card>
       </main>
     );
   }
 
   return (
     <main className="page page--narrow">
-      <div className="page-header">
-        <h1 className="page-title">Esqueci minha senha</h1>
-      </div>
-      {showExpiredWarning && (
-        <p role="alert" className="alert-error">
-          O link anterior expirou ou é inválido — solicite um novo abaixo.
-        </p>
-      )}
-      <form onSubmit={handleSubmit} className="form">
-        <label className="field">
-          E-mail
-          <input
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Enviando...' : 'Enviar link de redefinição'}
-        </button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Esqueci minha senha</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {showExpiredWarning && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                O link anterior expirou ou é inválido — solicite um novo abaixo.
+              </AlertDescription>
+            </Alert>
+          )}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Enviando...' : 'Enviar link de redefinição'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }
