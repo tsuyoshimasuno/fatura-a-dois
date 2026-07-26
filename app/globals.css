@@ -1,3 +1,55 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme inline {
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--accent-foreground);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
+  /* --accent do shadcn tem papel DIFERENTE do --accent do produto (aqui é
+     hover/ênfase sutil, não cor de marca/ação -- achado real da rodada 13,
+     ver DESIGN.md > Brand & Style). Nunca herdar o --accent do produto sob
+     este nome -- valor novo, derivado de --foreground com opacidade baixa
+     (mesmo princípio já usado em rgba(15,15,15,0.05) inline no hover da
+     sidebar), nomeando finalmente esse hover dunderlyingdisperso. */
+  --color-accent: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --color-accent-foreground: var(--foreground);
+  /* secondary/popover: papéis que o produto não tinha token dedicado --
+     mapeados para o par já existente mais próximo semanticamente
+     (secondary = fundo neutro discreto, já servido por --surface; popover =
+     fundo de painel flutuante, mesmo --background usado por .card no claro).
+     Revisar quando a Story 7.3+ vendorizar o primeiro componente que
+     realmente os use (nenhum ainda nesta story). */
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--foreground);
+  --color-popover: var(--background);
+  --color-popover-foreground: var(--foreground);
+
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+}
+
+/* Todo o CSS artesanal abaixo (pré-existente a este Epic) entra na camada
+   `base` do Tailwind -- achado real do review adversarial: sem isso, essas
+   regras ficam DESCAMADAS ("unlayered"), e CSS descamado sempre vence sobre
+   CSS em camada (`@layer`) independente de especificidade/ordem. Como as
+   utilities do Tailwind (Stories 7.3+) vivem na camada `utilities`, qualquer
+   classe utilitária aplicada num elemento ainda coberto por um seletor amplo
+   abaixo (`button`, `input`, `.card`, etc.) perderia a cascata silenciosamente.
+   `base` é a camada correta (mais fraca que `components`/`utilities`) -- é
+   exatamente o papel que este CSS já cumpre semanticamente. */
+@layer base {
+
 :root {
   --background: #ffffff;
   --foreground: #1a1f2b;
@@ -1083,3 +1135,5 @@ button:disabled {
   border: 1px dashed var(--border);
   border-radius: var(--radius);
 }
+
+} /* fim de @layer base */
