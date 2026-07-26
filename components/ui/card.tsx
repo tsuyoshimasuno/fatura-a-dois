@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
@@ -28,11 +29,26 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({
+  className,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"div"> & { asChild?: boolean }) {
+  // `asChild` (mesmo padrão de components/ui/button.tsx) permite renderizar
+  // como `<h1>`/`<h2>` real quando o Card é o heading principal de uma
+  // página standalone (achado real do review adversarial da Story 7.5:
+  // sem isso, `/login`, `/esqueci-senha` e `/redefinir-senha` perdiam o
+  // único heading real da página ao migrar de `<h1 className="page-title">`
+  // pra este componente, que por padrão renderiza uma `<div>` sem role de
+  // heading nenhum). `text-[15px] m-0` neutraliza o font-size/margin padrão
+  // do navegador para `<h1>` (projeto não usa Preflight do Tailwind, então
+  // não há reset de heading algum) -- mantém o mesmo tamanho computado que
+  // a `<div>` já tinha (herdado de `body { font-size: 15px }`).
+  const Comp = asChild ? Slot.Root : "div"
   return (
-    <div
+    <Comp
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("text-[15px] leading-none font-semibold m-0", className)}
       {...props}
     />
   )

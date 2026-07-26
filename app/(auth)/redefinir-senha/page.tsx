@@ -62,7 +62,9 @@ export default function RedefinirSenhaPage() {
     <main className="page page--narrow">
       <Card>
         <CardHeader>
-          <CardTitle>Redefinir senha</CardTitle>
+          <CardTitle asChild>
+            <h1>Redefinir senha</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

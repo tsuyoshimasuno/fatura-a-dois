@@ -3,6 +3,18 @@
 import { useState, type FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { isSafeRedirectPath } from '@/lib/supabase/safe-redirect';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -39,45 +51,55 @@ export default function LoginPage() {
 
   return (
     <main className="page page--narrow">
-      <div className="page-header">
-        <h1 className="page-title">Entrar</h1>
-        <p className="page-subtitle">Fatura a Dois</p>
-      </div>
-      <form onSubmit={handleSubmit} className="form">
-        <label className="field">
-          E-mail
-          <input
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </label>
-        <label className="field">
-          Senha
-          <input
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </label>
-        {error && (
-          <p role="alert" className="alert-error">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-      </form>
-      <a href="/esqueci-senha" className="link">
-        Esqueci minha senha
-      </a>
+      <Card>
+        <CardHeader>
+          <CardTitle asChild>
+            <h1>Entrar</h1>
+          </CardTitle>
+          <CardDescription>Fatura a Dois</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter>
+          <a href="/esqueci-senha" className="link">
+            Esqueci minha senha
+          </a>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

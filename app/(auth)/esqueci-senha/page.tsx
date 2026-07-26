@@ -43,7 +43,9 @@ function EsqueciSenhaForm() {
       <main className="page page--narrow">
         <Card>
           <CardHeader>
-            <CardTitle>Esqueci minha senha</CardTitle>
+            <CardTitle asChild>
+              <h1>Esqueci minha senha</h1>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="hint">Se esse e-mail tiver uma conta, um link de redefinição foi enviado.</p>
@@ -57,7 +59,9 @@ function EsqueciSenhaForm() {
     <main className="page page--narrow">
       <Card>
         <CardHeader>
-          <CardTitle>Esqueci minha senha</CardTitle>
+          <CardTitle asChild>
+            <h1>Esqueci minha senha</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {showExpiredWarning && (

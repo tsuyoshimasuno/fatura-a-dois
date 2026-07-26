@@ -110,4 +110,34 @@ for (const colorScheme of MODOS_DE_COR) {
       caret: 'initial',
     });
   });
+
+  baseTest(`login credenciais inválidas (${colorScheme}) -- screenshot`, async ({ page }) => {
+    // Intercepta a chamada real do Supabase Auth (`signInWithPassword`) e
+    // força uma resposta 400 determinística -- achado real do review
+    // adversarial (Blind Hunter + Edge Case Hunter, convergente): sem isso,
+    // este teste autenticaria de forma autônoma contra o Supabase Auth REAL
+    // de produção (única instância deste projeto, usada pelo casal no
+    // dia a dia), violando a própria restrição já registrada em
+    // spec-7-1-suite-qa-automatizada.md ("não tentar autenticar de forma
+    // autônoma contra Supabase Auth real") e arriscando rate-limit/lockout
+    // real a cada execução da suite.
+    await page.route('**/auth/v1/token**', async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'invalid_grant', error_description: 'Invalid login credentials' }),
+      });
+    });
+    await page.emulateMedia({ colorScheme });
+    await page.goto('/login');
+    await page.getByLabel('E-mail').fill('usuario-inexistente@example.com');
+    await page.getByLabel('Senha').fill('senha-incorreta-123');
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    await expect(page.getByText('E-mail ou senha inválidos.')).toBeVisible();
+    await expect(page).toHaveScreenshot(`login-erro-${colorScheme}.png`, {
+      fullPage: true,
+      mask: [page.locator('nextjs-portal')],
+      caret: 'initial',
+    });
+  });
 }
