@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-16
-last_updated: 2026-07-21
+last_updated: 2026-07-26
 project: Fatura a Dois
 project_key: NOKEY
 tracking_system: file-system
@@ -77,3 +77,15 @@ development_status:
   epic-6: done
   6-1-repasse-e-desfazer-repasse-de-lancamento: done
   epic-6-retrospective: optional
+  epic-7: in-progress
+  7-1-suite-de-qa-automatizada-playwright-baseline: done
+  7-2-setup-tailwind-shadcn-e-camada-de-tokens: backlog
+  7-3-shell-de-navegacao-sidebar-corte-atomico: backlog
+  7-4-migracao-auth-baixo-trafego: backlog
+  7-5-migracao-login: backlog
+  7-6-migracao-parcelas-cartoes: backlog
+  7-7-migracao-categorias: backlog
+  7-8-migracao-inicio: backlog
+  7-9-migracao-upload: backlog
+  7-10-migracao-lancamentos: backlog
+  epic-7-retrospective: optional
