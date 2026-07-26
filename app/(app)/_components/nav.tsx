@@ -3,6 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '@/components/ui/sidebar';
 
 // Upload não é item de sidebar (resolução tomada em
 // spec-snowui-sidebar-shell.md -- fica acessível só via link em Início).
@@ -213,6 +225,133 @@ export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps
           <span className="sidebar-couple-names">Tsuyoshi &amp; Milena</span>
         </div>
       </nav>
+
+      {/* Sidebar desktop (>=768px, componente shadcn vendorizado, Story 7.3
+          spec-7-3-shell-sidebar-corte-atomico.md) -- elemento IRMÃO do
+          <nav> mobile acima, nenhuma linha do bloco mobile foi alterada.
+          `collapsible="none"` nunca colapsa nem troca para `Sheet`
+          (mobile é tratado inteiramente pelo bloco acima); `hidden md:flex`
+          garante que só um dos dois fica visível por vez (CSS decide, não
+          JS -- mesmo padrão de `.sidebar-toggle`/`.sidebar` em globals.css,
+          que escondem o `<nav>` mobile a partir de 768px).
+
+          `className="contents"` no Provider -- o wrapper que o shadcn gera
+          (`min-h-svh w-full`) empurraria `.app-content` (irmão, em
+          app/(app)/layout.tsx) para baixo se participasse do layout flex de
+          `.app-shell`; `display: contents` remove essa caixa da árvore de
+          layout sem afetar a herança de `--sidebar-width` (custom property,
+          herda normalmente por elemento). `fixed left-0 top-0 h-screen`
+          no `<Sidebar>` reproduz o posicionamento que `.sidebar` (mobile)
+          tinha antes desta story -- agora escopado só a >=768px via
+          `hidden md:flex`.
+
+          `role="navigation"`/`aria-label` (achado real do review adversarial):
+          o `collapsible="none"` do componente vendorizado renderiza um
+          `<div>` puro, sem a semântica de landmark que o `<nav>` mobile já
+          tinha -- adicionado explicitamente para não perder isso em desktop.
+          `gap-6` reaproveita o mesmo espaçamento entre seções (1.5rem) que
+          `.sidebar` (mobile) já usa via `gap: 1.5rem` -- o padding p-2/gap-2
+          default do shadcn (achado do review) ficava perceptivelmente mais
+          apertado que o resto do produto. */}
+      <SidebarProvider className="contents">
+        <Sidebar
+          collapsible="none"
+          role="navigation"
+          aria-label="Navegação principal"
+          className="hidden md:flex fixed left-0 top-0 z-20 h-screen gap-6 border-r border-sidebar-border overflow-y-auto"
+        >
+          <SidebarHeader className="flex-row items-center justify-between px-4 pt-6">
+            <span className="sidebar-brand">Fatura a Dois</span>
+            {/* Mesmo link de atalho pra /upload que o painel mobile já tem
+                (achado real do review adversarial -- sem ele, depois que a
+                fatura do mês é enviada, "Início" deixa de linkar pra lá e o
+                desktop ficava sem nenhum caminho de navegação até /upload). */}
+            <Link
+              href="/upload"
+              className="sidebar-upload-link"
+              aria-label="Enviar nova fatura"
+            >
+              +
+            </Link>
+          </SidebarHeader>
+          <SidebarContent className="px-2">
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {LINKS.map((link) => {
+                    const ativo =
+                      link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+                    const badge = badgePorRota[link.href] ?? 0;
+                    return (
+                      <SidebarMenuItem key={link.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={ativo}
+                          // Indicador de borda esquerda colorida (achado real
+                          // do review adversarial): sem isso, hover e item
+                          // ativo usavam o mesmo `bg-sidebar-accent`,
+                          // diferenciados só por font-weight -- mais fraco
+                          // que o indicador já aprovado no painel mobile
+                          // (`.sidebar-nav-link.ativo`, borda de 3px). Espaço
+                          // reservado sempre (border-l-transparent) pra não
+                          // deslocar o layout ao ativar.
+                          //
+                          // `text-muted-foreground` + override quando ativo
+                          // (achado confirmado via getComputedStyle, não
+                          // suposição): sem isso, todo item (ativo ou não)
+                          // herdava `text-sidebar-foreground` do container
+                          // (mesmo tom de `--foreground` usado no item
+                          // ativo) -- o painel mobile já aprovado usa
+                          // `--muted-foreground` pros itens inativos e só
+                          // `--foreground` no ativo (`.sidebar-nav-link`
+                          // vs `.sidebar-nav-link.ativo`), diferença real de
+                          // peso visual que este ajuste reproduz.
+                          className="border-l-[3px] border-l-transparent text-muted-foreground data-[active=true]:border-l-sidebar-primary data-[active=true]:text-sidebar-accent-foreground"
+                        >
+                          <Link href={link.href} aria-current={ativo ? 'page' : undefined}>
+                            <span>{link.label}</span>
+                            {/* Reaproveita `.badge-pending` (mesma pill
+                                laranja/`--pending`) em vez de
+                                `SidebarMenuBadge` do componente vendorizado
+                                (2 achados reais do follow-up review: (1)
+                                `SidebarMenuBadge` não tem nenhum `background`,
+                                só herda `text-sidebar-foreground` -- a
+                                contagem aparecia sem cor de atenção, sem pill,
+                                diferente do mobile; (2) `SidebarMenuBadge` é
+                                irmão do link, não filho -- o `aria-label`
+                                ficava fora do nome acessível do link, então
+                                tabular até o item no desktop não anunciava a
+                                pendência como o mobile já anuncia). Colocar o
+                                badge DENTRO do `<Link>`, igual ao mobile,
+                                resolve os dois de uma vez. */}
+                            {badge > 0 && (
+                              <span className="badge-pending" aria-label={`${badge} pendente(s)`}>
+                                {badge}
+                              </span>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          {/* Sem border-t/padding-top no wrapper: a própria classe reaproveitada
+              `.sidebar-footer` abaixo já define isso (border-top, padding-top,
+              margin-top: auto) -- duplicar aqui geraria duas bordas empilhadas. */}
+          <SidebarFooter className="px-4 pb-6">
+            <div className="sidebar-footer">
+              <span className="sidebar-couple-avatars" aria-hidden="true">
+                <span className="sidebar-couple-avatar">T</span>
+                <span className="sidebar-couple-avatar">M</span>
+              </span>
+              <span className="sidebar-couple-names">Tsuyoshi &amp; Milena</span>
+            </div>
+          </SidebarFooter>
+        </Sidebar>
+      </SidebarProvider>
     </>
   );
 }

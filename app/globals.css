@@ -37,6 +37,23 @@
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
   --radius-xl: var(--radius);
+
+  /* Sidebar (Story 7.3, componente shadcn vendorizado) -- mapeados direto
+     para os tokens do produto já existentes (mesmo padrão da Story 7.2),
+     sem camada indireta de --sidebar-* cru em :root/.dark. O CLI adiciona
+     por padrão valores hex/oklch fixos aqui -- nunca aceitos, ver
+     spec-7-3-shell-sidebar-corte-atomico.md > Design Notes. */
+  --color-sidebar: var(--background);
+  --color-sidebar-foreground: var(--foreground);
+  --color-sidebar-primary: var(--accent);
+  --color-sidebar-primary-foreground: var(--accent-foreground);
+  /* --color-accent aqui é o token de HOVER do shadcn (definido acima nesta
+     mesma regra), não o --accent de marca do produto -- é exatamente o
+     papel que `SidebarMenuButton` precisa para o estado hover/ativo sutil. */
+  --color-sidebar-accent: var(--color-accent);
+  --color-sidebar-accent-foreground: var(--foreground);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--accent);
 }
 
 /* Todo o CSS artesanal abaixo (pré-existente a este Epic) entra na camada
@@ -1134,6 +1151,20 @@ button:disabled {
   text-align: center;
   border: 1px dashed var(--border);
   border-radius: var(--radius);
+}
+
+/* Sidebar desktop (Story 7.3, componente shadcn) coexiste no DOM com o
+   <nav class="sidebar"> mobile já existente -- cada um visível só na sua
+   própria faixa de largura, mesmo padrão já usado por `.sidebar-toggle`
+   acima. Abaixo de 768px o `<nav>` mobile permanece exatamente como antes;
+   a partir de 768px ele cede lugar ao `<Sidebar>` vendorizado. Dentro de
+   `@layer base` (não depois) por consistência com a regra estabelecida na
+   Story 7.2 -- vem depois da regra `.sidebar` original no arquivo, então
+   ainda vence por ordem de origem dentro da mesma camada. */
+@media (min-width: 768px) {
+  .sidebar {
+    display: none;
+  }
 }
 
 } /* fim de @layer base */
