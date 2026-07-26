@@ -2,12 +2,13 @@
 title: 'Unificar radius de input/button para var(--radius) (migração de proveniência SnowUI -> shadcn/ui)'
 type: 'chore'
 created: '2026-07-26'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context: []
 warnings: []
 baseline_revision: 'ba3e2d359b80f85d712cf5906ffcd160c87a05b1'
+final_revision: 'ceecc8c07ea68a9211c4b979ad84de03d4e642e2'
 ---
 
 <intent-contract>
