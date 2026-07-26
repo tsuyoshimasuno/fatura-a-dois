@@ -453,3 +453,28 @@ Cada `item-card` de lançamento em `/lancamentos` ganha um `category-icon` (ver 
 **Fora de escopo nesta rodada, explicitamente não uma lacuna silenciosa:** Tailwind CSS e Radix UI como dependências novas — convergência unânime dos 3 agentes (zero valor de produto para o casal em reescrever componentes já funcionando, risco técnico real sem rede de teste). Valores exatos de cor/tipografia/radius do arquivo Figma específico do usuário — API do Figma com rate-limit persistente (>20min nesta sessão), não amostrados; se o usuário conseguir um export manual (mesmo caminho usado na rodada 7 para o SnowUI), esses valores podem ser revisitados numa rodada futura.
 
 `[ASSUMPTION]` Todo o racional de compatibilidade estilística acima (shadcn como "reforço" e não "conflito" com a régua "recibo organizado") é inferência de Sally a partir do conhecimento público sobre shadcn/ui — não confirmado contra os valores reais do arquivo Figma específico do usuário, que não puderam ser amostrados nesta sessão.
+
+## Adoção real do shadcn/ui (rodada 13, 2026-07-26 — supera a rodada 12)
+
+> O usuário, após entender os riscos da rodada 12 (mudança de stack real, zero rede de teste hoje) numa conversa direta, decidiu explicitamente prosseguir com a adoção REAL do shadcn/ui (Tailwind + Radix + componentes copiados via CLI). Pediu também uma suíte de QA automatizada (Playwright: axe-core + contraste WCAG programático + diff de screenshot) para reduzir o custo de verificação manual. Plano formal (Epic 7 em `epics.md`) produzido por avaliação PM+tech-lead+UX do "como" — o "se" já estava decidido.
+
+**Tabela de substituição componente a componente** (Sally, rodada 13) — direta ou exige adaptação:
+
+| Componente shadcn | Status | Nota |
+|---|---|---|
+| `Button` | Direta | Variants mapeiam 1:1 aos estilos já especificados. |
+| `Separator`, `Tabs` | Direta | Baixo risco; `Tabs` é upgrade de acessibilidade sobre o toggle atual. |
+| `Badge` | Adaptação leve | `titular-badge` (neutro) não bate com nenhum variant padrão — precisa de variante custom via `cva`. |
+| `Input` | Direta (estilo só) | Borda/foco já mapeiam para `--border`/`--ring`. |
+| `Select` | **Não adotar o componente Radix** | Mantém `<select>` nativo, estilizado só por fora — Radix Select trocaria o picker nativo do SO (relevante em mobile) por um combobox customizado, perda de familiaridade sem ganho real. |
+| `Card` | **Exige adaptação real** | shadcn assume `--card` único e estável; o produto tem mecanismo dual por modo (rodada 10) — codificado na classe `Card` vendorizada, não como CSS variable. |
+| `Sidebar` | **Estrutura desktop só** | O `Sheet`/`Dialog` padrão do bloco mobile oficial é modal de verdade — contradiz o contrato "sem modal" já documentado. Painel off-canvas customizado preservado. |
+| `AlertDialog` | Deferido | Nenhuma ação destrutiva órfã hoje (remover-categoria e desfazer-rejeição-de-cartão já têm tratamento próprio adequado). |
+| `Toast` | Não adotado | Feedback inline atual (`alert-error`/`hint` dentro do card que falhou) é mais preciso que uma fila de toasts genérica. |
+| `Tooltip` | Direta, baixa prioridade | Cuidado com o comportamento de toque em mobile (diferente de hover). |
+
+**Ordem de migração** (reconciliada — Winston por risco técnico, John por risco de negócio, Sally pela regra de atomicidade de chrome vs. gradualidade de conteúdo): Story 7.1 (suíte de QA + baseline, bloqueante) → 7.2 (setup Tailwind/shadcn + tokens, zero mudança visual) → 7.3 (sidebar, corte atômico) → 7.4 (auth de baixo tráfego) → 7.5 (login) → 7.6 (parcelas/cartões) → 7.7 (categorias) → 7.8 (início) → 7.9 (upload) → 7.10 (lançamentos, por último — maior risco técnico e de uso diário). Ver `epics.md` → Epic 7 para ACs completos.
+
+**Regra de atomicidade (Sally):** chrome compartilhado (sidebar, tokens globais) migra numa passada única — nunca duas telas com sidebar/tokens diferentes coexistindo na mesma sessão. Composição de conteúdo por tela pode migrar gradualmente, desde que os tokens já estejam unificados antes.
+
+`[ASSUMPTION]` Cor/tipografia/radius exatos do arquivo Figma específico do usuário continuam não amostrados (rate-limit persistente da API, >2h nesta sessão) — usuário decidiu explicitamente manter os valores já aprovados (rodadas 7/9/10) em vez de esperar. Revisitável numa rodada futura se o usuário exportar manualmente (mesmo caminho que resolveu isso para o SnowUI).

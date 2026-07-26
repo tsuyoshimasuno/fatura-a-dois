@@ -183,6 +183,18 @@ Ver `EXPERIENCE.md` → "Sidebar e Reskin Visual (rodada 10, 2026-07-22)" para o
 
 Ver `EXPERIENCE.md` → "Migração de fonte de tokens: SnowUI → shadcn/ui (rodada 12)" para o racional completo e `deferred-work.md` para o item de `AlertDialog`/confirmação de ação destrutiva deferido.
 
+`[DECISÃO 2026-07-26, rodada 13 — SUPERA a rodada 12]` **Usuário decidiu explicitamente escalar de adoção seletiva de tokens para adoção REAL do shadcn/ui** (Tailwind CSS + Radix UI + componentes copiados via CLI, substituindo `app/globals.css` artesanal), após conversa direta sobre os riscos levantados na rodada 12 (mudança de stack real, zero rede de teste hoje). Nova avaliação PM+tech-lead+UX (planejamento do "como", não mais do "se") produziu um plano formal — ver Epic 7 em `epics.md` para as stories e `.memlog.md` do goal-engine para o plano técnico completo de cada papel. Decisões que permanecem da rodada 12, agora aplicadas na implementação real (não só na nomenclatura):
+
+- Cor (`{colors.accent}` preto/roxo-claro, rodada 7), radius (`{rounded.DEFAULT}` 10px) e sombra sutil sistemática (rodada 10) **preservados sem mudança** — o shadcn empresta a estrutura/convenção, não os valores. Amostragem real do arquivo Figma do usuário continua bloqueada (rate-limit persistente da API, >2h nesta sessão); usuário decidiu explicitamente manter os valores já aprovados em vez de esperar.
+- `{colors.accent}` → `--primary` do shadcn (mesmo papel); hover sutil do shadcn (`--accent`) ganha token próprio, nunca reaproveita nome/valor de `{colors.accent}`.
+- `--card` do shadcn não é consumido pelo componente `Card` real — mecanismo dual claro/escuro (rodada 10) preservado via classe composta.
+- `AlertDialog` continua deferido (Sally, rodada 13: motivo mudou de "custo de dependência" para "nenhuma ação destrutiva órfã precisa dele hoje").
+- `Toast` não é adotado (feedback inline já existente é mais preciso).
+- `<select>` continua nativo (Radix Select perderia o picker nativo do SO em mobile) — achado novo de Sally, não existia como preocupação na rodada 12.
+- `Sidebar` do shadcn adotado só para a estrutura desktop — o painel off-canvas mobile customizado (sem modal) é preservado, não o `Sheet` padrão do bloco oficial.
+
+**Achado técnico novo (Winston, rodada 13):** o boilerplate do shadcn assume dark mode via classe `.dark` manual — o produto usa `prefers-color-scheme` sem toggle. Corrigido na Story 7.2 (variante de media query), senão nenhum `dark:` aplicado nas stories seguintes dispararia em produção.
+
 ## Colors
 
 - **`{colors.background}` / `{colors.foreground}`** — fundo e texto base. Alto contraste, sem tom de cor — o conteúdo (valores em reais, nomes de categoria) é o que deve chamar atenção, não o chrome da interface.

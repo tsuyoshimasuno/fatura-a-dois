@@ -7,7 +7,7 @@ paradigm: 'modular monolith, layered by capability'
 scope: 'App web pessoal de categorização de fatura de cartão Itaú para um casal (2 contas)'
 status: final
 created: '2026-07-16'
-updated: '2026-07-16'
+updated: '2026-07-26'
 binds: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, FR-11, FR-12, FR-13]
 sources: ['../../prds/prd-fatura-a-dois-2026-07-14/prd.md']
 companions: []
@@ -111,6 +111,8 @@ Regra de dependência: UI nunca chama `db/` diretamente; serviços nunca importa
 | SheetJS (`xlsx`) | **instalar via `cdn.sheetjs.com`, não via npm** — a tag `xlsx` publicada no npm está travada em 0.18.5 (abandonada, com CVEs de prototype pollution/ReDoS não corrigidas); relevante aqui porque o app faz parsing de arquivo enviado por usuário |
 | Extensão Postgres `pg_trgm` | built-in Postgres — ver ressalva de habilitação em AD-3 |
 | Vercel | hospedagem/deploy |
+| Tailwind CSS + shadcn/ui CLI (`components.json`) | `[ADICIONADO 2026-07-26, Epic 7]` migração de design system (CSS artesanal → shadcn/ui real), decisão explícita do usuário após avaliação de risco PM+tech-lead+UX. Infraestrutura de apresentação, sem impacto em nenhum AD de domínio (AD-1 a AD-9) — ver `DESIGN.md`/`EXPERIENCE.md` (workspace `ux-fatura-a-dois-2026-07-18`) para a resolução de tokens/componentes. Dark mode configurado via media query (`prefers-color-scheme`), não a variante `.dark` por classe do boilerplate padrão — o produto não tem toggle manual. |
+| `class-variance-authority`, `clsx` + `tailwind-merge`, `lucide-react`, `@radix-ui/react-slot` (+ `@radix-ui/react-*` por primitiva interativa adotada) | `[ADICIONADO 2026-07-26, Epic 7]` dependências do shadcn/ui — `Select` do Radix explicitamente **não adotado** (mantém `<select>` nativo estilizado, ver EXPERIENCE.md); `AlertDialog`/`Dialog` deferido (nenhuma ação destrutiva órfã hoje). |
 
 ## Structural Seed
 

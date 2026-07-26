@@ -98,6 +98,14 @@ O casal consegue ver, para qualquer competência de fatura, quanto cada um gasto
 O casal consegue ver quanto das compras parceladas em andamento ainda vai aparecer nas próximas faturas e quanto isso já compromete do limite mensal de cada mês seguinte.
 **FRs covered:** FR9, FR12, FR13
 
+### Epic 6: Repasse de Responsabilidade Financeira entre o Casal
+O casal consegue marcar um lançamento como responsabilidade financeira da outra pessoa, mesmo tendo caído no próprio cartão — sem perder a informação de quem de fato fez a compra.
+**FRs covered:** FR14
+
+### Epic 7: Infraestrutura de Design System — Migração para shadcn/ui
+O produto migra de CSS artesanal para o shadcn/ui real (Tailwind + Radix), preservando a paleta e o comportamento de UX já especificados. Infraestrutura de apresentação, nenhum comportamento de usuário muda.
+**FRs covered:** nenhum — infraestrutura de apresentação.
+
 ### FR Coverage Map
 
 FR1: Epic 1 - Login obrigatório, 2 contas provisionadas, sem auto-cadastro.
@@ -201,7 +209,7 @@ So that eu consiga navegar entre elas sem digitar URLs manualmente.
 
 **Nota:** gap identificado após revisão do usuário — nenhuma story anterior cobria navegação entre telas; adicionada retroativamente ao Epic 1 por ser infraestrutura transversal, sem renumerar as demais stories (mesmo padrão da Story 1.0).
 
-**Nota (2026-07-26):** reskin visual do shell de navegação (troca de fonte de tokens/átomos SnowUI → shadcn/ui, avaliação PM+tech-lead+UX) documentado em `DESIGN.md`/`EXPERIENCE.md` — mudança de apresentação, sem alteração de comportamento de navegação; nenhum AC novo.
+**Nota (2026-07-26):** reskin visual do shell de navegação (troca de fonte de tokens/átomos SnowUI → shadcn/ui, avaliação PM+tech-lead+UX) documentado em `DESIGN.md`/`EXPERIENCE.md` — mudança de apresentação, sem alteração de comportamento de navegação; nenhum AC novo. **Nota (2026-07-26, superseded):** esta nota cobria só a troca de proveniência de tokens (sem dependência nova). O usuário decidiu prosseguir com a adoção REAL do shadcn/ui (Tailwind+Radix) — ver Epic 7, Story 7.3, que migra este mesmo shell para o componente `Sidebar` de verdade.
 
 ## Epic 2: Ingestão de Fatura
 
@@ -510,3 +518,166 @@ So that o total e a lista de gastos de cada um reflitam quem realmente deve paga
 **Then** existe um registro mínimo de quem fez a ação e quando, mesmo sem uma tela de histórico dedicada — suficiente para investigar uma divergência encontrada meses depois
 
 **Nota de implementação:** desenho de dado, regras de agregação e propagação a parcelas documentados na avaliação técnica (Winston/tech-lead) registrada no `.memlog.md` do goal-engine em 2026-07-21 — coluna `responsavelId` (nullable, override de `cartao.usuarioId` só para fins de total/agregação) + `repassadoPor`/`repassadoEm` (rastro mínimo) em `lancamento`, sem tabela de histórico separada. Desenho de UX (badge de repasse, botão de ação por item, comportamento dos filtros) documentado em `EXPERIENCE.md`/`DESIGN.md` (workspace `ux-fatura-a-dois-2026-07-18`), seção "Repasse de Lançamento para a Outra Pessoa".
+
+## Epic 7: Infraestrutura de Design System — Migração para shadcn/ui
+
+*(adicionado 2026-07-26, avaliação PM+tech-lead+UX sobre novo objetivo do usuário — ver `.memlog.md` do goal-engine para o plano completo dos 3 papéis)*
+
+O produto migra de CSS artesanal (`app/globals.css`) para o shadcn/ui real (Tailwind CSS + Radix UI + componentes copiados via CLI), preservando a paleta de cor/radius/sombra já aprovada (rodadas 7/9/10) e todo o comportamento de UX já especificado (sidebar off-canvas mobile sem modal, feedback inline de Server Action, disciplina de coluna única, `<select>` nativo). Trabalho de infraestrutura de apresentação — nenhum comportamento de usuário muda.
+**FRs covered:** nenhum — infraestrutura de apresentação.
+
+### Story 7.1: Suíte de QA automatizada (Playwright) + baseline
+
+As a desenvolvedor(a)/mantenedor(a) do projeto,
+I want uma suíte automatizada de verificação estrutural e visual antes de qualquer migração de componente,
+So that a migração real do design system tenha uma rede de segurança que hoje não existe (zero teste automatizado no projeto, apesar do Playwright já estar instalado).
+
+**Acceptance Criteria:**
+
+**Given** o estado atual do app (CSS artesanal, antes de qualquer mudança desta Epic)
+**When** a suíte de QA é executada pela primeira vez
+**Then** captura um baseline (screenshots + resultado de axe-core + contraste WCAG calculado) do estado atual, servindo como ponto de comparação para toda story seguinte desta Epic
+
+**Given** qualquer rota real do app (autenticada via perfil persistente de Chromium, mesmo caminho já usado nesta run)
+**When** a suíte estrutural roda
+**Then** confirma ausência de erro de console/página, zero violação crítica/séria de acessibilidade (axe-core), e contraste WCAG AA calculado via `getComputedStyle` nos pares texto/fundo já documentados em `app/globals.css` — em claro e escuro
+
+**Given** as 4 telas amostradas para verificação visual (`/lancamentos`, `/categorias`, `/`, `/login`)
+**When** a suíte visual roda em claro e escuro
+**Then** produz um diff de screenshot (via `toHaveScreenshot()` do Playwright) contra o baseline capturado, sinalizando qualquer mudança visual para revisão humana
+
+**Nota de implementação:** pré-requisito bloqueante — nenhuma story seguinte desta Epic começa sem o baseline capturado. Plano técnico completo (estrutura de arquivos `e2e/`, fixture de autenticação, biblioteca de contraste WCAG) no `.memlog.md` do goal-engine, avaliação de Winston/tech-lead, 2026-07-26.
+
+### Story 7.2: Setup do Tailwind + shadcn/ui e camada de tokens
+
+As a desenvolvedor(a) do projeto,
+I want Tailwind CSS e o shadcn/ui CLI configurados, com os tokens de cor/radius/sombra já aprovados aplicados na convenção do shadcn,
+So that os componentes futuros tenham uma base de tema correta, sem nenhuma mudança visual perceptível ainda.
+
+**Acceptance Criteria:**
+
+**Given** o app sem Tailwind/Radix hoje
+**When** o setup é concluído (`npx shadcn init`, `components.json`; dependências: `tailwindcss`, `class-variance-authority`, `clsx`+`tailwind-merge`, `lucide-react`, `@radix-ui/react-slot`)
+**Then** a suíte de QA (Story 7.1) roda contra o app e não aponta nenhuma diferença visual em relação ao baseline (paridade de pixel)
+
+**Given** que o produto usa dark mode via `prefers-color-scheme`, sem toggle manual
+**When** a configuração de dark mode do Tailwind/shadcn é definida
+**Then** usa a variante de media query, não a variante `.dark` por classe manual (padrão do boilerplate do shadcn) — achado real do tech lead: sem essa correção, nenhum `dark:` aplicado nas stories seguintes dispararia em produção, regressão silenciosa completa do modo escuro sem erro de build
+
+**Given** os tokens já aprovados (`{colors.accent}` preto/roxo-claro rodada 7, `{rounded.DEFAULT}` 10px, sombra sutil rodada 10, mecanismo dual do `card`)
+**When** o tema do shadcn é configurado
+**Then** `--primary` do shadcn recebe o valor de `{colors.accent}` (mesmo papel/significado — nome só emprestado, nunca o inverso); o papel de "hover sutil" do shadcn (`--accent`, semanticamente diferente do `{colors.accent}` do produto) recebe um token novo próprio, nunca reaproveitando o nome/valor de `{colors.accent}`; `--card`/`--card-foreground` do shadcn ficam definidos mas o componente `Card` real do produto não os consome — mantém o mecanismo dual (claro: fundo+sombra sem borda; escuro: superfície+borda sem sombra) via classe composta própria
+
+### Story 7.3: Shell de navegação — sidebar (corte atômico)
+
+As a pessoa do casal,
+I want o mesmo shell de navegação de hoje, agora implementado com o componente `Sidebar` do shadcn/ui,
+So that a base de navegação de todo o app migre de uma vez, sem duas versões de nav coexistindo entre telas.
+
+**Acceptance Criteria:**
+
+**Given** o shell de navegação atual (desktop fixo + painel off-canvas mobile sem modal, ver `EXPERIENCE.md` → Accessibility Floor)
+**When** a migração para o componente `Sidebar` do shadcn acontece
+**Then** a estrutura desktop usa o componente oficial do shadcn; o painel off-canvas mobile **continua a implementação customizada já existente** — o `Sheet`/`Dialog` padrão do bloco oficial do shadcn não é adotado, por ser modal de verdade (`role="dialog"`, focus-trap completo), o que contradiz o contrato já documentado ("sem modal", foco só no primeiro link, fecha em Escape/scrim)
+
+**Given** a migração da sidebar
+**When** publicada
+**Then** nenhuma tela do grupo `(app)` fica com a nav antiga enquanto outra já tem a nova — é um corte único, não fatiado por tela
+
+**Given** a suíte de QA (Story 7.1)
+**When** roda contra a nova sidebar
+**Then** zero violação nova de acessibilidade e o diff visual é revisado como intencional (mudança de implementação, aparência preservada)
+
+### Story 7.4: Migração de componentes — telas de autenticação de baixo tráfego
+
+As a pessoa do casal,
+I want `/esqueci-senha` e `/redefinir-senha` usando os componentes reais do shadcn (Button, Input, Card),
+So that a migração comece pelas telas de menor consequência se algo ficar visualmente imperfeito por alguns dias.
+
+**Acceptance Criteria:**
+
+**Given** as telas `/esqueci-senha` e `/redefinir-senha` (fora do grupo `(app)`, sem sidebar)
+**When** os componentes internos (formulário, botão, alerta de erro) são trocados pelos equivalentes shadcn
+**Then** o comportamento existente (mensagem genérica anti-enumeração, fluxo PKCE, feedback de erro) não muda — só a implementação visual
+**And** a suíte de QA confirma zero regressão estrutural/de acessibilidade
+
+### Story 7.5: Migração de componentes — login
+
+As a pessoa do casal,
+I want `/login` usando os componentes reais do shadcn,
+So that o ponto de entrada obrigatório do app migre depois que o processo já foi validado nas telas de menor risco (Story 7.4).
+
+**Acceptance Criteria:**
+
+**Given** a tela `/login`
+**When** migrada para os componentes shadcn
+**Then** o fluxo de autenticação (submissão, erro, redirecionamento pós-login) permanece idêntico
+**And** a suíte de QA confirma zero regressão
+
+### Story 7.6: Migração de componentes — telas de conteúdo simples (Parcelas, Cartões)
+
+As a pessoa do casal,
+I want `/parcelas` e `/cartoes` usando os componentes reais do shadcn (Card, Badge, Button),
+So that as telas consultadas com menor frequência migrem antes das de uso diário.
+
+**Acceptance Criteria:**
+
+**Given** `/parcelas` e `/cartoes` (cards de resumo, badges de pendência, itens de lista)
+**When** migradas
+**Then** toda a lógica existente (identificação de parcela, mapeamento de cartão, badge de pendência) permanece funcionando sem alteração de comportamento
+**And** a suíte de QA confirma zero regressão
+
+### Story 7.7: Migração de componentes — Categorias
+
+As a pessoa do casal,
+I want `/categorias` usando os componentes reais do shadcn,
+So that a tela de formulário mais complexa (seletor de ícone) seja migrada com cuidado antes da tela final.
+
+**Acceptance Criteria:**
+
+**Given** o formulário de categoria, incluindo o `icone-picker` (radio group com input visualmente escondido, semântica nativa)
+**When** migrado para os componentes shadcn
+**Then** o `<select>`/campos nativos continuam nativos — nenhum vira Radix Select, que perderia o picker nativo do sistema operacional em mobile; o padrão de acessibilidade do `icone-picker` (radio group real, foco visível, `:has()`) é preservado
+**And** a suíte de QA confirma zero regressão
+
+### Story 7.8: Migração de componentes — Início (Dashboard)
+
+As a pessoa do casal,
+I want `/` usando os componentes reais do shadcn,
+So that o dashboard inicial migre antes da tela mais crítica.
+
+**Acceptance Criteria:**
+
+**Given** a tela `/` (3 estados priorizados, badges de pendência, comprometimento do próximo mês)
+**When** migrada
+**Then** os 3 estados e a lógica de detecção (fatura não enviada, cartão pendente, tudo em dia) permanecem funcionando sem alteração de comportamento
+**And** a suíte de QA confirma zero regressão
+
+### Story 7.9: Migração de componentes — Upload
+
+As a pessoa do casal,
+I want `/upload` usando os componentes reais do shadcn,
+So that a tela de envio de arquivo real seja migrada com verificação funcional extra (não só visual).
+
+**Acceptance Criteria:**
+
+**Given** a tela `/upload` (seleção de competência, input de arquivo, submissão)
+**When** migrada
+**Then** o fluxo de envio de arquivo real (`.xlsx`) continua funcionando sem alteração de comportamento
+**And** a suíte de QA confirma zero regressão; verificação funcional manual extra com um envio de arquivo real antes de considerar concluída
+
+### Story 7.10: Migração de componentes — Lançamentos (última, maior risco)
+
+As a pessoa do casal,
+I want `/lancamentos` usando os componentes reais do shadcn,
+So that a tela mais usada e tecnicamente mais complexa do produto (grid de 2 colunas, ícone de categoria, badges, destaque de card) migre por último, com o processo já validado nas stories anteriores.
+
+**Acceptance Criteria:**
+
+**Given** `/lancamentos` (grid de 2 colunas com altura compartilhada, filtro de categoria/pessoa reativo, `category-icon`, `card-highlight`, `titular-badge`/`badge-repasse`)
+**When** migrada para os componentes shadcn
+**Then** toda a interatividade (filtro reativo client-side, altura compartilhada entre lista e painel, badges) permanece funcionando sem alteração de comportamento
+**And** a suíte de QA confirma zero regressão em claro e escuro
+**And** um dos dois usa a tela com dado real antes de considerar a migração do Epic 7 concluída
+
+**Nota de implementação:** `AlertDialog` continua deferido (nenhuma ação destrutiva órfã que precise dele hoje); `Toast` não é adotado (feedback inline existente é mais preciso). Plano técnico completo (sequenciamento, resolução de `--accent`/`--card`, achado de dark mode via media query, tabela de substituição componente a componente de Sally, critério de rollback por story de John) registrado no `.memlog.md` do goal-engine em 2026-07-26.
