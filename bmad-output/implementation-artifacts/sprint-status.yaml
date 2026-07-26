@@ -79,7 +79,7 @@ development_status:
   epic-6-retrospective: optional
   epic-7: in-progress
   7-1-suite-de-qa-automatizada-playwright-baseline: done
-  7-2-setup-tailwind-shadcn-e-camada-de-tokens: backlog
+  7-2-setup-tailwind-shadcn-e-camada-de-tokens: done
   7-3-shell-de-navegacao-sidebar-corte-atomico: backlog
   7-4-migracao-auth-baixo-trafego: backlog
   7-5-migracao-login: backlog
