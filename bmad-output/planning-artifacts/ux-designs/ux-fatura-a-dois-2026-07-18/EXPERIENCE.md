@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
   - "{planning_artifacts}/epics.md"
-updated: 2026-07-23
+updated: 2026-07-26
 ---
 
 # Fatura a Dois — Experience Spine
@@ -431,3 +431,25 @@ Cada `item-card` de lançamento em `/lancamentos` ganha um `category-icon` (ver 
 - Se "Total combinado" é card novo (3 cards sempre visíveis) ou reformulação visual do card "Casal" já existente sob o toggle Individual/Combinada — a confirmar contra o Artifact real antes de decidir se o toggle Individual/Combinada continua necessário nesta tela.
 - Fonte do glifo e regra de derivação de cor do `category-icon` — decisão de implementação adiada, não travada nesta rodada.
 - Valores `{colors.highlight}`/`{colors.highlight-dark}` e a régua de `box-shadow` do `card` são ESTIMADOS (sem amostragem real do Figma para esses papéis específicos) — ver `DESIGN.md` → Colors e Elevation & Depth.
+
+## Migração de fonte de tokens: SnowUI → shadcn/ui (rodada 12, 2026-07-26)
+
+> O usuário pediu para trocar a fonte de referência do design system (SnowUI, rodadas 6-11) pelo **shadcn/ui**, referenciando um arquivo Figma real (`@shadcn/ui - Design System (Community)`, file key `1BttZZirhllW8dFehjMeb0`, páginas Cover/Components/Typography/Colors/Primitives/Icons) e pedindo explicitamente que PM, tech lead e UX conduzissem a avaliação — mesma regra permanente já em vigor nesta run. Avaliação PM+tech-lead+UX (John/Winston/Sally, 3 agentes reais em paralelo) convergiu quase totalmente; racional completo da reconciliação no `.memlog.md` deste run. Ver `DESIGN.md` → Brand & Style para a decisão formal.
+
+**Diferença estrutural em relação à rodada do SnowUI:** SnowUI era um artefato Figma sem código (qualquer adoção exigia redesenho manual em CSS); shadcn/ui é código instalável (Tailwind + Radix UI). Isso tornou "adoção seletiva" e "adoção total" dois projetos de escopo muito diferentes desta vez, não uma questão de gosto — Winston confirmou por leitura de código que o produto hoje não tem Tailwind/Radix/lib de componentes nem rede de teste E2E real (Playwright instalado, zero `*.spec.ts`), o que torna uma reescrita de componentes já em produção (uso diário do casal) um risco técnico real, não hipotético.
+
+**O que muda de fato (escopo real desta rodada):**
+- Proveniência da tabela de mapeamento de átomos em `DESIGN.md` (SnowUI → shadcn/ui), papéis semânticos preservados.
+- Correção de um achado real e independente do Winston: `input`/`select`/`textarea`/`button` usavam `8px` hardcoded em vez de `{rounded.DEFAULT}` (10px) — inconsistência pré-existente, sem relação com a troca de kit, corrigida nesta rodada.
+- Documentação explícita do risco de posicionamento de marca levantado por John (estética shadcn é reconhecível como "SaaS dev-tool") como decisão consciente do usuário, não silenciosa.
+
+**O que NÃO muda (decisões preservadas, não revertidas por herança silenciosa do padrão típico do shadcn):**
+- Paleta de cor preto/roxo-claro (rodada 7, WCAG-verificada) — ortogonal à estrutura shadcn (que é tema-agnóstico).
+- Sombra sutil sistemática no modo claro (rodada 10, aprovada visualmente pelo usuário via Artifact) — o padrão típico do shadcn (bordas finas, quase sem sombra) tensionava com isso; resolvido a favor de preservar a decisão já aprovada.
+- Mecanismo dual de `card` por modo (claro: fundo+sombra sem borda; escuro: superfície+borda sem sombra) — shadcn assume um único `--card` estável; não adotado, para não contradizer a rodada 10.
+- Sidebar, ícones de categoria, badges, todo o comportamento já especificado nas seções acima — troca de proveniência visual, não de implementação.
+- Princípio "sem modal" (ver Accessibility Floor) — `AlertDialog` do shadcn preencheria a lacuna real de confirmação de ação destrutiva (`Do's and Don'ts` de `DESIGN.md`), mas introduziria a primeira camada de modal do produto. **Deferido, não descartado** — decisão própria futura, não herança automática por causa da troca de kit.
+
+**Fora de escopo nesta rodada, explicitamente não uma lacuna silenciosa:** Tailwind CSS e Radix UI como dependências novas — convergência unânime dos 3 agentes (zero valor de produto para o casal em reescrever componentes já funcionando, risco técnico real sem rede de teste). Valores exatos de cor/tipografia/radius do arquivo Figma específico do usuário — API do Figma com rate-limit persistente (>20min nesta sessão), não amostrados; se o usuário conseguir um export manual (mesmo caminho usado na rodada 7 para o SnowUI), esses valores podem ser revisitados numa rodada futura.
+
+`[ASSUMPTION]` Todo o racional de compatibilidade estilística acima (shadcn como "reforço" e não "conflito" com a régua "recibo organizado") é inferência de Sally a partir do conhecimento público sobre shadcn/ui — não confirmado contra os valores reais do arquivo Figma específico do usuário, que não puderam ser amostrados nesta sessão.

@@ -201,6 +201,8 @@ So that eu consiga navegar entre elas sem digitar URLs manualmente.
 
 **Nota:** gap identificado após revisão do usuário — nenhuma story anterior cobria navegação entre telas; adicionada retroativamente ao Epic 1 por ser infraestrutura transversal, sem renumerar as demais stories (mesmo padrão da Story 1.0).
 
+**Nota (2026-07-26):** reskin visual do shell de navegação (troca de fonte de tokens/átomos SnowUI → shadcn/ui, avaliação PM+tech-lead+UX) documentado em `DESIGN.md`/`EXPERIENCE.md` — mudança de apresentação, sem alteração de comportamento de navegação; nenhum AC novo.
+
 ## Epic 2: Ingestão de Fatura
 
 O casal consegue selecionar a competência, subir a planilha do Itaú, mapear cartões novos para uma das duas contas, e reenviar a mesma fatura mês a mês sem duplicar ou perder lançamentos.
