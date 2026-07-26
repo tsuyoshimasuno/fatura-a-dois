@@ -967,7 +967,7 @@ textarea {
   color: var(--foreground);
   background: var(--background);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 0.5rem 0.65rem;
 }
 
@@ -990,7 +990,7 @@ button,
   font: inherit;
   font-weight: 600;
   font-size: 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 0.55rem 1.1rem;
   border: 1px solid transparent;
   cursor: pointer;
