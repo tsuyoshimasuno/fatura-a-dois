@@ -46,3 +46,4 @@ next-env.d.ts
 
 # exemplos reais de fatura (dados financeiros sensiveis, nunca commitar)
 /fixtures
+/Faturas

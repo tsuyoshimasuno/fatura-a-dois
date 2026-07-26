@@ -89,7 +89,9 @@ export async function processarUpload(
   try {
     resultadoMerge = await db.transaction(async (tx) => {
       // Cache local por número mascarado -- evita repetir a consulta pro mesmo
-      // cartão várias vezes dentro do mesmo upload.
+      // cartão várias vezes dentro do mesmo upload. Seus valores também
+      // definem o escopo de cartões que este upload tem permissão de
+      // tocar no merge por delta abaixo -- não é só otimização.
       const cartoesCache = new Map<string, number>();
       const novosParaMerge: LancamentoNovoParaMerge[] = [];
 
@@ -135,10 +137,24 @@ export async function processarUpload(
       // reprodutível -- sem isso, o Postgres não garante nenhuma ordem, e
       // duas linhas de valores diferentes na mesma chave poderiam trocar de
       // par entre execuções.
+      //
+      // Escopo por cartaoId (além da competência) é obrigatório: sem ele,
+      // lançamentos de um cartão ausente deste upload (ex: fatura de outro
+      // cartão do casal) não têm nenhuma chave correspondente entre os
+      // "novos" e são interpretados como "sumiram no reenvio", sendo
+      // apagados por engano -- este upload nunca deve tocar cartões que ele
+      // mesmo não contém.
+      const cartaoIdsDoUpload = [...cartoesCache.values()];
       const existentesBrutos = await tx
         .select()
         .from(lancamento)
-        .where(and(eq(lancamento.competenciaAno, ano), eq(lancamento.competenciaMes, mes)))
+        .where(
+          and(
+            eq(lancamento.competenciaAno, ano),
+            eq(lancamento.competenciaMes, mes),
+            inArray(lancamento.cartaoId, cartaoIdsDoUpload)
+          )
+        )
         .orderBy(lancamento.id);
 
       const existentes: LancamentoExistente[] = existentesBrutos.map((l) => ({
