@@ -47,3 +47,10 @@ next-env.d.ts
 # exemplos reais de fatura (dados financeiros sensiveis, nunca commitar)
 /fixtures
 /Faturas
+
+# Playwright (Story 7.1 -- suite de QA automatizada)
+# Perfil persistente do Chromium usado pela fixture de auth (e2e/fixtures/auth.ts) --
+# contem sessao real logada manualmente pelo usuario, nunca commitar.
+/.playwright-profile/
+/test-results/
+/playwright-report/

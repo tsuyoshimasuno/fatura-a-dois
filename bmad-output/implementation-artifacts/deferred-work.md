@@ -163,3 +163,15 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-snowui-sidebar-shell.md`
   summary: O link de upload ("+") no rodape/topo da sidebar fica alcancavel por teclado so via Shift+Tab (o foco inicial ao abrir o painel mobile vai direto para o primeiro item da lista de navegacao principal, pulando o link de upload que vem antes no DOM).
   evidence: Confirmado (PLAUSIBLE) por Blind Hunter na 3a passada. Ainda alcancavel, so nao e o primeiro parada do Tab -- severidade baixa, aceito.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-7-1-suite-qa-automatizada.md`
+  summary: O input de renomear categoria em `/categorias` (`categoria-item.tsx`, `<input type="text" name="nome" defaultValue={item.nome} .../>`) nao tem nenhum label acessivel (nem `<label>`, nem `aria-label`, nem `aria-labelledby`) -- violacao axe-core critica (`label`), invisivel para leitor de tela.
+  evidence: Achado real via axe-core durante a captura do baseline da suite de QA (Story 7.1), pre-existente e nao causado por esta story -- filtrado do gate bloqueante em `e2e/structural/app.spec.ts` para nao travar a suite inteira; candidato a correcao quando `/categorias` migrar para os componentes shadcn (Story 7.7, Epic 7), que ja exige revisao do formulario.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-7-1-suite-qa-automatizada.md`
+  summary: `.category-icon` (`lancamento-item.tsx`) usa `aria-label` num `<span>` sem `role` explicito -- violacao axe-core seria (`aria-prohibited-attr`): `aria-label` nao tem efeito num elemento sem role valido (role implicito de `<span>` e "generic"), entao o rotulo "Categoria: X" pode nao ser anunciado por leitor de tela.
+  evidence: Achado real via axe-core durante a captura do baseline da suite de QA (Story 7.1), pre-existente (introduzido na rodada SnowUI do icone de categoria) e nao causado por esta story -- filtrado do gate bloqueante em `e2e/structural/app.spec.ts`. Correcao provavel: adicionar `role="img"` ao span (torna o aria-label valido); candidato a corrigir junto da migracao de `/lancamentos` para shadcn (Story 7.10, Epic 7).
+
+- source_spec: `bmad-output/implementation-artifacts/spec-7-1-suite-qa-automatizada.md`
+  summary: `.lancamentos-painel` (painel rolavel do layout de 2 colunas em `/lancamentos`, `overflow-y: auto`) nao tem `tabindex` nem conteudo focavel proprio -- violacao axe-core seria (`scrollable-region-focusable`): regiao rolavel nao acessivel via teclado no Safari (WCAG 2.1.1/2.1.3).
+  evidence: Achado real via axe-core durante a captura do baseline da suite de QA (Story 7.1), pre-existente (introduzido na rodada da Lista Rolante + Total Central Estatico, spec-ux-lista-rolante-total-estatico.md) e nao causado por esta story -- filtrado do gate bloqueante em `e2e/structural/app.spec.ts`. Correcao provavel: `tabindex="0"` + `role="region"`/`aria-label` no `.lancamentos-painel`; candidato a corrigir junto da migracao de `/lancamentos` para shadcn (Story 7.10, Epic 7).
