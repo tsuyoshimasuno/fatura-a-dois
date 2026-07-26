@@ -2,7 +2,8 @@
 title: 'Story 7.4 — Migração de componentes: telas de autenticação de baixo tráfego'
 type: 'refactor'
 created: '2026-07-26'
-status: 'in-review'
+status: 'done'
+final_revision: '675c4df'
 review_loop_iteration: 0
 followup_review_recommended: false # 2 achados high corrigidos, mas ambos re-verificados empiricamente via getComputedStyle (nao so leitura de codigo) + suite de QA rodada 4x -- confianca alta sem precisar de 2a rodada de review independente
 context: []
