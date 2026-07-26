@@ -3,6 +3,7 @@ import { NOME_MES } from '@/lib/competencia';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { obterComprometimentoLimiteMensal } from '@/server/parcelas/comprometimento-limite';
 import { projetarParcelasFuturas } from '@/server/parcelas/projetar-parcelas-futuras';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function ParcelasPage() {
   // Uma única leitura de `projetarParcelasFuturas()`, reaproveitada pelo
@@ -34,42 +35,48 @@ export default async function ParcelasPage() {
           const comprometimento = comprometimentoPorCompetencia.get(chave);
 
           return (
-            <section key={chave} className="card">
-              <h2 className="section-title">
-                {NOME_MES[competencia.competenciaMes]} de {competencia.competenciaAno} --{' '}
-                {formatarValorEmReais(competencia.totalCentavos)}
-              </h2>
-              {comprometimento && (
-                <>
-                  <p className="hint" style={{ marginBottom: '0.25rem' }}>
-                    Comprometido por pessoa:
-                  </p>
-                  <ul className="card-list" style={{ marginBottom: '0.75rem' }}>
-                    {comprometimento.pessoas.map((pessoa) => (
-                      <li key={pessoa.usuarioId}>
-                        {pessoa.email} -- {formatarValorEmReais(pessoa.totalCentavos)}
-                      </li>
-                    ))}
-                    {comprometimento.pendenteCentavos > 0 && (
-                      <li>
-                        Pendente -- {formatarValorEmReais(comprometimento.pendenteCentavos)} --{' '}
-                        <Link href="/cartoes" className="link">
-                          Resolver em Cartões
-                        </Link>
-                      </li>
-                    )}
-                  </ul>
-                </>
-              )}
-              <ul className="card-list">
-                {competencia.itens.map((item) => (
-                  <li key={`${item.compraParceladaId}-${item.parcelaNumero}`}>
-                    {item.estabelecimento} -- {item.parcelaNumero}/{item.totalParcelas} --{' '}
-                    {formatarValorEmReais(item.valorCentavos)}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Card key={chave}>
+              <CardHeader>
+                <CardTitle asChild className="text-[22.5px]">
+                  <h2>
+                    {NOME_MES[competencia.competenciaMes]} de {competencia.competenciaAno} --{' '}
+                    {formatarValorEmReais(competencia.totalCentavos)}
+                  </h2>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {comprometimento && (
+                  <>
+                    <p className="hint" style={{ marginBottom: '0.25rem' }}>
+                      Comprometido por pessoa:
+                    </p>
+                    <ul className="card-list" style={{ marginBottom: '0.75rem' }}>
+                      {comprometimento.pessoas.map((pessoa) => (
+                        <li key={pessoa.usuarioId}>
+                          {pessoa.email} -- {formatarValorEmReais(pessoa.totalCentavos)}
+                        </li>
+                      ))}
+                      {comprometimento.pendenteCentavos > 0 && (
+                        <li>
+                          Pendente -- {formatarValorEmReais(comprometimento.pendenteCentavos)} --{' '}
+                          <Link href="/cartoes" className="link">
+                            Resolver em Cartões
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                  </>
+                )}
+                <ul className="card-list">
+                  {competencia.itens.map((item) => (
+                    <li key={`${item.compraParceladaId}-${item.parcelaNumero}`}>
+                      {item.estabelecimento} -- {item.parcelaNumero}/{item.totalParcelas} --{' '}
+                      {formatarValorEmReais(item.valorCentavos)}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           );
         })
       )}

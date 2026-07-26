@@ -21,14 +21,16 @@ const MODOS_DE_COR = ['light', 'dark'] as const;
 // normal renderiza -- usar a mesma sessão comum da fixture é suficiente para
 // amostrar o formulário real, sem precisar simular uma sessão de recovery.
 const ROTAS_AUTENTICADAS = [
-  { path: '/lancamentos', slug: 'lancamentos' },
-  { path: '/categorias', slug: 'categorias' },
-  { path: '/', slug: 'inicio' },
-  { path: '/redefinir-senha', slug: 'redefinir-senha' },
+  { path: '/lancamentos', slug: 'lancamentos', dadoReal: true },
+  { path: '/categorias', slug: 'categorias', dadoReal: true },
+  { path: '/', slug: 'inicio', dadoReal: true },
+  { path: '/redefinir-senha', slug: 'redefinir-senha', dadoReal: false },
+  { path: '/parcelas', slug: 'parcelas', dadoReal: true },
+  { path: '/cartoes', slug: 'cartoes', dadoReal: true },
 ];
 
 for (const colorScheme of MODOS_DE_COR) {
-  for (const { path, slug } of ROTAS_AUTENTICADAS) {
+  for (const { path, slug, dadoReal } of ROTAS_AUTENTICADAS) {
     authTest(`${slug} (${colorScheme}) -- screenshot`, async ({ page }) => {
       await page.emulateMedia({ colorScheme });
       await page.goto(path);
@@ -44,19 +46,27 @@ for (const colorScheme of MODOS_DE_COR) {
       // ("1 Issue") de forma não-determinística -- não é bug do produto, é
       // interação entre a própria instrumentação de teste e o modo dev do
       // React.
-      // `.card` cobre todo bloco com dado financeiro real do casal (lista de
-      // lançamentos/categorias, resumos, estados do dashboard) -- mascarado
-      // por 2 motivos reais achados no review adversarial: (1) sem isso, o
-      // PNG de baseline commitado no git conteria valores/estabelecimentos
-      // reais do casal (o mesmo cuidado que .gitignore já tem com
-      // /Faturas`/`/fixtures`, aqui replicado para screenshot); (2) sem
-      // isso, qualquer lançamento novo real mudaria o diff visual de forma
-      // indistinguível de uma regressão de UI de verdade. Chrome/layout
-      // (sidebar, cabeçalho, filtros) continua visível para detectar
-      // regressão real na migração shadcn.
+      // `.card`/`[data-slot="card"]` cobrem todo bloco com dado financeiro
+      // real do casal (lista de lançamentos/categorias/parcelas, resumos,
+      // titular/número de cartão, estados do dashboard) -- mascarados por 2
+      // motivos reais achados no review adversarial: (1) sem isso, o PNG de
+      // baseline commitado no git conteria dado real do casal (o mesmo
+      // cuidado que .gitignore já tem com /Faturas`/`/fixtures`, aqui
+      // replicado para screenshot); (2) sem isso, qualquer lançamento novo
+      // real mudaria o diff visual de forma indistinguível de uma regressão
+      // de UI de verdade. `dadoReal` é `false` só para `/redefinir-senha`
+      // (Story 7.4) -- seu `Card` é um formulário de senha, sem dado
+      // financeiro nenhum; aplicar o mask ali (achado real ao capturar o
+      // baseline desta story: um mask cego por `[data-slot="card"]`
+      // mascararia TODO Card da rota, não só os com dado real) apagaria a
+      // única superfície visual da tela inteira, tornando o teste inútil
+      // para detectar regressão. Chrome/layout (sidebar, cabeçalho, filtros)
+      // continua visível para detectar regressão real na migração shadcn.
       await expect(page).toHaveScreenshot(`${slug}-${colorScheme}.png`, {
         fullPage: true,
-        mask: [page.locator('nextjs-portal'), page.locator('.card')],
+        mask: dadoReal
+          ? [page.locator('nextjs-portal'), page.locator('.card'), page.locator('[data-slot="card"]')]
+          : [page.locator('nextjs-portal')],
         caret: 'initial',
       });
     });

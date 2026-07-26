@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { desfazerRejeicaoCartao } from '@/server/ingestao/mapear-cartao';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Cartao = {
   id: number;
@@ -60,25 +63,29 @@ export function CartaoRejeitadoItem({ item }: CartaoRejeitadoItemProps) {
   }
 
   return (
-    <li className="card">
-      <p style={{ marginBottom: '0.75rem' }}>
-        <strong>{item.nomeTitular}</strong> -- {item.tipoCartao} {item.numeroMascarado}
-      </p>
-      {!resolvido && (
-        <button type="button" disabled={loading} onClick={handleDesfazer}>
-          {loading ? 'Desfazendo...' : 'Desfazer rejeição'}
-        </button>
-      )}
-      {resultado && (
-        <p
-          role={resultado.ok ? undefined : 'alert'}
-          aria-live={resultado.ok ? 'polite' : undefined}
-          className={resultado.ok ? 'hint' : 'alert-error'}
-          style={{ marginTop: '0.5rem' }}
-        >
-          {resultado.message}
-        </p>
-      )}
+    <li>
+      <Card>
+        <CardContent>
+          <p style={{ marginBottom: '0.75rem' }}>
+            <strong>{item.nomeTitular}</strong> -- {item.tipoCartao} {item.numeroMascarado}
+          </p>
+          {!resolvido && (
+            <Button type="button" disabled={loading} onClick={handleDesfazer}>
+              {loading ? 'Desfazendo...' : 'Desfazer rejeição'}
+            </Button>
+          )}
+          {resultado &&
+            (resultado.ok ? (
+              <p className="hint" aria-live="polite" style={{ marginTop: '0.5rem' }}>
+                {resultado.message}
+              </p>
+            ) : (
+              <Alert variant="destructive" style={{ marginTop: '0.5rem' }}>
+                <AlertDescription>{resultado.message}</AlertDescription>
+              </Alert>
+            ))}
+        </CardContent>
+      </Card>
     </li>
   );
 }

@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { mapearCartao, rejeitarCartaoTerceiro } from '@/server/ingestao/mapear-cartao';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Cartao = {
   id: number;
@@ -95,42 +98,47 @@ export function CartaoPendenteItem({ item, contas }: CartaoPendenteItemProps) {
   }
 
   return (
-    <li className="card">
-      <p style={{ marginBottom: '0.75rem' }}>
-        <strong>{item.nomeTitular}</strong> -- {item.tipoCartao} {item.numeroMascarado}
-      </p>
-      {!resolvido && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {contas.map((conta) => (
-            <button
-              key={conta.id}
-              type="button"
-              disabled={emVoo !== null}
-              onClick={() => handleAtribuir(conta.id)}
-            >
-              {emVoo === conta.id ? 'Atribuindo...' : `Atribuir a ${conta.email}`}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="btn-danger-outline"
-            disabled={emVoo !== null}
-            onClick={handleRejeitar}
-          >
-            {emVoo === 'rejeitar' ? 'Rejeitando...' : 'Não é do casal'}
-          </button>
-        </div>
-      )}
-      {resultado && (
-        <p
-          role={resultado.ok ? undefined : 'alert'}
-          aria-live={resultado.ok ? 'polite' : undefined}
-          className={resultado.ok ? 'hint' : 'alert-error'}
-          style={{ marginTop: '0.5rem' }}
-        >
-          {resultado.message}
-        </p>
-      )}
+    <li>
+      <Card>
+        <CardContent>
+          <p style={{ marginBottom: '0.75rem' }}>
+            <strong>{item.nomeTitular}</strong> -- {item.tipoCartao} {item.numeroMascarado}
+          </p>
+          {!resolvido && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {contas.map((conta) => (
+                <Button
+                  key={conta.id}
+                  type="button"
+                  disabled={emVoo !== null}
+                  onClick={() => handleAtribuir(conta.id)}
+                >
+                  {emVoo === conta.id ? 'Atribuindo...' : `Atribuir a ${conta.email}`}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                className="text-destructive border-destructive! hover:bg-destructive/10 dark:border-destructive! dark:hover:bg-destructive/10!"
+                disabled={emVoo !== null}
+                onClick={handleRejeitar}
+              >
+                {emVoo === 'rejeitar' ? 'Rejeitando...' : 'Não é do casal'}
+              </Button>
+            </div>
+          )}
+          {resultado &&
+            (resultado.ok ? (
+              <p className="hint" aria-live="polite" style={{ marginTop: '0.5rem' }}>
+                {resultado.message}
+              </p>
+            ) : (
+              <Alert variant="destructive" style={{ marginTop: '0.5rem' }}>
+                <AlertDescription>{resultado.message}</AlertDescription>
+              </Alert>
+            ))}
+        </CardContent>
+      </Card>
     </li>
   );
 }

@@ -1087,16 +1087,6 @@ button:disabled {
   background: var(--surface);
 }
 
-.btn-danger-outline {
-  background: transparent;
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-.btn-danger-outline:hover {
-  background: var(--surface);
-}
-
 .icon-button {
   display: inline-flex;
   align-items: center;
