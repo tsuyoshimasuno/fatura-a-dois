@@ -84,7 +84,7 @@ development_status:
   7-3-shell-de-navegacao-sidebar-corte-atomico: done
   7-4-migracao-auth-baixo-trafego: done
   7-5-migracao-login: done
-  7-6-migracao-parcelas-cartoes: backlog
+  7-6-migracao-parcelas-cartoes: done
   7-7-migracao-categorias: backlog
   7-8-migracao-inicio: backlog
   7-9-migracao-upload: backlog
