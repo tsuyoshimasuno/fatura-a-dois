@@ -3,6 +3,21 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { removerCategoria } from '@/server/categorizacao/gerenciar-categorias';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Mesma string de classes visuais de `components/ui/input.tsx` (altura,
+// borda, radius, padding, anel de foco, estados disabled, `aria-invalid`) --
+// sem os modificadores `file:*`/`selection:*` do Input, que não têm efeito
+// num `<select>` (achado real do review adversarial: a primeira versão
+// também tinha deixado `aria-invalid:*` de fora por engano, mas esses SIM
+// se aplicam a um `<select>`). Decisão reconciliada (rodada 13): `<select>`
+// continua nativo (nunca vira Radix Select) para preservar o picker do SO
+// no mobile; só ganha paridade visual com o Input. Ver spec Design Notes.
+const selectClassName =
+  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 type Categoria = { id: number; nome: string };
 
@@ -53,9 +68,15 @@ export function RemoverCategoriaForm({ categoriaId, substitutasDisponiveis }: Re
 
   return (
     <form onSubmit={handleSubmit} className="form">
-      <label className="field">
-        Migrar lançamentos para:
-        <select name="substitutaId" defaultValue="" disabled={loading}>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="substituta-id">Migrar lançamentos para:</Label>
+        <select
+          id="substituta-id"
+          name="substitutaId"
+          defaultValue=""
+          disabled={loading}
+          className={selectClassName}
+        >
           <option value="">Nenhuma (marcar como removida)</option>
           {substitutasDisponiveis.map((item) => (
             <option key={item.id} value={item.id}>
@@ -63,37 +84,46 @@ export function RemoverCategoriaForm({ categoriaId, substitutasDisponiveis }: Re
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <label className="field">
-        Ou criar nova categoria substituta (tem prioridade sobre a seleção acima, se preenchida):
-        <input type="text" name="novaCategoria" placeholder="Nome da nova categoria" disabled={loading} />
-      </label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="nova-categoria">
+          Ou criar nova categoria substituta (tem prioridade sobre a seleção acima, se preenchida):
+        </Label>
+        <Input
+          id="nova-categoria"
+          type="text"
+          name="novaCategoria"
+          placeholder="Nome da nova categoria"
+          disabled={loading}
+        />
+      </div>
 
       {resultado && !resultado.ok && (
-        <p role="alert" className="alert-error">
-          {resultado.message}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{resultado.message}</AlertDescription>
+        </Alert>
       )}
 
       <div className="field-inline">
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading}>
           {loading ? 'Confirmando...' : 'Confirmar'}
-        </button>
-        <a
-          href="/categorias"
-          className="btn btn-secondary"
-          aria-disabled={loading}
-          onClick={(event) => {
-            // A remoção já disparada não é cancelável no servidor -- navegar
-            // para longe durante o envio só enganaria o usuário fazendo
-            // parecer que a ação foi abortada, quando na verdade ainda
-            // completa em segundo plano.
-            if (loading) event.preventDefault();
-          }}
-        >
-          Cancelar
-        </a>
+        </Button>
+        <Button variant="secondary" asChild>
+          <a
+            href="/categorias"
+            aria-disabled={loading}
+            onClick={(event) => {
+              // A remoção já disparada não é cancelável no servidor -- navegar
+              // para longe durante o envio só enganaria o usuário fazendo
+              // parecer que a ação foi abortada, quando na verdade ainda
+              // completa em segundo plano.
+              if (loading) event.preventDefault();
+            }}
+          >
+            Cancelar
+          </a>
+        </Button>
       </div>
     </form>
   );

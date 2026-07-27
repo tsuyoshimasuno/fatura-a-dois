@@ -4,6 +4,10 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { criarCategoria } from '@/server/categorizacao/gerenciar-categorias';
 import { IconePicker } from './icone-picker';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // `criarCategoria` não tem guarda de deduplicação no banco (ao contrário de
 // mapearCartao/rejeitarCartaoTerceiro, que têm um WHERE-clause guard) -- um
@@ -48,15 +52,25 @@ export function CriarCategoriaForm() {
 
   return (
     <form onSubmit={handleSubmit} className="form-row">
-      <input type="text" name="nome" placeholder="Nova categoria" required disabled={loading} />
+      <Label htmlFor="nova-categoria-nome" className="sr-only">
+        Nova categoria
+      </Label>
+      <Input
+        id="nova-categoria-nome"
+        type="text"
+        name="nome"
+        placeholder="Nova categoria"
+        required
+        disabled={loading}
+      />
       <IconePicker disabled={loading} />
-      <button type="submit" disabled={loading}>
+      <Button type="submit" disabled={loading}>
         {loading ? 'Criando...' : 'Criar'}
-      </button>
+      </Button>
       {resultado && !resultado.ok && (
-        <p role="alert" className="alert-error">
-          {resultado.message}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{resultado.message}</AlertDescription>
+        </Alert>
       )}
     </form>
   );

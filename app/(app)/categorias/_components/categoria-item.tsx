@@ -4,6 +4,11 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { editarCategoria } from '@/server/categorizacao/gerenciar-categorias';
 import { IconePicker } from './icone-picker';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Categoria = { id: number; nome: string; icone: string | null };
 
@@ -56,28 +61,44 @@ export function CategoriaItem({ item }: CategoriaItemProps) {
     }
   }
 
+  const nomeInputId = `categoria-nome-${item.id}`;
+
   return (
-    <li className="card">
-      <form onSubmit={handleSubmit} className="field-inline" style={{ marginBottom: '0.75rem' }}>
-        <input type="text" name="nome" defaultValue={item.nome} required disabled={loading} />
-        <IconePicker valorAtual={item.icone} disabled={loading} />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Salvando...' : 'Salvar'}
-        </button>
-      </form>
-      {resultado && (
-        <p
-          role={resultado.ok ? undefined : 'alert'}
-          aria-live={resultado.ok ? 'polite' : undefined}
-          className={resultado.ok ? 'hint' : 'alert-error'}
-          style={{ marginBottom: '0.75rem' }}
-        >
-          {resultado.message}
-        </p>
-      )}
-      <a href={`/categorias/${item.id}/remover`} className="link">
-        Remover
-      </a>
+    <li>
+      <Card>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="field-inline" style={{ marginBottom: '0.75rem' }}>
+            <Label htmlFor={nomeInputId} className="sr-only">
+              Nome da categoria: {item.nome}
+            </Label>
+            <Input
+              id={nomeInputId}
+              type="text"
+              name="nome"
+              defaultValue={item.nome}
+              required
+              disabled={loading}
+            />
+            <IconePicker valorAtual={item.icone} disabled={loading} />
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </form>
+          {resultado &&
+            (resultado.ok ? (
+              <p className="hint" aria-live="polite" style={{ marginBottom: '0.75rem' }}>
+                {resultado.message}
+              </p>
+            ) : (
+              <Alert variant="destructive" style={{ marginBottom: '0.75rem' }}>
+                <AlertDescription>{resultado.message}</AlertDescription>
+              </Alert>
+            ))}
+          <a href={`/categorias/${item.id}/remover`} className="link">
+            Remover
+          </a>
+        </CardContent>
+      </Card>
     </li>
   );
 }
