@@ -78,7 +78,7 @@ development_status:
   epic-6: done
   6-1-repasse-e-desfazer-repasse-de-lancamento: done
   epic-6-retrospective: optional
-  epic-7: in-progress
+  epic-7: done
   7-1-suite-de-qa-automatizada-playwright-baseline: done
   7-2-setup-tailwind-shadcn-e-camada-de-tokens: done
   7-3-shell-de-navegacao-sidebar-corte-atomico: done
@@ -88,5 +88,5 @@ development_status:
   7-7-migracao-categorias: done
   7-8-migracao-inicio: done
   7-9-migracao-upload: done
-  7-10-migracao-lancamentos: backlog
+  7-10-migracao-lancamentos: done
   epic-7-retrospective: optional
