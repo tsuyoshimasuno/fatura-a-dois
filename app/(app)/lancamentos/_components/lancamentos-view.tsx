@@ -9,6 +9,18 @@ import { primeiroNome } from '@/lib/pessoa';
 import type { LancamentoParaCorrecao } from '@/server/categorizacao/corrigir-categoria';
 import type { CategoriaResumo, ItemPendente, PessoaResumo } from '@/server/visualizacao/resumo-gastos';
 import { LancamentoItem } from './lancamento-item';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+// Mesma string de classes visuais de `components/ui/input.tsx` (altura,
+// borda, radius, padding, anel de foco, estados disabled, `aria-invalid`) --
+// sem os modificadores `file:*`/`selection:*`, que não têm efeito num
+// `<select>`. Copiada (não importada) por não haver módulo compartilhado de
+// estilos ainda -- mesma decisão das Stories 7.7/7.9 (remover-categoria-form.tsx,
+// upload/page.tsx). `<select>` continua nativo (nunca vira Radix Select) para
+// preservar o picker do SO no mobile; só ganha paridade visual com o Input.
+const selectClassName =
+  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 type Categoria = { id: number; nome: string };
 type Conta = { id: string; email: string };
@@ -180,7 +192,7 @@ export function LancamentosView({
         <form method="GET" style={{ display: 'contents' }}>
           <label className="field">
             Mês
-            <select name="mes" defaultValue={String(mes)}>
+            <select name="mes" defaultValue={String(mes)} className={selectClassName}>
               {MESES.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -190,7 +202,7 @@ export function LancamentosView({
           </label>
           <label className="field">
             Ano
-            <select name="ano" defaultValue={String(ano)}>
+            <select name="ano" defaultValue={String(ano)} className={selectClassName}>
               {anos.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -198,11 +210,11 @@ export function LancamentosView({
               ))}
             </select>
           </label>
-          <button type="submit">Filtrar</button>
+          <Button type="submit">Filtrar</Button>
         </form>
         <label className="field">
           Pessoa
-          <select value={pessoaSelecionada ?? ''} onChange={handlePessoaChange}>
+          <select value={pessoaSelecionada ?? ''} onChange={handlePessoaChange} className={selectClassName}>
             <option value="">Todos</option>
             {contas.map((conta) => (
               <option key={conta.id} value={conta.id}>
@@ -216,6 +228,7 @@ export function LancamentosView({
           <select
             value={categoriaSelecionada === 'todas' ? '' : categoriaSelecionada === 'sem_categoria' ? 'sem' : String(categoriaSelecionada)}
             onChange={handleCategoriaChange}
+            className={selectClassName}
           >
             <option value="">Todas as categorias</option>
             {categorias.length > 0 && <option value="sem">Sem categoria</option>}
@@ -270,103 +283,164 @@ export function LancamentosView({
             mesmo teto/rolagem da lista -- as duas colunas sempre têm a
             mesma altura visual (feedback do usuário: painel crescia livre
             com muitas categorias enquanto a lista ficava desproporcional). */}
-        <div className="lancamentos-painel">
+        {/* `tabIndex`/`role="region"` incondicionais mesmo `.lancamentos-painel`
+            só sendo de fato rolável (overflow-y: auto + max-height) dentro de
+            `@media (min-width: 768px)` -- fecha o gap axe-core real
+            `scrollable-region-focusable` (candidato desde a Story 7.1) no
+            desktop, onde o painel é genuinamente rolável. Achado do review
+            adversarial: no mobile (coluna única, sem rolagem própria), isto
+            vira uma parada de Tab sem propósito operável -- tentativa de
+            tornar isso condicional via `matchMedia` + `useEffect` foi
+            revertida: o axe-core roda antes do efeito React comitar (a
+            violação real reaparecia no teste), então o custo de
+            complexidade/fragilidade do toggle client-side não se pagou
+            contra o benefício de uma parada de Tab a mais e inofensiva no
+            mobile. Trade-off aceito conscientemente, não uma omissão. */}
+        <div className="lancamentos-painel" tabIndex={0} role="region" aria-label="Resumo e pendentes">
           <div className="lancamentos-resumo">
             {categoriaSelecionada !== 'todas' ? (
-              <section className="card">
-                <h2 className="section-title">Total -- {formatarValorEmReais(totalFiltrado)}</h2>
+              <Card>
+                <CardHeader>
+                  <CardTitle asChild className="text-[22.5px] font-bold">
+                    <h2>Total -- {formatarValorEmReais(totalFiltrado)}</h2>
+                  </CardTitle>
+                </CardHeader>
+                {/* CardContent só renderiza quando há algo pra mostrar --
+                    achado real do review adversarial: Card usa `flex
+                    flex-col gap-6` entre CardHeader/CardContent como
+                    siblings, então um CardContent presente mas vazio (caso
+                    comum: nenhum lançamento com titular pendente) ainda
+                    reservava o gap de 24px abaixo do título, um espaço em
+                    branco que o `<section className="card">` original nunca
+                    tinha. */}
                 {totalFiltradoIncluiTitularPendente && (
-                  <p className="hint">Inclui lançamento(s) com titular ainda não identificado.</p>
+                  <CardContent>
+                    <p className="hint">Inclui lançamento(s) com titular ainda não identificado.</p>
+                  </CardContent>
                 )}
-              </section>
+              </Card>
             ) : pessoaSelecionada ? (
-              <section className="card">
-                <h2 className="section-title">
-                  {nomePorConta.get(pessoaSelecionada) ?? 'Pessoa'} --{' '}
-                  {formatarValorEmReais(pessoaResumo?.totalCentavos ?? 0)}
-                </h2>
-                {!pessoaResumo || pessoaResumo.categorias.length === 0 ? (
-                  <p className="hint">Nenhum gasto resolvido nesta competência.</p>
-                ) : (
-                  <ul className="card-list">
-                    {pessoaResumo.categorias.map((item) => (
-                      <li key={item.categoriaId}>
-                        {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ) : visao === 'combinada' ? (
-              // card-highlight (spec-snowui-lancamentos-highlight-e-icone-
-              // categoria.md): esta branch só é alcançada quando
-              // `pessoaSelecionada === null` e `categoriaSelecionada ===
-              // 'todas'` (as duas condições já filtram as branches acima),
-              // exatamente o cruzamento "visão combinada sem filtro" do I/O
-              // Matrix -- não precisa repetir a checagem aqui. `card-highlight`
-              // é sempre usada junto de `card` (só sobrescreve o background,
-              // ver globals.css).
-              <section className="card card-highlight">
-                <h2 className="section-title">Casal -- {formatarValorEmReais(totalCombinado)}</h2>
-                {categoriasCombinadas.length === 0 ? (
-                  <p className="hint">Nenhum gasto resolvido nesta competência.</p>
-                ) : (
-                  <ul className="card-list">
-                    {categoriasCombinadas.map((item) => (
-                      <li key={item.categoriaId}>
-                        {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ) : resumoPessoas.length === 0 ? (
-              <p className="empty-state">Nenhuma conta do casal encontrada -- tente novamente em instantes.</p>
-            ) : (
-              resumoPessoas.map((pessoa) => (
-                <section key={pessoa.usuarioId} className="card">
-                  <h2 className="section-title">
-                    {primeiroNome(pessoa.email)} -- {formatarValorEmReais(pessoa.totalCentavos)}
-                  </h2>
-                  {pessoa.categorias.length === 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle asChild className="text-[22.5px] font-bold">
+                    <h2>
+                      {nomePorConta.get(pessoaSelecionada) ?? 'Pessoa'} --{' '}
+                      {formatarValorEmReais(pessoaResumo?.totalCentavos ?? 0)}
+                    </h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!pessoaResumo || pessoaResumo.categorias.length === 0 ? (
                     <p className="hint">Nenhum gasto resolvido nesta competência.</p>
                   ) : (
                     <ul className="card-list">
-                      {pessoa.categorias.map((item) => (
+                      {pessoaResumo.categorias.map((item) => (
                         <li key={item.categoriaId}>
                           {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
                         </li>
                       ))}
                     </ul>
                   )}
-                </section>
+                </CardContent>
+              </Card>
+            ) : visao === 'combinada' ? (
+              // card-highlight (spec-snowui-lancamentos-highlight-e-icone-
+              // categoria.md): esta branch só é alcançada quando
+              // `pessoaSelecionada === null` e `categoriaSelecionada ===
+              // 'todas'` (as duas condições já filtram as branches acima),
+              // exatamente o cruzamento "visão combinada sem filtro" do I/O
+              // Matrix -- não precisa repetir a checagem aqui. `bg-[var(--highlight)]`
+              // substitui `.card-highlight` (que só sobrescrevia `background`,
+              // ver globals.css) -- ver Design Notes do spec-7-10 sobre por
+              // que um utility arbitrário na mesma layer do Card é necessário
+              // em vez de reusar a classe legada (`@layer base` perde para
+              // `@layer utilities` do Card, mesma causa raiz do bug de
+              // font-weight das Stories 7.6/7.8). Achado real do review
+              // adversarial: sem `dark:` explícito, o `dark:bg-[var(--surface)]`
+              // do próprio `Card` (também `@layer utilities`, batelado no MESMO
+              // bloco `@media (prefers-color-scheme: dark)` que qualquer outra
+              // classe `dark:` do app) vencia silenciosamente em modo escuro --
+              // confirmado via `getComputedStyle` real (fundo caía pra
+              // `--surface` em vez de `--highlight`). `!` (important) nos dois
+              // lados, mesma técnica já usada na Story 7.6 para o mesmo tipo de
+              // ambiguidade de ordem entre duas classes `dark:`.
+              <Card className="bg-[var(--highlight)]! dark:bg-[var(--highlight)]!">
+                <CardHeader>
+                  <CardTitle asChild className="text-[22.5px] font-bold">
+                    <h2>Casal -- {formatarValorEmReais(totalCombinado)}</h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {categoriasCombinadas.length === 0 ? (
+                    <p className="hint">Nenhum gasto resolvido nesta competência.</p>
+                  ) : (
+                    <ul className="card-list">
+                      {categoriasCombinadas.map((item) => (
+                        <li key={item.categoriaId}>
+                          {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            ) : resumoPessoas.length === 0 ? (
+              <p className="empty-state">Nenhuma conta do casal encontrada -- tente novamente em instantes.</p>
+            ) : (
+              resumoPessoas.map((pessoa) => (
+                <Card key={pessoa.usuarioId}>
+                  <CardHeader>
+                    <CardTitle asChild className="text-[22.5px] font-bold">
+                      <h2>
+                        {primeiroNome(pessoa.email)} -- {formatarValorEmReais(pessoa.totalCentavos)}
+                      </h2>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {pessoa.categorias.length === 0 ? (
+                      <p className="hint">Nenhum gasto resolvido nesta competência.</p>
+                    ) : (
+                      <ul className="card-list">
+                        {pessoa.categorias.map((item) => (
+                          <li key={item.categoriaId}>
+                            {item.nome} -- {formatarValorEmReais(item.totalCentavos)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
               ))
             )}
           </div>
 
           {pendentes.length > 0 && (
             <div className="lancamentos-pendentes">
-              <section className="card">
-                <h2 className="section-title">
-                  Pendente de revisão -- {formatarValorEmReais(totalPendentes)}
-                </h2>
-                {algumFiltroAtivo && (
-                  <p className="hint" style={{ marginBottom: '0.75rem' }}>
-                    Titular ainda não identificado -- independe dos filtros de pessoa e categoria acima.
-                  </p>
-                )}
-                <ul className="card-list">
-                  {pendentes.map((item) => (
-                    <li key={item.id}>
-                      {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
-                      Titular pendente de mapeamento --{' '}
-                      <Link href="/cartoes" className="link">
-                        Resolver em Cartões
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              <Card>
+                <CardHeader>
+                  <CardTitle asChild className="text-[22.5px] font-bold">
+                    <h2>Pendente de revisão -- {formatarValorEmReais(totalPendentes)}</h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {algumFiltroAtivo && (
+                    <p className="hint" style={{ marginBottom: '0.75rem' }}>
+                      Titular ainda não identificado -- independe dos filtros de pessoa e categoria acima.
+                    </p>
+                  )}
+                  <ul className="card-list">
+                    {pendentes.map((item) => (
+                      <li key={item.id}>
+                        {formatarData(item.data)} -- {item.estabelecimento} -- {formatarValorEmReais(item.valorCentavos)} --{' '}
+                        Titular pendente de mapeamento --{' '}
+                        <Link href="/cartoes" className="link">
+                          Resolver em Cartões
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

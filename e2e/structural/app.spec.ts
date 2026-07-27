@@ -29,20 +29,6 @@ const IMPACTOS_BLOQUEANTES = new Set(['critical', 'serious']);
 // elemento:
 // - `color-contrast` em `.badge-pending` (~3.27:1 no claro, ver
 //   spec-snowui-paleta-de-cores.md / contrast.spec.ts).
-// - `label` no input `name="nome"` do form inline "+ Nova categoria" em
-//   `lancamento-item.tsx` (mesmo padrão de input sem label que existia em
-//   `categoria-item.tsx`/`criar-categoria-form.tsx` antes da Story 7.7 --
-//   aqueles dois JÁ FORAM corrigidos nessa story, mas este terceiro caso em
-//   `/lancamentos` continua sem label real; candidato a correção na Story
-//   7.10, junto da migração de `/lancamentos`). Achado real da própria
-//   Story 7.7: remover este filtro cegamente ao corrigir os 2 primeiros
-//   casos reabriria um blind spot -- o filtro casa por HTML, não por
-//   arquivo, então continua necessário até o terceiro caso ser corrigido.
-// - `aria-prohibited-attr` em `.category-icon` (`aria-label` num `<span>`
-//   sem `role`) -- candidato a correção na Story 7.10 (migração de
-//   `/lancamentos`).
-// - `scrollable-region-focusable` em `.lancamentos-painel` (painel rolável
-//   do layout de 2 colunas, sem `tabindex`) -- idem, Story 7.10.
 //
 // Achado real do review adversarial: o `label` original filtrava por
 // substring `target` (`input[value=`), que casaria com QUALQUER input com
@@ -57,9 +43,6 @@ type GapConhecido = { ruleId: string; soLight?: boolean } & (
 
 const GAPS_CONHECIDOS: GapConhecido[] = [
   { ruleId: 'color-contrast', targetIncludes: 'badge-pending', soLight: true },
-  { ruleId: 'label', htmlIncludes: 'name="nome" placeholder="Nome da categoria"' },
-  { ruleId: 'aria-prohibited-attr', targetIncludes: 'category-icon' },
-  { ruleId: 'scrollable-region-focusable', targetIncludes: 'lancamentos-painel' },
 ];
 
 function noGapConhecido(node: { target: unknown[]; html: string }, gap: GapConhecido): boolean {

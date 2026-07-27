@@ -9,6 +9,17 @@ import { criarCategoria } from '@/server/categorizacao/gerenciar-categorias';
 import { classeCorCategoria } from '@/lib/categoria-cor';
 import { ehIconeCategoriaValido, ICONE_CATEGORIA_COMPONENTE } from '@/lib/categoria-icones';
 import { desfazerRepasse, repassarLancamento } from '@/server/visualizacao/repasse-lancamento';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Mesma string de classes visuais de `components/ui/input.tsx` -- ver
+// remover-categoria-form.tsx (Story 7.7) / upload/page.tsx (Story 7.9) para o
+// mesmo padrão. `<select>` continua nativo (nunca vira Radix Select).
+const selectClassName =
+  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 type Categoria = { id: number; nome: string };
 
@@ -267,166 +278,191 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
   }
 
   return (
-    <li className="card">
-      <div style={{ marginBottom: '0.5rem' }}>
-        {categoriaCirculo ? (
-          <span
-            className={`category-icon ${categoriaCirculo.classeCor}`}
-            aria-label={`Categoria: ${categoriaNomeValido}`}
-            title={categoriaNomeValido}
-          >
-            {categoriaCirculo.IconeEscolhido ? (
-              <categoriaCirculo.IconeEscolhido className="category-icon-svg" />
-            ) : (
-              categoriaCirculo.inicial
-            )}
-          </span>
-        ) : (
-          <span className="category-icon category-icon--neutral" aria-hidden="true" />
-        )}
-        <strong>{formatarData(item.data)}</strong> -- {item.estabelecimento} --{' '}
-        {formatarValorEmReais(item.valorCentavos)}
-        {item.titularNome !== null && (
-          <>
-            {' '}
-            <span className="titular-badge">{item.titularNome}</span>
-          </>
-        )}
-        {item.repassado && (
-          <>
-            {' '}
-            {/* Fallback genérico se `destinatarioNome` não resolver (contas do
-                casal degradadas) -- nunca esconder o badge enquanto o botão
-                abaixo disser "Desfazer repasse": os dois têm que concordar
-                sobre o estado do lançamento (achado do review pass 2). */}
-            <span className="badge-repasse">
-              Repassado{item.destinatarioNome !== null ? ` para ${item.destinatarioNome}` : ''}
-            </span>
-          </>
-        )}
-        {/* Indicador de parcela só aparece quando os dois campos vêm preenchidos
-            juntos (sempre gravados na mesma escrita, Story 5.1) -- avulso
-            (parcelaTotal null ou 1) nunca ganha esse sufixo. */}
-        {item.parcelaNumero !== null && item.parcelaTotal !== null && item.parcelaTotal > 1 && (
-          <> -- {item.parcelaNumero}/{item.parcelaTotal}</>
-        )}
-      </div>
-      <div className="field-inline" style={{ marginBottom: editando ? '0.75rem' : 0 }}>
-        <span className="hint">Categoria atual: {categoriaAtualLabel}</span>
-        <button
-          type="button"
-          className="icon-button"
-          aria-expanded={editando}
-          aria-controls={painelId}
-          aria-label={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
-          title={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
-          onClick={() => setEditando((valor) => !valor)}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        {item.outroContaId !== null && (
-          <button
-            type="button"
-            className="icon-button"
-            disabled={repasseEmVoo}
-            aria-label={repasseLabel}
-            title={repasseLabel}
-            onClick={handleRepasseToggle}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        )}
-      </div>
-      {repasseResultado && (
-        <p
-          role={repasseResultado.ok ? undefined : 'alert'}
-          aria-live={repasseResultado.ok ? 'polite' : undefined}
-          className={repasseResultado.ok ? 'hint' : 'alert-error'}
-          style={{ marginBottom: '0.5rem' }}
-        >
-          {repasseResultado.message}
-        </p>
-      )}
-      {editando && (
-        <div id={painelId}>
-          {categoriasDisponiveis.length === 0 ? (
-            <p className="hint" style={{ marginBottom: '0.5rem' }}>Nenhuma categoria cadastrada ainda.</p>
-          ) : (
-            <form onSubmit={handleSubmit} className="field-inline">
-              <select
-                name="categoria_id"
-                value={categoriaId}
-                onChange={(event) => setCategoriaId(event.target.value)}
-                required
-                disabled={loading}
+    <li>
+      <Card>
+        <CardContent>
+          <div style={{ marginBottom: '0.5rem' }}>
+            {categoriaCirculo ? (
+              <span
+                className={`category-icon ${categoriaCirculo.classeCor}`}
+                role="img"
+                aria-label={`Categoria: ${categoriaNomeValido}`}
+                title={categoriaNomeValido}
               >
-                <option value="" disabled>
-                  Selecione a categoria
-                </option>
-                {categoriasDisponiveis.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nome}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" disabled={loading}>
-                {loading ? 'Corrigindo...' : 'Corrigir'}
-              </button>
-            </form>
-          )}
-
-          {/* Criar categoria sem sair da tela -- antes disso o único caminho
-              era navegar até /categorias e voltar, perdendo o lugar na lista
-              de 100+ itens (feedback do usuário). */}
-          {!criandoCategoria ? (
+                {categoriaCirculo.IconeEscolhido ? (
+                  <categoriaCirculo.IconeEscolhido className="category-icon-svg" />
+                ) : (
+                  categoriaCirculo.inicial
+                )}
+              </span>
+            ) : (
+              <span className="category-icon category-icon--neutral" aria-hidden="true" />
+            )}
+            <strong>{formatarData(item.data)}</strong> -- {item.estabelecimento} --{' '}
+            {formatarValorEmReais(item.valorCentavos)}
+            {item.titularNome !== null && (
+              <>
+                {' '}
+                <span className="titular-badge">{item.titularNome}</span>
+              </>
+            )}
+            {item.repassado && (
+              <>
+                {' '}
+                {/* Fallback genérico se `destinatarioNome` não resolver (contas do
+                    casal degradadas) -- nunca esconder o badge enquanto o botão
+                    abaixo disser "Desfazer repasse": os dois têm que concordar
+                    sobre o estado do lançamento (achado do review pass 2). */}
+                <span className="badge-repasse">
+                  Repassado{item.destinatarioNome !== null ? ` para ${item.destinatarioNome}` : ''}
+                </span>
+              </>
+            )}
+            {/* Indicador de parcela só aparece quando os dois campos vêm preenchidos
+                juntos (sempre gravados na mesma escrita, Story 5.1) -- avulso
+                (parcelaTotal null ou 1) nunca ganha esse sufixo. */}
+            {item.parcelaNumero !== null && item.parcelaTotal !== null && item.parcelaTotal > 1 && (
+              <> -- {item.parcelaNumero}/{item.parcelaTotal}</>
+            )}
+          </div>
+          <div className="field-inline" style={{ marginBottom: editando ? '0.75rem' : 0 }}>
+            <span className="hint">Categoria atual: {categoriaAtualLabel}</span>
             <button
               type="button"
-              className="btn-secondary"
-              style={{ marginTop: '0.5rem' }}
-              onClick={() => setCriandoCategoria(true)}
+              className="icon-button"
+              aria-expanded={editando}
+              aria-controls={painelId}
+              aria-label={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
+              title={editando ? 'Fechar correção de categoria' : 'Corrigir categoria'}
+              onClick={() => setEditando((valor) => !valor)}
             >
-              + Nova categoria
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
-          ) : (
-            <form onSubmit={handleCriarCategoria} className="field-inline" style={{ marginTop: '0.5rem' }}>
-              <input type="text" name="nome" placeholder="Nome da categoria" required disabled={loadingCriacao} />
-              <button type="submit" disabled={loadingCriacao}>
-                {loadingCriacao ? 'Criando...' : 'Criar'}
+            {item.outroContaId !== null && (
+              <button
+                type="button"
+                className="icon-button"
+                disabled={repasseEmVoo}
+                aria-label={repasseLabel}
+                title={repasseLabel}
+                onClick={handleRepasseToggle}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
-              <button type="button" className="btn-secondary" disabled={loadingCriacao} onClick={() => setCriandoCategoria(false)}>
-                Cancelar
-              </button>
-            </form>
-          )}
+            )}
+          </div>
+          {repasseResultado &&
+            (repasseResultado.ok ? (
+              <p className="hint" aria-live="polite" style={{ marginBottom: '0.5rem' }}>
+                {repasseResultado.message}
+              </p>
+            ) : (
+              <Alert variant="destructive" style={{ marginBottom: '0.5rem' }}>
+                <AlertDescription>{repasseResultado.message}</AlertDescription>
+              </Alert>
+            ))}
+          {editando && (
+            <div id={painelId}>
+              {categoriasDisponiveis.length === 0 ? (
+                <p className="hint" style={{ marginBottom: '0.5rem' }}>Nenhuma categoria cadastrada ainda.</p>
+              ) : (
+                <form onSubmit={handleSubmit} className="field-inline">
+                  <Label htmlFor={`corrigir-categoria-select-${item.id}`} className="sr-only">
+                    Selecionar categoria para {item.estabelecimento}
+                  </Label>
+                  <select
+                    id={`corrigir-categoria-select-${item.id}`}
+                    name="categoria_id"
+                    value={categoriaId}
+                    onChange={(event) => setCategoriaId(event.target.value)}
+                    required
+                    disabled={loading}
+                    className={selectClassName}
+                  >
+                    <option value="" disabled>
+                      Selecione a categoria
+                    </option>
+                    {categoriasDisponiveis.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Corrigindo...' : 'Corrigir'}
+                  </Button>
+                </form>
+              )}
 
-          {resultadoCriacao && !resultadoCriacao.ok && (
-            <p role="alert" className="alert-error" style={{ marginTop: '0.5rem' }}>
-              {resultadoCriacao.message}
-            </p>
+              {/* Criar categoria sem sair da tela -- antes disso o único caminho
+                  era navegar até /categorias e voltar, perdendo o lugar na lista
+                  de 100+ itens (feedback do usuário). */}
+              {!criandoCategoria ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  style={{ marginTop: '0.5rem' }}
+                  onClick={() => setCriandoCategoria(true)}
+                >
+                  + Nova categoria
+                </Button>
+              ) : (
+                <form onSubmit={handleCriarCategoria} className="field-inline" style={{ marginTop: '0.5rem' }}>
+                  <Label htmlFor={`nova-categoria-nome-${item.id}`} className="sr-only">
+                    Nome da nova categoria para {item.estabelecimento}
+                  </Label>
+                  <Input
+                    id={`nova-categoria-nome-${item.id}`}
+                    type="text"
+                    name="nome"
+                    placeholder="Nome da categoria"
+                    required
+                    disabled={loadingCriacao}
+                  />
+                  <Button type="submit" disabled={loadingCriacao}>
+                    {loadingCriacao ? 'Criando...' : 'Criar'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={loadingCriacao}
+                    onClick={() => setCriandoCategoria(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </form>
+              )}
+
+              {resultadoCriacao && !resultadoCriacao.ok && (
+                <Alert variant="destructive" style={{ marginTop: '0.5rem' }}>
+                  <AlertDescription>{resultadoCriacao.message}</AlertDescription>
+                </Alert>
+              )}
+            </div>
           )}
-        </div>
-      )}
-      {resultado && !resultado.ok && (
-        <p role="alert" className="alert-error" style={{ marginTop: '0.5rem' }}>
-          {resultado.message}
-        </p>
-      )}
+          {resultado && !resultado.ok && (
+            <Alert variant="destructive" style={{ marginTop: '0.5rem' }}>
+              <AlertDescription>{resultado.message}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
     </li>
   );
 }
