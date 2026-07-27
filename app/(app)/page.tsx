@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { NOME_MES } from '@/lib/competencia';
 import { formatarValorEmReais } from '@/lib/moeda';
 import { listarCartoesPendentes } from '@/server/ingestao/mapear-cartao';
@@ -101,50 +102,66 @@ export default async function Home() {
       </div>
 
       {faturaNaoEnviada ? (
-        <section className="card">
-          <h2 className="section-title">
-            Fatura de {NOME_MES[mesAtual]} ainda não enviada
-          </h2>
-          <Link href="/upload" className="link">
-            Enviar fatura →
-          </Link>
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle asChild className="text-[22.5px] font-bold">
+              <h2>Fatura de {NOME_MES[mesAtual]} ainda não enviada</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link href="/upload" className="link">
+              Enviar fatura →
+            </Link>
+          </CardContent>
+        </Card>
       ) : pendentesCartoes.length > 0 ? (
-        <section className="card">
-          <h2 className="section-title">
-            {pendentesCartoes.length} cartão(ões) pendente(s) de mapeamento
-          </h2>
-          <Link href="/cartoes" className="link">
-            Mapear cartões →
-          </Link>
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle asChild className="text-[22.5px] font-bold">
+              <h2>{pendentesCartoes.length} cartão(ões) pendente(s) de mapeamento</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link href="/cartoes" className="link">
+              Mapear cartões →
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
-        <section className="card">
-          <h2 className="section-title">
-            Gastos de {NOME_MES[mesAtual]}: {formatarValorEmReais(totalCombinado)}
-          </h2>
-          {resumo.pendentes.itens.length > 0 && (
-            <p className="hint" style={{ marginBottom: '0.75rem' }}>
-              Pendente de revisão ({resumo.pendentes.itens.length}): {formatarValorEmReais(resumo.pendentes.totalCentavos)}{' '}
-              -- ainda não contado no total acima.
-            </p>
-          )}
-          <Link href={`/lancamentos?mes=${mesAtual}&ano=${anoAtual}`} className="link">
-            Ver gastos →
-          </Link>
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle asChild className="text-[22.5px] font-bold">
+              <h2>
+                Gastos de {NOME_MES[mesAtual]}: {formatarValorEmReais(totalCombinado)}
+              </h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {resumo.pendentes.itens.length > 0 && (
+              <p className="hint" style={{ marginBottom: '0.75rem' }}>
+                Pendente de revisão ({resumo.pendentes.itens.length}): {formatarValorEmReais(resumo.pendentes.totalCentavos)}{' '}
+                -- ainda não contado no total acima.
+              </p>
+            )}
+            <Link href={`/lancamentos?mes=${mesAtual}&ano=${anoAtual}`} className="link">
+              Ver gastos →
+            </Link>
+          </CardContent>
+        </Card>
       )}
 
       {comprometimentoProximoMes && totalProximoMes !== undefined && (
-        <section className="card">
-          <p className="hint" style={{ marginBottom: '0.5rem' }}>
-            {NOME_MES[proxima.mes]} já tem {formatarValorEmReais(totalProximoMes)} comprometido em
-            parcelas.
-          </p>
-          <Link href="/parcelas" className="link">
-            Ver parcelas →
-          </Link>
-        </section>
+        <Card>
+          <CardContent>
+            <p className="hint" style={{ marginBottom: '0.5rem' }}>
+              {NOME_MES[proxima.mes]} já tem {formatarValorEmReais(totalProximoMes)} comprometido em
+              parcelas.
+            </p>
+            <Link href="/parcelas" className="link">
+              Ver parcelas →
+            </Link>
+          </CardContent>
+        </Card>
       )}
     </main>
   );

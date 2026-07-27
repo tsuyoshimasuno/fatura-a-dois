@@ -44,6 +44,24 @@ function CardTitle({
   // do navegador para `<h1>` (projeto não usa Preflight do Tailwind, então
   // não há reset de heading algum) -- mantém o mesmo tamanho computado que
   // a `<div>` já tinha (herdado de `body { font-size: 15px }`).
+  //
+  // CUIDADO ao reusar `asChild` para um `<h2>`/`<h3>` que substitui um
+  // `.section-title` legado (ex: Stories 7.6/7.8): a regra global `h1, h2,
+  // h3 { font-weight: 700; letter-spacing: -0.01em }` (app/globals.css)
+  // fica em `@layer base`, enquanto o `font-semibold` (600) deste
+  // componente é `@layer utilities` -- utilities sempre vence sobre base
+  // independente de especificidade (`@layer theme, base, components,
+  // utilities;` no topo do CSS). Sem um `font-bold` explícito no
+  // `className` de cada instância, o heading migrado fica silenciosamente
+  // mais fino (600 em vez de 700) que o resto do app -- achado real do
+  // review adversarial da Story 7.8, confirmado via `getComputedStyle`
+  // contra um `<h2 className="section-title">` de referência. `leading-none`
+  // acima, por outro lado, não precisa de neutralização quando combinado
+  // com um `text-[Npx]` arbitrário: `tailwind-merge` (`lib/utils.ts`) trata
+  // qualquer `text-[…]` como parte do grupo de conflito com `leading-*` e
+  // descarta o `leading-none` da base automaticamente, então o line-height
+  // já cai de volta no herdado do navegador -- verificado que bate exatamente
+  // com o `.section-title` original (mesmo `line-height` computado).
   const Comp = asChild ? Slot.Root : "div"
   return (
     <Comp

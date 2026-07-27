@@ -62,6 +62,9 @@ final_revision: 'b9f373a'
 
 ## Spec Change Log
 
+### 2026-07-26 — Retrofix durante o review da Story 7.8
+`CardTitle asChild` (usado para `<h2>` de cada competência) não neutralizava `font-weight`: a regra global `h1, h2, h3 { font-weight: 700 }` fica em `@layer base`, enquanto `font-semibold` (600) do `CardTitle` é `@layer utilities` -- utilities sempre vence, independente de especificidade. O título de cada Card renderizava silenciosamente mais fino (600) que o `.section-title` original (700), não capturado nesta story porque o teste visual mascara o `Card` inteiro (incluindo o texto do título) por conter dado financeiro real. Achado pelo Blind Hunter durante o review adversarial da Story 7.8 (mesmo padrão `CardTitle asChild` reusado lá), confirmado empiricamente via `getComputedStyle` e corrigido adicionando `font-bold` ao `className` do `CardTitle` em `app/(app)/parcelas/page.tsx`. Ver `spec-7-8-migracao-inicio.md` para o achado completo e a correção irmã em `app/(app)/page.tsx` + o comentário de documentação adicionado em `components/ui/card.tsx`.
+
 ## Review Triage Log
 
 ### 2026-07-26 — Review pass

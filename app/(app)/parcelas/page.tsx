@@ -37,7 +37,7 @@ export default async function ParcelasPage() {
           return (
             <Card key={chave}>
               <CardHeader>
-                <CardTitle asChild className="text-[22.5px]">
+                <CardTitle asChild className="text-[22.5px] font-bold">
                   <h2>
                     {NOME_MES[competencia.competenciaMes]} de {competencia.competenciaAno} --{' '}
                     {formatarValorEmReais(competencia.totalCentavos)}
