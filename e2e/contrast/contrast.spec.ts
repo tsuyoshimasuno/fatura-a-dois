@@ -55,8 +55,104 @@ const GAPS_CONHECIDOS = new Set<string>([
   'border-on-background::light', // ~1.26:1, ver deferred-work.md
 ]);
 
+// Mistura manual alpha-sobre-fundo -- `getComputedStyle` reporta a cor
+// especificada (`rgba(r,g,b,a)`), não o resultado já compositado contra o
+// fundo, então uma checagem ingênua de `color` vs `background-color`
+// ignoraria qualquer opacidade <1 e reportaria um contraste otimista demais.
+// Necessário para o teste abaixo (achado real do review adversarial da
+// Story 7.9: `text-destructive/90` no `AlertDescription` reduzia o
+// contraste real para ~4.06:1 no escuro, abaixo do mínimo AA, mas nenhum
+// par de `PARES` acima (que só lê variáveis CSS cruas, sem alpha) pegava
+// isso).
+function blendAlphaSobreFundo(corComAlpha: string, corDeFundo: string): string {
+  const match = corComAlpha.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\s*\)/i);
+  if (!match) throw new Error(`Cor com alpha não reconhecida: "${corComAlpha}"`);
+  const [, r, g, b, a] = match;
+  const alpha = a === undefined ? 1 : Number(a);
+  if (alpha >= 1) return corComAlpha;
+
+  const bgMatch = corDeFundo.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\s*\)/i);
+  if (!bgMatch) throw new Error(`Cor de fundo não reconhecida: "${corDeFundo}"`);
+  const [, bgR, bgG, bgB, bgA] = bgMatch;
+  // Achado real do review adversarial (Edge Case Hunter): esta função
+  // assumia fundo sempre opaco -- o `Card`/`Alert` deste projeto sempre
+  // resolvem pra uma cor sólida (nunca transparente), então essa premissa
+  // já é verdadeira hoje, mas falhar alto (em vez de misturar errado em
+  // silêncio) é mais seguro que assumir opacidade 1 sem checar.
+  if (bgA !== undefined && Number(bgA) < 1) {
+    throw new Error(
+      `Fundo não-opaco não suportado por este helper (alpha=${bgA}): "${corDeFundo}". Composição contra um segundo fundo (ex.: o body) precisaria ser implementada explicitamente.`,
+    );
+  }
+
+  const blend = (fg: number, bg: number) => Math.round(alpha * fg + (1 - alpha) * bg);
+  return `rgb(${blend(Number(r), Number(bgR))}, ${blend(Number(g), Number(bgG))}, ${blend(Number(b), Number(bgB))})`;
+}
+
 for (const colorScheme of MODOS_DE_COR) {
   test.describe(`contraste WCAG AA -- modo ${colorScheme}`, () => {
+    test(`Alert destructive: texto sobre o próprio fundo (mínimo 4.5:1)`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.route('**/auth/v1/token**', async (route) => {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'invalid_grant', error_description: 'Invalid login credentials' }),
+        });
+      });
+      await page.goto('/login');
+      await page.getByLabel('E-mail').fill('usuario-inexistente@example.com');
+      await page.getByLabel('Senha').fill('senha-incorreta-123');
+      await page.getByRole('button', { name: 'Entrar' }).click();
+
+      const alertDescription = page.locator('[data-slot="alert-description"]').first();
+      await expect(alertDescription).toBeVisible();
+
+      const { fg, bg } = await alertDescription.evaluate((el) => {
+        // Tailwind v4 resolve modificadores de opacidade (`/90`) via
+        // `color-mix()`, que o Chromium computa e reporta em `oklab()`, não
+        // `rgb()`/`rgba()` -- um parser de regex simples não entende esse
+        // formato. Normaliza para `rgb()` de verdade desenhando a cor num
+        // canvas 1x1 e lendo o pixel de volta (o navegador faz a conversão
+        // de espaço de cor por nós, funciona para qualquer sintaxe CSS de
+        // cor válida, não só oklab).
+        function paraRgb(cor: string): string {
+          // Achado real do review adversarial (Edge Case Hunter): o navegador
+          // ignora silenciosamente `fillStyle` inválido e mantém o valor
+          // anterior (preto opaco por padrão) -- sem checar antes, uma cor
+          // computada em formato inesperado normalizaria pra preto em vez de
+          // falhar alto, mascarando um erro de verdade como um resultado de
+          // contraste plausível (mas errado).
+          if (!CSS.supports('color', cor)) {
+            throw new Error(`Cor computada não reconhecida pelo navegador: "${cor}"`);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+          ctx.fillStyle = cor;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+          return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+        }
+
+        const cs = getComputedStyle(el);
+        const alertEl = el.closest('[data-slot="alert"]');
+        return {
+          fg: paraRgb(cs.color),
+          bg: paraRgb(alertEl ? getComputedStyle(alertEl).backgroundColor : getComputedStyle(document.body).backgroundColor),
+        };
+      });
+
+      const fgEfetivo = blendAlphaSobreFundo(fg, bg);
+      const ratio = contrastRatio(fgEfetivo, bg);
+
+      expect(
+        ratio,
+        `Alert destructive (${colorScheme}): ${fg} (efetivo ${fgEfetivo}) sobre ${bg} = ${ratio.toFixed(2)}:1, mínimo exigido 4.5:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
     for (const par of PARES) {
       const chaveGap = `${par.id}::${colorScheme}`;
       const isGapConhecido = GAPS_CONHECIDOS.has(chaveGap);

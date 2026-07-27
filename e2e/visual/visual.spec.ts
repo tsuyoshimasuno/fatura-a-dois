@@ -27,6 +27,12 @@ const ROTAS_AUTENTICADAS = [
   { path: '/redefinir-senha', slug: 'redefinir-senha', dadoReal: false },
   { path: '/parcelas', slug: 'parcelas', dadoReal: true },
   { path: '/cartoes', slug: 'cartoes', dadoReal: true },
+  // /upload nunca esteve nesta suite (achado real da Story 7.9: a rota já
+  // tinha cobertura estrutural/axe desde a Story 7.1, mas nunca regressão
+  // visual). Seu `Card` é só o formulário de envio, sem dado financeiro
+  // renderizado por padrão -- `dadoReal: false`, mesmo caso de
+  // `/redefinir-senha`.
+  { path: '/upload', slug: 'upload', dadoReal: false },
 ];
 
 for (const colorScheme of MODOS_DE_COR) {

@@ -3,6 +3,19 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { processarUpload } from '@/server/ingestao/upload';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Mesma string de classes visuais de `components/ui/input.tsx` (altura,
+// borda, radius, padding, anel de foco, estados disabled, `aria-invalid`) --
+// sem os modificadores `file:*`/`selection:*` do Input, que não têm efeito
+// num `<select>`. Copiada (não importada) por não haver módulo compartilhado
+// de estilos ainda -- mesma decisão da Story 7.7 (remover-categoria-form.tsx).
+const selectClassName =
+  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 const MESES = [
   { value: '1', label: 'Janeiro' },
@@ -67,59 +80,78 @@ export default function UploadPage() {
         <h1 className="page-title">Enviar fatura</h1>
         <p className="page-subtitle">Selecione a competência e envie a planilha (.xlsx) exportada do Itaú.</p>
       </div>
-      <form onSubmit={handleSubmit} className="form">
-        <label className="field">
-          Mês
-          <select name="competencia_mes" defaultValue="" required disabled={loading}>
-            <option value="" disabled>
-              Selecione o mês
-            </option>
-            {MESES.map((mes) => (
-              <option key={mes.value} value={mes.value}>
-                {mes.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          Ano
-          <select name="competencia_ano" defaultValue="" required disabled={loading}>
-            <option value="" disabled>
-              Selecione o ano
-            </option>
-            {anos.map((ano) => (
-              <option key={ano} value={ano}>
-                {ano}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          Arquivo
-          <input type="file" accept=".xlsx" name="arquivo" required disabled={loading} />
-        </label>
-        {result && (
-          <p
-            role={result.ok ? undefined : 'alert'}
-            aria-live={result.ok ? 'polite' : undefined}
-            className={result.ok ? 'hint' : 'alert-error'}
-          >
-            {result.message}
-          </p>
-        )}
-        {result?.ok && competenciaEnviada && (
-          <Link
-            href={`/lancamentos?mes=${competenciaEnviada.mes}&ano=${competenciaEnviada.ano}`}
-            className="link"
-          >
-            Ver gastos de {MESES.find((mes) => mes.value === competenciaEnviada.mes)?.label ?? ''}{' '}
-            de {competenciaEnviada.ano} →
-          </Link>
-        )}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Enviando...' : 'Enviar'}
-        </button>
-      </form>
+      <Card>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="form">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="competencia-mes">Mês</Label>
+              <select
+                id="competencia-mes"
+                name="competencia_mes"
+                defaultValue=""
+                required
+                disabled={loading}
+                className={selectClassName}
+              >
+                <option value="" disabled>
+                  Selecione o mês
+                </option>
+                {MESES.map((mes) => (
+                  <option key={mes.value} value={mes.value}>
+                    {mes.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="competencia-ano">Ano</Label>
+              <select
+                id="competencia-ano"
+                name="competencia_ano"
+                defaultValue=""
+                required
+                disabled={loading}
+                className={selectClassName}
+              >
+                <option value="" disabled>
+                  Selecione o ano
+                </option>
+                {anos.map((ano) => (
+                  <option key={ano} value={ano}>
+                    {ano}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="arquivo">Arquivo</Label>
+              <Input type="file" id="arquivo" accept=".xlsx" name="arquivo" required disabled={loading} />
+            </div>
+            {result &&
+              (result.ok ? (
+                <p className="hint" aria-live="polite">
+                  {result.message}
+                </p>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertDescription>{result.message}</AlertDescription>
+                </Alert>
+              ))}
+            {result?.ok && competenciaEnviada && (
+              <Link
+                href={`/lancamentos?mes=${competenciaEnviada.mes}&ano=${competenciaEnviada.ano}`}
+                className="link"
+              >
+                Ver gastos de {MESES.find((mes) => mes.value === competenciaEnviada.mes)?.label ?? ''}{' '}
+                de {competenciaEnviada.ano} →
+              </Link>
+            )}
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Enviando...' : 'Enviar'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

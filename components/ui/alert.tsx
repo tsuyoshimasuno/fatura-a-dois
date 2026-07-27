@@ -9,8 +9,18 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "bg-background dark:bg-[var(--surface)] text-foreground",
+        // `text-destructive/90` (opacidade reduzida) do stock shadcn foi
+        // removido -- achado real do review adversarial da Story 7.9: a
+        // cor `--danger` deste projeto já foi calibrada ao mínimo WCAG AA
+        // (4.5:1) contra `--surface`/`--background` (ver app/globals.css),
+        // e 90% de opacidade quebra essa calibração ao misturar a cor com o
+        // fundo -- contraste caía para ~4.06:1 no escuro contra `--surface`
+        // (abaixo do mínimo), afetando toda mensagem de erro já migrada
+        // desde a Story 7.4 (login, esqueci-senha, redefinir-senha,
+        // categorias, cartões). Confirmado por cálculo de contraste real
+        // (não só leitura de código) antes e depois da correção.
         destructive:
-          "bg-background dark:bg-[var(--surface)] text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
+          "bg-background dark:bg-[var(--surface)] text-destructive *:data-[slot=alert-description]:text-destructive [&>svg]:text-current",
       },
     },
     defaultVariants: {

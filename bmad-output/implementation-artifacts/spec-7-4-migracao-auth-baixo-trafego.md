@@ -62,6 +62,9 @@ baseline_revision: 'e3c51df'
 
 ## Spec Change Log
 
+### 2026-07-26 — Retrofix durante o review da Story 7.9
+`components/ui/alert.tsx`'s variant `destructive` aplicava `text-destructive/90` (90% de opacidade) no `AlertDescription` -- a cor `--danger` deste projeto já foi calibrada ao mínimo WCAG AA (4.5:1) contra `--surface`/`--background`, e 90% de opacidade quebra essa calibração ao misturar a cor com o fundo. Contraste real caía para ~4,07:1 no modo escuro contra `--surface` (abaixo do mínimo), afetando o `Alert` de erro desta story (`?error=link_invalido`) desde que foi introduzido. Achado pelo Blind Hunter durante o review adversarial da Story 7.9, confirmado por cálculo de contraste real (blend alpha manual) antes e depois da correção. Corrigido removendo o modificador `/90` em `alert.tsx` (afeta todos os `Alert` destructive já migrados, não só este). Novo teste automatizado (`e2e/contrast/contrast.spec.ts`, "Alert destructive: texto sobre o próprio fundo") previne regressão futura. Ver `spec-7-9-migracao-upload.md` para o achado completo.
+
 ## Review Triage Log
 
 ### 2026-07-26 — Review pass

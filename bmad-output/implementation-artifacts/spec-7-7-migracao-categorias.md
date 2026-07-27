@@ -62,6 +62,9 @@ final_revision: '65aa338'
 
 ## Spec Change Log
 
+### 2026-07-26 — Retrofix durante o review da Story 7.9
+Mesmo achado/correção registrado em `spec-7-4-migracao-auth-baixo-trafego.md` -- `Alert` destructive (erro de editar/criar categoria) tinha `text-destructive/90` quebrando o contraste WCAG AA calibrado. Corrigido em `components/ui/alert.tsx` (cross-cutting). Ver `spec-7-9-migracao-upload.md` para o achado completo.
+
 ## Review Triage Log
 
 ### 2026-07-26 — Review pass
