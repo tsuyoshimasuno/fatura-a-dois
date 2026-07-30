@@ -5,7 +5,7 @@ sources:
   - "{planning_artifacts}/prds/prd-fatura-a-dois-2026-07-14/prd.md"
   - "{planning_artifacts}/architecture/architecture-fatura-a-dois-2026-07-16/ARCHITECTURE-SPINE.md"
   - "{planning_artifacts}/epics.md"
-updated: 2026-07-26
+updated: 2026-07-30
 ---
 
 # Fatura a Dois — Experience Spine
@@ -23,6 +23,10 @@ updated: 2026-07-26
 > **Nota de reconciliação (2026-07-22, rodada 6):** o usuário pediu avaliar a adoção do "SnowUI Design System" (kit de UI genérico da comunidade do Figma) como base visual do produto. Seção "Adoção do SnowUI Design System" adicionada ao final com a decisão (adoção seletiva de tokens/átomos visuais, rejeição do paradigma de layout de dashboard multi-widget do kit), o mapeamento de impacto tela-a-tela, e os próximos passos de implementação. Ver também `DESIGN.md` (Brand & Style, Layout & Spacing, Components).
 >
 > **Nota de reconciliação (2026-07-22, rodada 10):** o usuário aprovou visualmente um Artifact (protótipo HTML real de `/lancamentos`) e pediu para aplicar o mesmo visual a **todas** as telas do produto: sidebar fixa substituindo a nav horizontal, fundo branco puro + cards com sombra sutil substituindo o sistema zero-sombra, card de destaque em lilás claro no "Total combinado", e ícone colorido por categoria em cada lançamento. Seção "Sidebar e Reskin Visual" adicionada ao final com o desenho completo (desktop + mobile). Esta rodada **revisa** — não amplia como exceção pontual — a filosofia "zero sombra decorativa" registrada desde a rodada 1 e reafirmada na rodada 6; ver `DESIGN.md` → Brand & Style para o racional completo de por que é revisão e não exceção. A tabela de Responsive & Platform e o Component Patterns abaixo foram atualizados para refletir a sidebar; a Information Architecture (surfaces/rotas) **não muda** — é puramente reskin + reorganização de chrome, nenhuma tela nova/removida/renomeada.
+>
+> **Nota de reconciliação (2026-07-26, rodadas 12/13):** fonte dos tokens/átomos migrou do SnowUI para o shadcn/ui (rodada 12, seletiva) e depois para adoção real (Tailwind+Radix instalados, componentes vendorizados via CLI, rodada 13, Epic 7). Foundation abaixo ainda descreve o estado pré-Epic 7 ("sem shadcn/MUI/Tailwind") — histórico preservado como registrado na época; ver `DESIGN.md` → Brand & Style rodadas 12/13 e `epics.md` → Epic 7 para o estado real atual (Tailwind+shadcn/ui adotados, Epic 7 concluído 2026-07-27).
+>
+> **Nota de reconciliação (2026-07-30, rodada 14):** após o Epic 7 concluído, o usuário pediu que o produto "pareça produto profissional, não recibo minimalista", citando os Examples e o Bootstrap Icons do Bootstrap como inspiração visual. Seção "Redesign profissional: ícones de navegação e hierarquia visual" adicionada ao final. Ver `DESIGN.md` → Brand & Style (rodada 14) para o racional completo, inclusive a resolução de uma ambiguidade real (Bootstrap como inspiração vs. dependência literal; componentes vs. paradigma de layout) diretamente com o usuário — ambas resolvidas a favor da leitura mais conservadora (inspiração/componentes), confirmado explicitamente, não inferido.
 
 ## Foundation
 
@@ -478,3 +482,54 @@ Cada `item-card` de lançamento em `/lancamentos` ganha um `category-icon` (ver 
 **Regra de atomicidade (Sally):** chrome compartilhado (sidebar, tokens globais) migra numa passada única — nunca duas telas com sidebar/tokens diferentes coexistindo na mesma sessão. Composição de conteúdo por tela pode migrar gradualmente, desde que os tokens já estejam unificados antes.
 
 `[ASSUMPTION]` Cor/tipografia/radius exatos do arquivo Figma específico do usuário continuam não amostrados (rate-limit persistente da API, >2h nesta sessão) — usuário decidiu explicitamente manter os valores já aprovados (rodadas 7/9/10) em vez de esperar. Revisitável numa rodada futura se o usuário exportar manualmente (mesmo caminho que resolveu isso para o SnowUI).
+
+## Redesign profissional: ícones de navegação e hierarquia visual (rodada 14, 2026-07-30)
+
+> Depois do Epic 7 concluído (migração real para shadcn/ui, 10/10 stories, em produção), o usuário pediu que o produto "pareça produto profissional, não recibo minimalista", citando como inspiração os Examples do Bootstrap (`getbootstrap.com/docs/5.3/examples/`) e o Bootstrap Icons (`icons.getbootstrap.com`). Avaliação PM+tech-lead+UX (John/Winston/Sally, 3 agentes reais em paralelo, regra permanente) identificou uma ambiguidade real e load-bearing que nenhum dos 3 resolveu sozinho — resolvida numa pergunta direta ao usuário. Racional completo da reconciliação e da pergunta no `.memlog.md` do goal-engine; decisão formal em `DESIGN.md` → Brand & Style (rodada 14).
+
+### Resolução da ambiguidade (confirmada pelo usuário, não inferida)
+
+- **Ícones**: "só como inspiração" — não o pacote `bootstrap-icons` literal. Implementação usa `lucide-react` (já instalado, zero uso até esta rodada).
+- **Layout**: "só componentes/hierarquia" — não o paradigma de página dos Examples (dashboard/marketing, hero, CTA). `/lancamentos` continua a única exceção de 2 colunas do produto (rodada 4, motivo funcional).
+- **Intensidade**: usuário pediu explicitamente mudança visual **significativa e perceptível**, não um ajuste sutil — ver "Calibração de intensidade" abaixo.
+
+### O que muda
+
+1. **`nav-icon` em `sidebar-nav`** (ver `DESIGN.md` → Components) — cada item de navegação (Início, Lançamentos, Cartões, Categorias, Parcelas) ganha um ícone à esquerda do rótulo, mesma gramática visual (`stroke="currentColor"`) já usada em `category-icon` e nos ícones funcionais de `lancamento-item.tsx`. Fonte: `lucide-react`, curadoria própria de 5-8 ícones — escolha de qual ícone Lucide representa cada item de menu é decisão de implementação (ex.: `Home`/`Receipt`/`CreditCard`/`Tag`/`Calendar` ou equivalentes semanticamente próximos), não travada aqui; a exigência é semântica clara + consistência de estilo, não um mapeamento 1:1 exato.
+2. **Hierarquia tipográfica** — `{typography.section-title.fontSize}` (1.1rem) finalmente implementado (documentado desde a rodada 6, nunca aplicado — ver `DESIGN.md` → Typography e Do's and Don'ts). Muda visivelmente todo `<h2 className="section-title">` do produto (~22% maior) — mudança de propósito, não efeito colateral.
+3. **Cards com mais respiro** — `{components.card.padding}` de `{spacing.2}` (0.75rem) para `{spacing.3}` (1.25rem), mesmo degrau já existente na escala. Afeta `card`/`item-card`/`summary-card`/`card-highlight` uniformemente (mesmo token).
+4. **Hover/ativo do `sidebar-nav` mais nítido** — `rgba(15, 15, 15, 0.05)` → `0.08` no claro (par escuro equivalente), ver `DESIGN.md` → Components. Verificar contraste do texto sobre o novo fundo na implementação (mesmo padrão já usado para os outros valores `[ESTIMADO]` deste documento).
+
+### Calibração de intensidade
+
+O usuário foi explícito: quer perceber a diferença, não um ajuste sutil de tokens. Para a implementação, isso significa aplicar os itens acima **integralmente** (ícone em todo item de nav sem exceção, o salto tipográfico completo do `section-title`, o passo inteiro de padding) — não é licença para reabrir paradigma de layout, dependências novas (Bootstrap, Radix adicional) ou paleta de cor, que continuam explicitamente fora de escopo por decisão do próprio usuário nesta rodada (ver "Resolução da ambiguidade" acima).
+
+### Sequenciamento de implementação (Winston + Sally, convergente)
+
+Mesmo padrão de risco já usado no Epic 7 — chrome compartilhado primeiro (é atômico, não pode ser parcial), depois telas por ordem de risco crescente:
+
+1. **Chrome compartilhado** — `nav.tsx` (ícones de navegação) + tokens base (`button.tsx`/`card.tsx`: padding, hover). Passada única (regra de atomicidade já registrada acima para a sidebar, rodada 10/13) — nunca duas telas com `nav.tsx` diferente coexistindo.
+2. **Telas simples** — `/categorias`, `/parcelas`, `/cartoes` (já migradas no Epic 7, baixo risco de interação).
+3. **Telas complexas por último** — `/lancamentos` (maior densidade visual: `category-icon`, `titular-badge`, `badge-repasse`, indicador de parcela, 2 `icon-button` por item — qualquer aumento de padding/hierarquia tem efeito cascata em quanto cabe na lista rolante) e o fluxo de auth (menor tolerância a regressão visual quebrar algo funcional).
+
+Cada fase fecha com o mesmo ritual já estabelecido no Epic 7: `npx tsc --noEmit` / `npm run lint` / `npm run build` limpos, suíte `test:e2e` verde, snapshot visual novo (light+dark) revisado antes de prosseguir para a fase seguinte.
+
+### Armadilhas técnicas a evitar (Winston)
+
+- Não reabrir sombra no `card` em modo escuro (decisão deliberada, rodada 10 — ver `DESIGN.md` → Elevation & Depth).
+- Não recriar a colisão de nome `--accent` (shadcn hover sutil vs. `{colors.accent}` do produto) — ver `DESIGN.md` → Do's and Don'ts, rodada 12.
+- Manter `{rounded.DEFAULT}` único — não introduzir radius diferenciado por componente inspirado nos Examples do Bootstrap (que variam radius por tipo de componente).
+- Cuidado com o bug de `font-weight` já corrigido na Story 7.8 (`@layer base` do `h1,h2,h3{font-weight:700}` perdendo para `@layer utilities` do `CardTitle`/`font-semibold`) — qualquer `<h2 className="section-title">` ainda cru numa tela que só agora recebe `CardTitle` pode reabrir a mesma classe de bug; verificar via `getComputedStyle`, mesmo método já usado.
+- Ícones novos (`nav-icon`) precisam de fallback `forced-colors` (Windows alto contraste) — mesmo cuidado já aplicado a `.card`/`.category-icon` (`app/globals.css`).
+
+### O que NÃO muda
+
+- Paleta de cor (rodada 7), radius único (rodada 12), mecanismo dual de sombra por modo (rodada 10), stack Tailwind+shadcn sem Radix/dependência adicional além do já adotado (rodada 13).
+- Conjunto fechado de 7 ícones de `category-icon` (rodada 11) — permanece separado de `nav-icon`, curadorias e papéis semânticos distintos.
+- Information Architecture — nenhuma rota nova, removida ou renomeada. `/lancamentos` continua a única exceção de 2 colunas.
+- Princípio "sem modal" e "nunca dashboard multi-coluna" — confirmado que este pedido não reabre nenhum dos dois (mesmo teste já aplicado à decisão da sidebar, rodada 10).
+
+### `[ASSUMPTION]`
+
+- Mapeamento exato de qual ícone Lucide representa cada item de nav (Início/Lançamentos/Cartões/Categorias/Parcelas) — decisão de implementação, não travada nesta rodada; exigência é semântica clara + consistência de estilo.
+- Valor exato do novo `hoverBackground` (0.08/0.1) é `[ESTIMADO]`, a verificar contraste na implementação, mesmo padrão já usado para os outros valores estimados deste documento.

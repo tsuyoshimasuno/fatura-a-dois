@@ -681,3 +681,69 @@ So that a tela mais usada e tecnicamente mais complexa do produto (grid de 2 col
 **And** um dos dois usa a tela com dado real antes de considerar a migração do Epic 7 concluída
 
 **Nota de implementação:** `AlertDialog` continua deferido (nenhuma ação destrutiva órfã que precise dele hoje); `Toast` não é adotado (feedback inline existente é mais preciso). Plano técnico completo (sequenciamento, resolução de `--accent`/`--card`, achado de dark mode via media query, tabela de substituição componente a componente de Sally, critério de rollback por story de John) registrado no `.memlog.md` do goal-engine em 2026-07-26.
+
+## Epic 8: Redesign Profissional — Ícones de Navegação e Hierarquia Visual
+
+*(adicionado 2026-07-30, avaliação PM+tech-lead+UX sobre novo objetivo do usuário, após Epic 7 concluído — ver `.memlog.md` do goal-engine para o plano completo dos 3 papéis e a resolução da ambiguidade Bootstrap-como-inspiração)*
+
+O usuário pediu que o produto "pareça produto profissional, não recibo minimalista", inspirado nos Examples e no Bootstrap Icons do Bootstrap — confirmado explicitamente como inspiração de repertório visual (não dependência literal do framework/pacote) e como polimento de componentes/hierarquia (não adoção do paradigma de layout tipo dashboard/marketing dos Examples). Escopo: ícones reais no chrome de navegação compartilhado (`nav.tsx`, via `lucide-react` — já instalado, zero dependência nova), hierarquia tipográfica mais forte (`section-title` 1.1rem, documentado desde a rodada 6 e nunca implementado), cards com mais respiro (padding), hover/ativo de navegação mais nítido. Trabalho de infraestrutura de apresentação — nenhum comportamento de usuário muda, nenhuma rota nova. Ver `DESIGN.md`/`EXPERIENCE.md` (rodada 14) para a especificação visual completa.
+
+**FRs covered:** nenhum — infraestrutura de apresentação.
+
+### Story 8.1: Chrome compartilhado — ícones de navegação e tokens base
+
+As a pessoa do casal,
+I want a sidebar de navegação com ícones reais ao lado de cada item, e os tokens visuais base (padding de card, hover de navegação) atualizados,
+So that a primeira impressão do produto (chrome presente em toda tela) já comunique "profissional", com o processo de migração começando pelo componente único e compartilhado, antes de qualquer tela de conteúdo.
+
+**Acceptance Criteria:**
+
+**Given** a sidebar de navegação (`nav.tsx`, desktop e painel off-canvas mobile) com os 5 itens (Início, Lançamentos, Cartões, Categorias, Parcelas) hoje só com texto
+**When** migrada
+**Then** cada item ganha um ícone `lucide-react` à esquerda do rótulo, mesma gramática visual (`stroke="currentColor"`, monocromático) já usada em `category-icon` — nunca a biblioteca Bootstrap Icons, nunca emoji
+**And** o comportamento existente (item ativo, badge de pendência, off-canvas mobile com foco/Escape/scrim, `aria-current`) permanece inalterado
+
+**Given** o token `{components.card.padding}` (`{spacing.2}`) e o hover de `sidebar-nav` (`rgba(15,15,15,0.05)`)
+**When** atualizados para `{spacing.3}` e `rgba(15,15,15,0.08)` (par escuro equivalente) respectivamente
+**Then** todo `card`/`item-card`/`summary-card`/`card-highlight` do produto reflete o novo padding uniformemente, e o contraste do hover é verificado (WCAG AA) nos dois modos antes de aceitar
+
+**Given** a suíte de QA (Story 7.1)
+**When** rodada após a mudança
+**Then** confirma zero regressão estrutural/de acessibilidade; diff visual (screenshot) revisado manualmente antes de aceitar, dado que afeta toda tela do grupo `(app)` simultaneamente
+
+**Nota de implementação:** migração de passada única (regra de atomicidade já aplicada à sidebar no Epic 7) — nunca duas telas com `nav.tsx` diferente coexistindo em produção. Mapeamento exato de qual ícone Lucide representa cada item de menu é decisão de implementação, não travada no spec.
+
+### Story 8.2: Hierarquia tipográfica e telas simples
+
+As a pessoa do casal,
+I want a hierarquia visual das telas mais simples (`/categorias`, `/parcelas`, `/cartoes`) reforçada,
+So that o restante do produto acompanhe a mudança de chrome da Story 8.1 sem deixar essas telas visualmente desatualizadas.
+
+**Acceptance Criteria:**
+
+**Given** o token `{typography.section-title.fontSize}` (1.1rem, documentado desde a rodada 6 do DESIGN.md, nunca aplicado em CSS)
+**When** implementado
+**Then** todo `<h2 className="section-title">` do produto passa a usar esse tamanho — mudança visível e intencional, verificada visualmente antes de aceitar (não é um ajuste de 1px)
+
+**Given** `/categorias`, `/parcelas`, `/cartoes` (já migradas para shadcn no Epic 7)
+**When** os tokens da Story 8.1 (padding/hover) e desta story (tipografia) se propagam
+**Then** a suíte de QA confirma zero regressão funcional; diff visual revisado manualmente
+
+### Story 8.3: Telas complexas — Lançamentos e autenticação (última, maior risco)
+
+As a pessoa do casal,
+I want `/lancamentos` e o fluxo de autenticação (`/login` e telas relacionadas) recebendo a mesma hierarquia visual,
+So that a tela de maior densidade visual e o fluxo de menor tolerância a regressão migrem por último, com o padrão já validado nas stories anteriores — mesmo raciocínio de sequenciamento por risco já usado no Epic 7.
+
+**Acceptance Criteria:**
+
+**Given** `/lancamentos` (maior densidade visual do produto: `category-icon`, `titular-badge`, `badge-repasse`, indicador de parcela, 2 `icon-button` por item, grid de 2 colunas)
+**When** os tokens de padding/tipografia/hover das Stories 8.1/8.2 se propagam
+**Then** nenhum item da lista rolante quebra layout ou perde legibilidade; a suíte de QA confirma zero regressão em claro e escuro
+
+**Given** o fluxo de autenticação (`/login`, `/esqueci-senha`, `/redefinir-senha`)
+**When** os mesmos tokens se propagam
+**Then** nenhuma regressão funcional no fluxo de acesso (menor tolerância a quebra do produto inteiro)
+**And** um dos dois usa `/lancamentos` com dado real antes de considerar o Epic 8 concluído
+
+**Nota de implementação:** armadilhas técnicas a evitar (Winston): não reabrir sombra no `card` em modo escuro, não recriar colisão `--accent`, manter `{rounded.DEFAULT}` único, cuidado com o bug de `font-weight` (`@layer base` vs `@layer utilities`) já corrigido na Story 7.8 — mesmo risco se reabre em qualquer `<h2>` cru que só agora ganha `CardTitle`. `nav-icon` precisa de fallback `forced-colors`, mesmo cuidado já aplicado a `.card`/`.category-icon`. Plano técnico completo no `.memlog.md` do goal-engine, 2026-07-30.
