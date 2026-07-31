@@ -47,10 +47,26 @@
   --color-sidebar-foreground: var(--foreground);
   --color-sidebar-primary: var(--accent);
   --color-sidebar-primary-foreground: var(--accent-foreground);
-  /* --color-accent aqui é o token de HOVER do shadcn (definido acima nesta
-     mesma regra), não o --accent de marca do produto -- é exatamente o
-     papel que `SidebarMenuButton` precisa para o estado hover/ativo sutil. */
-  --color-sidebar-accent: var(--color-accent);
+  /* Token DEDICADO (Story 8.1) -- não reaproveita mais `--color-accent`
+     genérico (usado por `hover:bg-accent`/`ghost` em components/ui/button.tsx,
+     fora do escopo desta story): intensificar o hover/ativo da sidebar sem
+     alterar o hover de botão em todo o resto do app. 10% (era o mesmo 6% de
+     `--color-accent`) é uma APROXIMAÇÃO deliberada do mesmo aumento de
+     intensidade aplicado ao par mobile `.sidebar-nav-link` logo abaixo
+     (rgba(15,15,15,0.05→0.08), rgba(255,255,255,0.06→0.1)) -- não um match
+     exato de cor renderizada (achado real do review adversarial): este token
+     mistura `var(--foreground)` (#1a1f2b no claro, não preto puro), o par
+     mobile usa RGB fixo (15,15,15) -- a cor final difere visualmente entre
+     desktop/mobile, mesmo com proporção de aumento equivalente. Aceito: usar
+     o token semântico (`--foreground`) em vez de duplicar RGB mágico por
+     modo é mais sustentável para o componente vendorizado, e a diferença é
+     sutil o bastante para não comprometer a identidade visual compartilhada
+     ("chrome único", não "pixel idêntico"). `color-mix()` sem fallback
+     `@supports` é o mesmo padrão já usado sem guarda em `--color-accent`
+     acima (linha ~23) desde a Story 7.2/7.13 -- não é regressão nova desta
+     story. `var(--foreground)` já vira quase-preto no claro e quase-branco
+     no escuro automaticamente (sem `@media` dark duplicado aqui). */
+  --color-sidebar-accent: color-mix(in srgb, var(--foreground) 10%, transparent);
   --color-sidebar-accent-foreground: var(--foreground);
   --color-sidebar-border: var(--border);
   --color-sidebar-ring: var(--accent);
@@ -334,27 +350,60 @@ h3 {
   font-weight: 500;
 }
 
+/* Ícone de nav (Story 8.1, lucide-react, `stroke="currentColor"` default do
+   pacote) -- `flex-shrink: 0` evita que o ícone encolha quando o rótulo é
+   longo (mesmo tratamento de `.sidebar-upload-link`/`.category-icon` neste
+   arquivo). `color: currentColor` já é o default do lucide, então o ícone
+   acompanha `.sidebar-nav-link`/`.ativo` sem token extra algum -- ver
+   Design Notes do spec sobre `forced-colors` (nenhuma regra nova precisa
+   disso, ao contrário de `.category-icon`/`.card`: `currentColor` herda o
+   `color` computado, que o navegador já força para `CanvasText`/`LinkText`
+   nesse modo, diferente de `background-color`/`box-shadow`, que o
+   navegador ignora). Margem só no painel mobile (`.sidebar-nav-link`): o
+   `SidebarMenuButton` do desktop já tem `gap-2` (Tailwind) no próprio
+   componente vendorizado, então uma margem aqui duplicaria o espaçamento
+   lá -- por isso escopada ao seletor mobile, não a `.nav-icon` sozinho. */
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.sidebar-nav-link .nav-icon {
+  margin-right: 0.5rem;
+}
+
 /* Destaque de hover/ativo dedicado (bad_spec repair pass 1) -- NÃO usa
    var(--surface): no modo claro --surface (#f9f9fa) fica visualmente quase
    idêntico a --background (#ffffff), ~1.05:1 de contraste, tornando o
    destaque praticamente invisível. rgba() sobre --foreground/--background
-   garante contraste visível independente da proximidade dos dois tokens. */
+   garante contraste visível independente da proximidade dos dois tokens.
+   0.08 (era 0.05, Story 8.1 -- intensificação pedida em DESIGN.md/EXPERIENCE.md
+   rodada 14) -- VERIFICAÇÃO DE CONTRASTE (luminância relativa WCAG 2.1):
+   texto var(--foreground) #1a1f2b sobre rgba(15,15,15,0.08) composto sobre
+   --background #ffffff (fundo real do <nav>, ver `.sidebar`) = ~236,236,236
+   = 13.99:1, folgado acima do mínimo 4.5:1 (o valor anterior, 0.05, já
+   passava com ainda mais folga -- texto quase-preto sobre fundo quase-branco
+   nunca fica perto do limite nesta paleta). */
 .sidebar-nav-link:hover {
   color: var(--foreground);
-  background: rgba(15, 15, 15, 0.05);
+  background: rgba(15, 15, 15, 0.08);
 }
 
 .sidebar-nav-link.ativo {
   color: var(--foreground);
   border-left-color: var(--accent);
-  background: rgba(15, 15, 15, 0.05);
+  background: rgba(15, 15, 15, 0.08);
   font-weight: 600;
 }
 
 @media (prefers-color-scheme: dark) {
+  /* 0.1 (era 0.06, Story 8.1) -- VERIFICAÇÃO DE CONTRASTE: texto
+     var(--foreground) escuro #edf0f5 sobre rgba(255,255,255,0.1) composto
+     sobre --background escuro #333333 = ~71,71,71 = 8.14:1, acima do mínimo
+     4.5:1 (o valor anterior, 0.06, ficava em ~9.22:1 -- a intensificação
+     reduz a folga mas não chega perto de falhar). */
   .sidebar-nav-link:hover,
   .sidebar-nav-link.ativo {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 

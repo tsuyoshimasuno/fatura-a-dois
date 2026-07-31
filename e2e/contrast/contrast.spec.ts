@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { test as authTest } from '../fixtures/auth';
 import { contrastRatio } from '../lib/wcag-contrast';
 
 // Checa os pares texto/fundo (e borda/fundo) documentados em app/globals.css
@@ -182,5 +183,154 @@ for (const colorScheme of MODOS_DE_COR) {
         ).toBeGreaterThanOrEqual(par.minimo);
       });
     }
+  });
+}
+
+// Story 8.1 -- achado real do review adversarial (Blind Hunter): o hover/
+// ativo intensificado de `sidebar-nav` (0.05→0.08 claro, 0.06→0.1 escuro no
+// painel mobile; `--color-sidebar-accent` via color-mix no desktop) só tinha
+// verificação de contraste calculada à mão num comentário de
+// `app/globals.css`, sem nenhum teste automatizado -- ao contrário de todo
+// outro valor sensível a contraste deste projeto (PARES acima, Alert
+// destructive). Precisa da sessão autenticada real (fixture `../fixtures/
+// auth`, nunca autenticação autônoma contra o Supabase) porque a sidebar só
+// existe dentro do grupo `(app)`.
+// Viewport mobile explícito (`.sidebar-nav-link` some via CSS a partir de
+// 768px, ver globals.css) -- sem isto o Playwright roda no viewport desktop
+// padrão e os testes mobile falham por elemento "not visible", não por
+// contraste real (achado do primeiro `test:e2e` desta suíte nova).
+const VIEWPORT_MOBILE = { width: 375, height: 800 };
+const VIEWPORT_DESKTOP = { width: 1280, height: 800 };
+
+for (const colorScheme of MODOS_DE_COR) {
+  authTest.describe(`contraste WCAG AA -- navegação da sidebar -- modo ${colorScheme}`, () => {
+    async function corDoElemento(locator: import('@playwright/test').Locator) {
+      return locator.evaluate((el) => {
+        // Mesma técnica de normalização via canvas do teste "Alert
+        // destructive" acima (Tailwind v4 resolve color-mix()/opacidade via
+        // oklab(), que um parser de regex simples não entende) -- duplicada
+        // aqui porque funções passadas a `page.evaluate`/`locator.evaluate`
+        // rodam serializadas no navegador, sem acesso a closures externas.
+        function paraRgb(cor: string): string {
+          if (!CSS.supports('color', cor)) {
+            throw new Error(`Cor computada não reconhecida pelo navegador: "${cor}"`);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+          ctx.fillStyle = cor;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+          return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+        }
+
+        // O fundo real de `.sidebar-nav-link`/`SidebarMenuButton` é a
+        // composição de N camadas translúcidas empilhadas (o próprio
+        // hover/ativo em rgba/color-mix, por cima do fundo sólido da
+        // sidebar) -- não um único `background-color`. Sobe a árvore
+        // coletando toda camada não totalmente transparente até achar a
+        // primeira 100% opaca, depois PINTA as camadas em ordem (da mais
+        // externa/opaca para a mais interna) no mesmo canvas 1x1 -- o
+        // próprio compositor 2D do navegador faz o alpha-blend correto
+        // camada a camada, em vez de reimplementar a matemática à mão.
+        //
+        // Cada camada passa primeiro por `paraRgb` (normaliza para
+        // `rgb()`/`rgba()` real via canvas) ANTES de examinar o alpha --
+        // achado real: uma primeira versão lia `alpha` direto do
+        // `background-color` bruto via regex `rgba?(...)`, que não casa com
+        // o formato `oklab(...)` que o Chromium reporta para o resultado de
+        // `color-mix()` (mesmo formato documentado no teste "Alert
+        // destructive" acima) -- qualquer camada nesse formato caía no
+        // `alpha === undefined ? 1` e era tratada como 100% opaca sem ser,
+        // parando a subida cedo demais e produzindo um contraste calculado
+        // sobre a cor errada (confirmado rodando contra a sidebar desktop:
+        // devolvia ~1.04:1 em vez do valor real).
+        const camadas: string[] = [];
+        let no: Element | null = el;
+        while (no) {
+          const corNormalizada = paraRgb(getComputedStyle(no).backgroundColor);
+          const [, , , , a] = corNormalizada.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\s*\)/) ?? [];
+          const alpha = a === undefined ? 1 : Number(a);
+          if (alpha > 0) {
+            camadas.push(corNormalizada);
+            if (alpha >= 1) break;
+          }
+          no = no.parentElement;
+        }
+        camadas.reverse(); // opaco (fundo real) primeiro, hover/ativo do elemento por último
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+        for (const camada of camadas) {
+          ctx.fillStyle = camada;
+          ctx.fillRect(0, 0, 1, 1);
+        }
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        const bg = `rgb(${r}, ${g}, ${b})`; // composição final é sempre opaca (base opaca garantida pelo loop acima)
+
+        return { fg: paraRgb(getComputedStyle(el).color), bg };
+      });
+    }
+
+    authTest('sidebar mobile: item ativo, texto sobre o próprio fundo (mínimo 4.5:1)', async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.setViewportSize(VIEWPORT_MOBILE);
+      await page.goto('/categorias');
+      // `.sidebar-nav-link` só fica visível (fora do off-canvas) com o painel
+      // aberto -- mesmo elemento existe sempre no DOM (nav.tsx), só a
+      // posição/CSS muda com `menuAberto`.
+      await page.getByRole('button', { name: 'Abrir menu' }).click();
+
+      const linkAtivo = page.locator('.sidebar-nav-link.ativo').first();
+      await expect(linkAtivo).toBeVisible();
+
+      const { fg, bg } = await corDoElemento(linkAtivo);
+      const ratio = contrastRatio(fg, bg);
+
+      expect(
+        ratio,
+        `sidebar mobile ativo (${colorScheme}): ${fg} sobre ${bg} = ${ratio.toFixed(2)}:1, mínimo exigido 4.5:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
+    authTest('sidebar mobile: hover, texto sobre o próprio fundo (mínimo 4.5:1)', async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.setViewportSize(VIEWPORT_MOBILE);
+      await page.goto('/categorias');
+      await page.getByRole('button', { name: 'Abrir menu' }).click();
+
+      // Link inativo (Início) para isolar o estado `:hover` do `.ativo`.
+      const linkInativo = page.locator('.sidebar-nav-link:not(.ativo)').first();
+      await expect(linkInativo).toBeVisible();
+      await linkInativo.hover();
+
+      const { fg, bg } = await corDoElemento(linkInativo);
+      const ratio = contrastRatio(fg, bg);
+
+      expect(
+        ratio,
+        `sidebar mobile hover (${colorScheme}): ${fg} sobre ${bg} = ${ratio.toFixed(2)}:1, mínimo exigido 4.5:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
+    authTest('sidebar desktop: item ativo, texto sobre o próprio fundo (mínimo 4.5:1)', async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.setViewportSize(VIEWPORT_DESKTOP);
+      await page.goto('/categorias');
+
+      const linkAtivo = page.locator('[data-sidebar="menu-button"][data-active="true"]').first();
+      await expect(linkAtivo).toBeVisible();
+
+      const { fg, bg } = await corDoElemento(linkAtivo);
+      const ratio = contrastRatio(fg, bg);
+
+      expect(
+        ratio,
+        `sidebar desktop ativo (${colorScheme}): ${fg} sobre ${bg} = ${ratio.toFixed(2)}:1, mínimo exigido 4.5:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+    });
   });
 }

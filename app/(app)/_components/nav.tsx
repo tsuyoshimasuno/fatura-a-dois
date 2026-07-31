@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Home, Receipt, CreditCard, Tag, CalendarClock } from 'lucide-react';
 import {
   Sidebar,
   SidebarProvider,
@@ -18,12 +19,17 @@ import {
 
 // Upload não é item de sidebar (resolução tomada em
 // spec-snowui-sidebar-shell.md -- fica acessível só via link em Início).
+// `icon` (spec-8-1-chrome-compartilhado-icones-e-tokens-base.md, Design
+// Notes) -- mapeamento ícone→item sugerido no spec, `lucide-react` (já
+// instalado, zero uso antes desta story). `aria-hidden="true"` no `<Icon>`
+// abaixo em ambos os pontos de renderização: o rótulo de texto já é o nome
+// acessível do link, não duplicar.
 const LINKS = [
-  { href: '/', label: 'Início' },
-  { href: '/lancamentos', label: 'Lançamentos' },
-  { href: '/cartoes', label: 'Cartões' },
-  { href: '/categorias', label: 'Categorias' },
-  { href: '/parcelas', label: 'Parcelas' },
+  { href: '/', label: 'Início', icon: Home },
+  { href: '/lancamentos', label: 'Lançamentos', icon: Receipt },
+  { href: '/cartoes', label: 'Cartões', icon: CreditCard },
+  { href: '/categorias', label: 'Categorias', icon: Tag },
+  { href: '/parcelas', label: 'Parcelas', icon: CalendarClock },
 ];
 
 type NavProps = {
@@ -193,6 +199,7 @@ export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps
           {LINKS.map((link, index) => {
             const ativo = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
             const badge = badgePorRota[link.href] ?? 0;
+            const Icon = link.icon;
             return (
               <li key={link.href}>
                 <Link
@@ -202,6 +209,7 @@ export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps
                   className={ativo ? 'sidebar-nav-link ativo' : 'sidebar-nav-link'}
                   onClick={() => setMenuAberto(false)}
                 >
+                  <Icon size={18} strokeWidth={2} aria-hidden="true" className="nav-icon" />
                   {link.label}
                   {badge > 0 && (
                     <span className="badge-pending" aria-label={`${badge} pendente(s)`}>
@@ -282,6 +290,7 @@ export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps
                     const ativo =
                       link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
                     const badge = badgePorRota[link.href] ?? 0;
+                    const Icon = link.icon;
                     return (
                       <SidebarMenuItem key={link.href}>
                         <SidebarMenuButton
@@ -309,6 +318,28 @@ export function Nav({ pendentesCartoes = 0, pendentesLancamentos = 0 }: NavProps
                           className="border-l-[3px] border-l-transparent text-muted-foreground data-[active=true]:border-l-sidebar-primary data-[active=true]:text-sidebar-accent-foreground"
                         >
                           <Link href={link.href} aria-current={ativo ? 'page' : undefined}>
+                            {/* `size-[18px]!` sobrescreve `[&>svg]:size-4`
+                                (1rem/16px, `sidebarMenuButtonVariants` em
+                                components/ui/sidebar.tsx) -- essa regra do
+                                componente vendorizado mira qualquer `<svg>`
+                                filho direto do botão e vence o atributo
+                                `width`/`height` que o `size={18}` do
+                                lucide-react define (atributo de apresentação
+                                perde para regra de CSS, mesmo sem
+                                `!important`), então sem o `!` aqui o ícone
+                                renderiza a 16px no desktop enquanto o painel
+                                mobile (sem essa regra concorrente) renderiza
+                                a 18px -- divergência que a Story 8.1 proíbe
+                                explicitamente. `gap-2` do próprio botão já
+                                cuida do espaçamento -- nenhuma margem extra
+                                aqui (diferente de `.sidebar-nav-link
+                                .nav-icon` no mobile). */}
+                            <Icon
+                              size={18}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                              className="nav-icon size-[18px]!"
+                            />
                             <span>{link.label}</span>
                             {/* Reaproveita `.badge-pending` (mesma pill
                                 laranja/`--pending`) em vez de

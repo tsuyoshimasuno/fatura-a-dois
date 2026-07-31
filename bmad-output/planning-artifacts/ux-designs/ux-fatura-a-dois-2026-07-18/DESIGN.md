@@ -92,7 +92,7 @@ components:
     border-dark: '1px solid {colors.border-dark}' # dark mantém a borda já validada (WCAG, rodada 9)
     boxShadow: '0 1px 2px rgba(15, 15, 15, 0.06), 0 1px 1px rgba(15, 15, 15, 0.04)' # [ESTIMADO, rodada 10] light only, ver Elevation & Depth — sem par dark (justificado lá, não é omissão)
     radius: '{rounded.DEFAULT}'
-    padding: '{spacing.3}' # [DECISÃO 2026-07-30, rodada 14] era {spacing.2} (0.75rem) desde a rodada 10 -- aumentado para {spacing.3} (1.25rem, mesmo passo já existente na escala) por pedido explícito de mais "respiro"/hierarquia. Não introduz token novo, só muda o degrau usado.
+    padding: '{spacing.4}' # [CORRIGIDO 2026-07-30, rodada 14] Achado real na investigação da Story 8.1: este token documentava {spacing.2} (0.75rem) desde a rodada 10, mas isso descrevia a classe CSS artesanal `.card` (app/globals.css, já MORTA desde o Épico 7 -- zero uso em produção, só sobra num comentário) que na verdade já estava em 1.25rem, não 0.75rem (drift pré-existente, nunca corrigido). O `Card` vendorizado real (components/ui/card.tsx, em produção desde a Story 7.2) usa `py-6`/`px-6` do Tailwind = 1.5rem -- MAIOR que {spacing.3} (1.25rem), o que tornaria o valor anterior desta linha uma REDUÇÃO de padding, o oposto do pedido de mais "respiro". Corrigido para {spacing.4} (1.75rem, próximo degrau já existente na escala) -- aumento real sobre o 1.5rem já implementado.
   card-highlight:
     # [PROPOSTO 2026-07-22, rodada 10] — variante de `summary-card` só para o card "Total combinado" (ou equivalente de maior destaque agregado em outras telas, ver EXPERIENCE.md). Não é um componente novo de estrutura, é `card`/`summary-card` com fundo trocado — mesma borda/radius/padding/sombra do `card` base.
     background: '{colors.highlight}'
@@ -100,7 +100,7 @@ components:
     border: '{components.card.border}'
     boxShadow: '{components.card.boxShadow}'
     radius: '{rounded.DEFAULT}'
-    padding: '{spacing.3}' # [DECISÃO 2026-07-30, rodada 14] acompanha o mesmo ajuste de `card` acima, mesmo componente com fundo trocado
+    padding: '{spacing.4}' # [CORRIGIDO 2026-07-30, rodada 14] acompanha a correção de `card` acima (ver comentário lá) — mesmo componente com fundo trocado
   sidebar-nav:
     # [PROPOSTO 2026-07-22, rodada 10] — substitui `.app-nav` horizontal. Ver EXPERIENCE.md → "Sidebar e Reskin Visual" para comportamento (desktop fixa / mobile off-canvas) e DESIGN.md → Layout & Spacing.
     width: '{spacing.sidebar-width}'

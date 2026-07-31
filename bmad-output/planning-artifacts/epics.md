@@ -703,8 +703,8 @@ So that a primeira impressão do produto (chrome presente em toda tela) já comu
 **Then** cada item ganha um ícone `lucide-react` à esquerda do rótulo, mesma gramática visual (`stroke="currentColor"`, monocromático) já usada em `category-icon` — nunca a biblioteca Bootstrap Icons, nunca emoji
 **And** o comportamento existente (item ativo, badge de pendência, off-canvas mobile com foco/Escape/scrim, `aria-current`) permanece inalterado
 
-**Given** o token `{components.card.padding}` (`{spacing.2}`) e o hover de `sidebar-nav` (`rgba(15,15,15,0.05)`)
-**When** atualizados para `{spacing.3}` e `rgba(15,15,15,0.08)` (par escuro equivalente) respectivamente
+**Given** o `Card` vendorizado real em produção (`components/ui/card.tsx`, `py-6`/`px-6` = 1.5rem — não a classe CSS artesanal `.card`, já morta desde o Épico 7) e o hover de `sidebar-nav` (`rgba(15,15,15,0.05)`)
+**When** o padding sobe para `{spacing.4}` (1.75rem, aumento real sobre o 1.5rem já implementado) e o hover para `rgba(15,15,15,0.08)` (par escuro equivalente)
 **Then** todo `card`/`item-card`/`summary-card`/`card-highlight` do produto reflete o novo padding uniformemente, e o contraste do hover é verificado (WCAG AA) nos dois modos antes de aceitar
 
 **Given** a suíte de QA (Story 7.1)
