@@ -30,7 +30,20 @@ export default async function CartoesPage() {
       )}
       {rejeitados.length > 0 && (
         <section>
-          <h2 className="section-title">Cartões marcados como não sendo do casal</h2>
+          {/* Sem Card envolvendo a seção (bad_spec repair pass 1,
+              spec-8-2-consistencia-estrutural-e-telas-simples.md): cada item
+              de `CartaoRejeitadoItem` já é o seu próprio `<Card>` -- um Card
+              externo aqui produziria "card dentro de card" (borda/sombra
+              dobrada), diferente do padrão de `parcelas/page.tsx` que a
+              primeira versão desta story copiou (lá a lista é texto plano
+              por item, não Cards individuais). Título ganha o mesmo
+              tratamento visual (`text-[22.5px] font-bold`) das outras 10
+              ocorrências de heading de seção do produto, sem introduzir
+              container novo -- mesma consistência tipográfica, sem o
+              artefato visual. */}
+          <h2 className="text-[22.5px] font-bold mb-3">
+            Cartões marcados como não sendo do casal
+          </h2>
           <ul className="card-list">
             {rejeitados.map((item) => (
               <CartaoRejeitadoItem key={item.id} item={item} />

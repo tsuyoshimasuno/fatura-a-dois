@@ -713,20 +713,22 @@ So that a primeira impressão do produto (chrome presente em toda tela) já comu
 
 **Nota de implementação:** migração de passada única (regra de atomicidade já aplicada à sidebar no Epic 7) — nunca duas telas com `nav.tsx` diferente coexistindo em produção. Mapeamento exato de qual ícone Lucide representa cada item de menu é decisão de implementação, não travada no spec.
 
-### Story 8.2: Hierarquia tipográfica e telas simples
+### Story 8.2: Consistência estrutural e telas simples
 
 As a pessoa do casal,
-I want a hierarquia visual das telas mais simples (`/categorias`, `/parcelas`, `/cartoes`) reforçada,
-So that o restante do produto acompanhe a mudança de chrome da Story 8.1 sem deixar essas telas visualmente desatualizadas.
+I want a última seção do produto ainda fora do padrão `Card` migrada, e a hierarquia visual das telas mais simples (`/categorias`, `/parcelas`, `/cartoes`) confirmada,
+So that o restante do produto acompanhe a mudança de chrome da Story 8.1 sem deixar essas telas visualmente desatualizadas ou inconsistentes.
+
+**Nota de replanejamento (2026-07-30, achado real da investigação desta story):** o AC original desta story pedia implementar `{typography.section-title.fontSize}` (1.1rem/17.6px) em todo `<h2 className="section-title">`. Investigação encontrou que o Epic 7 (Story 7.8) já hardcoded 22.5px em 10 das 11 ocorrências via `CardTitle asChild className="text-[22.5px] font-bold"` (preservando o tamanho que já renderizava por default do navegador) -- aplicar 1.1rem agora encolheria a única ocorrência restante sem afetar as outras 10, o oposto do pedido de hierarquia mais forte. Sem headroom real para aumentar mais (22.5px já fica a 1.5px de `page-title`=24px). Token corrigido em DESIGN.md/EXPERIENCE.md para refletir o valor real (22.5px). AC substituído abaixo pela correção estrutural real que ainda tinha valor: unificar a última seção crua para o mesmo padrão `Card` do resto do produto.
 
 **Acceptance Criteria:**
 
-**Given** o token `{typography.section-title.fontSize}` (1.1rem, documentado desde a rodada 6 do DESIGN.md, nunca aplicado em CSS)
-**When** implementado
-**Then** todo `<h2 className="section-title">` do produto passa a usar esse tamanho — mudança visível e intencional, verificada visualmente antes de aceitar (não é um ajuste de 1px)
+**Given** a seção "Cartões marcados como não sendo do casal" em `cartoes/page.tsx` (única ocorrência restante de `<h2 className="section-title">` cru)
+**When** o heading ganha `text-[22.5px] font-bold` diretamente (mesmo tratamento tipográfico das outras 10 ocorrências), sem envolver a seção num `Card` -- os itens da lista (`CartaoRejeitadoItem`) já são Cards individuais, um `Card` externo produziria aninhamento visual indevido (achado real do review adversarial, 1ª rodada)
+**Then** o heading fica visualmente consistente com o resto do produto, sem introduzir "card dentro de card"; nenhuma mudança de comportamento (lista de cartões rejeitados continua idêntica)
 
 **Given** `/categorias`, `/parcelas`, `/cartoes` (já migradas para shadcn no Epic 7)
-**When** os tokens da Story 8.1 (padding/hover) e desta story (tipografia) se propagam
+**When** os tokens da Story 8.1 (padding de `Card` 1.75rem, hover de `sidebar-nav`) são confirmados propagados (herdados automaticamente via componente compartilhado, não uma reimplementação)
 **Then** a suíte de QA confirma zero regressão funcional; diff visual revisado manualmente
 
 ### Story 8.3: Telas complexas — Lançamentos e autenticação (última, maior risco)

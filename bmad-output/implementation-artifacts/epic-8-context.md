@@ -9,7 +9,7 @@ Depois do Epic 7 (migração completa para shadcn/ui), o usuário pediu que o pr
 ## Stories
 
 - Story 8.1: Chrome compartilhado — ícones de navegação e tokens base
-- Story 8.2: Hierarquia tipográfica e telas simples
+- Story 8.2: Consistência estrutural e telas simples
 - Story 8.3: Telas complexas — Lançamentos e autenticação (última, maior risco)
 
 ## Requirements & Constraints
@@ -26,7 +26,7 @@ Depois do Epic 7 (migração completa para shadcn/ui), o usuário pediu que o pr
 
 - **Padding de card**: `{components.card.padding}` sobe para `{spacing.4}` (1.75rem). `[CORRIGIDO 2026-07-30]` o token documentava antes `{spacing.2}`/`{spacing.3}`, mas isso descrevia a classe CSS artesanal `.card` (já morta desde o Épico 7, zero uso em produção). O `Card` vendorizado real (`components/ui/card.tsx`, `py-6`/`px-6` do Tailwind) já está em 1.5rem — maior que os dois valores antigos, que seriam uma redução. `{spacing.4}` é aumento real sobre o 1.5rem já implementado. Afeta `card`/`item-card`/`summary-card`/`card-highlight` uniformemente via o mesmo componente `Card`.
 - **Hover/ativo de `sidebar-nav`**: `rgba(15,15,15,0.05)` → `rgba(15,15,15,0.08)` no claro; par escuro `rgba(255,255,255,0.06)` → `rgba(255,255,255,0.1)`.
-- **`{typography.section-title.fontSize}`** (1.1rem, documentado desde a rodada 6, nunca aplicado) finalmente implementado — todo `<h2 className="section-title">` do produto passa a usar esse tamanho (~22% maior que o default atual sem `font-size` explícito). `font-weight`/`letter-spacing` já vêm da regra global `h1,h2,h3` — não duplicar em `.section-title`.
+- **`{typography.section-title.fontSize}`**: `[CORRIGIDO 2026-07-30, achado real da Story 8.2]` NÃO vira 1.1rem como documentado antes -- o Epic 7 (Story 7.8) já hardcoded 22.5px em 10 das 11 ocorrências via `CardTitle asChild className="text-[22.5px] font-bold"`; aplicar 1.1rem (17.6px) encolheria a única ocorrência restante sem afetar as outras 10. Token corrigido para 22.5px (valor real). Sem headroom para aumentar mais sem colidir com `page-title` (24px). No lugar do aumento de fonte, a Story 8.2 migra a última seção crua (`cartoes/page.tsx`) para `Card`/`CardTitle`, fechando a inconsistência estrutural real.
 - **`nav-icon`** (novo componente): `size: 1.125rem` (18px, entre `category-icon` 22px e `icon-button` funcional 16px), `stroke: currentColor`, `strokeWidth: 2`, fonte `lucide-react`. Curadoria própria de 5-8 ícones, separada e sem enum/token compartilhado com `category-icon` (7 ícones fechados de categoria financeira) — mesmo ícone conceitual pode aparecer nos dois papéis sem virar o mesmo token.
 - **Sequenciamento obrigatório** (mesmo padrão de risco do Epic 7): (1) chrome compartilhado — `nav.tsx` + tokens base de `button`/`card` (atômico, passada única); (2) telas simples já migradas para shadcn — `/categorias`, `/parcelas`, `/cartoes`; (3) telas complexas por último — `/lancamentos` (maior densidade visual) e fluxo de autenticação (`/login`, `/esqueci-senha`, `/redefinir-senha`, menor tolerância a regressão).
 - **Armadilhas técnicas a evitar**: não reabrir sombra no `card` em modo escuro (decisão deliberada da rodada 10 — escuro mantém `{colors.surface-dark}` + borda, sem sombra); não recriar a colisão de nome `--accent` (hover sutil do shadcn vs. `{colors.accent}` de marca/ação do produto); manter `{rounded.DEFAULT}` único, não introduzir radius diferenciado por componente inspirado nos Examples do Bootstrap; cuidado com o bug de `font-weight` já corrigido na Story 7.8 (`@layer base` de `h1,h2,h3{font-weight:700}` perdendo para `@layer utilities` de `CardTitle`/`font-semibold`) — pode reabrir em qualquer `<h2 className="section-title">` ainda cru que só agora recebe `CardTitle`, verificar via `getComputedStyle`; `nav-icon` precisa de fallback `forced-colors` (Windows alto contraste), mesmo cuidado já aplicado a `.card`/`.category-icon` em `app/globals.css`.
@@ -40,5 +40,5 @@ Depois do Epic 7 (migração completa para shadcn/ui), o usuário pediu que o pr
 ## Cross-Story Dependencies
 
 - Story 8.1 (chrome compartilhado) precisa fechar primeiro e atomicamente — os tokens de padding/hover e o `nav-icon` que ela introduz são a base visual que 8.2 e 8.3 propagam; nenhuma delas pode começar com `nav.tsx` parcialmente migrado.
-- Story 8.2 depende dos tokens de padding/hover da 8.1 já propagados; aplica adicionalmente `section-title.fontSize` às telas simples já migradas no Epic 7.
+- Story 8.2 depende dos tokens de padding/hover da 8.1 já propagados (confirma, não reimplementa); migra a última seção crua (`cartoes/page.tsx`) para `Card`/`CardTitle`.
 - Story 8.3 depende do padrão já validado visualmente nas Stories 8.1/8.2 antes de tocar as telas de maior risco (`/lancamentos`, densidade visual máxima; fluxo de autenticação, menor tolerância a regressão). Um dos dois usuários precisa exercitar `/lancamentos` com dado real antes de considerar o Epic 8 concluído.
