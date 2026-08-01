@@ -207,3 +207,11 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-8-2-consistencia-estrutural-e-telas-simples.md`
   summary: `CardTitle asChild` exige `font-bold` explícito no `className` de cada uso ou o heading renderiza silenciosamente em 600 em vez de 700 (bug já corrigido uma vez na Story 7.8) -- depende de convenção/memória do desenvolvedor, não de garantia do componente.
   evidence: Achado real do Blind Hunter (review da Story 8.2), documentado também no próprio `components/ui/card.tsx` (comentário do `CardTitle`, linhas ~48-57). Pré-existente ao padrão inteiro desde a Story 7.8, não introduzido por esta story (que incluiu `font-bold` corretamente). Uma centralização futura (ver item acima) resolveria os dois achados de uma vez.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-fix-select-upload-sidebar-bullet.md`
+  summary: Suporte cross-browser do pseudo-elemento `::file-selector-button` (usado pelo `file:*` do `Input` para estilizar "Escolher arquivo") não foi verificado em Safari/WebKit -- pode não herdar a nova affordance de botão (borda/fundo/sombra) nesse navegador.
+  evidence: Padrão `file:*` já era usado no `Input` antes deste diff (`file:border-0 file:bg-transparent`), herdado do componente shadcn/ui upstream sem verificação de compatibilidade registrada; este diff só estende as mesmas classes, não introduz a dependência do pseudo-elemento. Toda a suíte de QA do projeto roda em Chromium.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-fix-select-upload-sidebar-bullet.md`
+  summary: 4 arquivos (`components/ui/input.tsx` e 3 componentes que duplicam `selectClassName`: `app/(app)/upload/page.tsx`, `app/(app)/categorias/_components/remover-categoria-form.tsx`, `app/(app)/lancamentos/_components/lancamento-item.tsx`/`lancamentos-view.tsx`) mantêm cópias independentes de uma string de classes Tailwind quase idêntica para campos de formulário, sem módulo compartilhado -- risco de drift silencioso entre elas ao longo do tempo.
+  evidence: Já reconhecido nos comentários do próprio código-fonte ("sem haver módulo compartilhado de estilos ainda -- mesma decisão da Story 7.7"); débito arquitetural pré-existente, não introduzido por este bugfix.

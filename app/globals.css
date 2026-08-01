@@ -259,6 +259,33 @@ a {
   text-decoration: none;
 }
 
+/* `SidebarMenu`/`SidebarMenuSub` (components/ui/sidebar.tsx, vendorizado
+   shadcn) renderizam `<ul>` sem resetar `list-style` -- o projeto não importa
+   o preflight do Tailwind (só theme.css/utilities.css, ver topo do arquivo),
+   então o bullet nativo aparecia na sidebar desktop. Escopado a esses dois
+   `data-sidebar`, não a `*`/`ul`, para não mudar semântica de lista (AT) de
+   nenhum outro `<ul>` atual ou futuro do app. */
+[data-sidebar="menu"],
+[data-sidebar="menu-sub"] {
+  list-style: none;
+}
+
+/* Popup nativo do `<select>` renderiza cor de fundo/texto de forma ambígua
+   entre navegador/SO -- força os mesmos tokens de cor usados no resto do app,
+   evitando texto ilegível (visível só em hover, achado real do usuário). A
+   opção placeholder desabilitada (`<option disabled>`, usada em upload/
+   correção de categoria) recebe opacidade reduzida para continuar lendo como
+   não-selecionável, já que o `color` explícito acima sobrescreveria o
+   esmaecimento automático do navegador. */
+select option {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+select option:disabled {
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
