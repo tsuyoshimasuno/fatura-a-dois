@@ -215,3 +215,7 @@
 - source_spec: `bmad-output/implementation-artifacts/spec-fix-select-upload-sidebar-bullet.md`
   summary: 4 arquivos (`components/ui/input.tsx` e 3 componentes que duplicam `selectClassName`: `app/(app)/upload/page.tsx`, `app/(app)/categorias/_components/remover-categoria-form.tsx`, `app/(app)/lancamentos/_components/lancamento-item.tsx`/`lancamentos-view.tsx`) mantêm cópias independentes de uma string de classes Tailwind quase idêntica para campos de formulário, sem módulo compartilhado -- risco de drift silencioso entre elas ao longo do tempo.
   evidence: Já reconhecido nos comentários do próprio código-fonte ("sem haver módulo compartilhado de estilos ainda -- mesma decisão da Story 7.7"); débito arquitetural pré-existente, não introduzido por este bugfix.
+
+- source_spec: `bmad-output/implementation-artifacts/spec-fix-select-shared-component-safari-check.md`
+  summary: Nenhum mecanismo automatizado (regra de lint, import restrito) impede que um contribuidor futuro crie um componente Select baseado em Radix/shadcn e o use por engano em vez de `SelectNative` -- a decisão "select continua nativo, nunca vira Radix" hoje só está documentada em comentário/spec, não é imposta pelo tooling.
+  evidence: Achado real do review adversarial (Blind Hunter) ao revisar a extração de `components/ui/select-native.tsx`; antes desta consolidação a mesma decisão também só existia em comentários (4 cópias), então não é uma regressão introduzida por este refactor -- é debito pré-existente que a consolidação tornou mais visível.

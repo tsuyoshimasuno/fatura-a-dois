@@ -12,14 +12,9 @@ import { desfazerRepasse, repassarLancamento } from '@/server/visualizacao/repas
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { SelectNative } from '@/components/ui/select-native';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// Mesma string de classes visuais de `components/ui/input.tsx` -- ver
-// remover-categoria-form.tsx (Story 7.7) / upload/page.tsx (Story 7.9) para o
-// mesmo padrão. `<select>` continua nativo (nunca vira Radix Select).
-const selectClassName =
-  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 type Categoria = { id: number; nome: string };
 
@@ -386,14 +381,13 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
                   <Label htmlFor={`corrigir-categoria-select-${item.id}`} className="sr-only">
                     Selecionar categoria para {item.estabelecimento}
                   </Label>
-                  <select
+                  <SelectNative
                     id={`corrigir-categoria-select-${item.id}`}
                     name="categoria_id"
                     value={categoriaId}
                     onChange={(event) => setCategoriaId(event.target.value)}
                     required
                     disabled={loading}
-                    className={selectClassName}
                   >
                     <option value="" disabled>
                       Selecione a categoria
@@ -403,7 +397,7 @@ export function LancamentoItem({ item, categorias }: LancamentoItemProps) {
                         {cat.nome}
                       </option>
                     ))}
-                  </select>
+                  </SelectNative>
                   <Button type="submit" disabled={loading}>
                     {loading ? 'Corrigindo...' : 'Corrigir'}
                   </Button>

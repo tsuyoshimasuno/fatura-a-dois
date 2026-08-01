@@ -6,16 +6,9 @@ import { processarUpload } from '@/server/ingestao/upload';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { SelectNative } from '@/components/ui/select-native';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// Mesma string de classes visuais de `components/ui/input.tsx` (altura,
-// borda, radius, padding, anel de foco, estados disabled, `aria-invalid`) --
-// sem os modificadores `file:*`/`selection:*` do Input, que não têm efeito
-// num `<select>`. Copiada (não importada) por não haver módulo compartilhado
-// de estilos ainda -- mesma decisão da Story 7.7 (remover-categoria-form.tsx).
-const selectClassName =
-  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
 
 const MESES = [
   { value: '1', label: 'Janeiro' },
@@ -37,8 +30,9 @@ export default function UploadPage() {
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   // Competência selecionada no formulário, capturada no momento do submit --
   // `form.reset()` (chamado logo abaixo em caso de sucesso) limpa os
-  // `<select>`, então este é o único lugar em que o valor ainda está
-  // disponível para montar o link pós-sucesso para /lancamentos.
+  // `<select>` nativos por trás de `SelectNative`, então este é o único
+  // lugar em que o valor ainda está disponível para montar o link
+  // pós-sucesso para /lancamentos.
   const [competenciaEnviada, setCompetenciaEnviada] = useState<{ mes: string; ano: string } | null>(
     null
   );
@@ -85,13 +79,12 @@ export default function UploadPage() {
           <form onSubmit={handleSubmit} className="form">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="competencia-mes">Mês</Label>
-              <select
+              <SelectNative
                 id="competencia-mes"
                 name="competencia_mes"
                 defaultValue=""
                 required
                 disabled={loading}
-                className={selectClassName}
               >
                 <option value="" disabled>
                   Selecione o mês
@@ -101,17 +94,16 @@ export default function UploadPage() {
                     {mes.label}
                   </option>
                 ))}
-              </select>
+              </SelectNative>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="competencia-ano">Ano</Label>
-              <select
+              <SelectNative
                 id="competencia-ano"
                 name="competencia_ano"
                 defaultValue=""
                 required
                 disabled={loading}
-                className={selectClassName}
               >
                 <option value="" disabled>
                   Selecione o ano
@@ -121,7 +113,7 @@ export default function UploadPage() {
                     {ano}
                   </option>
                 ))}
-              </select>
+              </SelectNative>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="arquivo">Arquivo</Label>

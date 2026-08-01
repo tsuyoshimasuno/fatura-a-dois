@@ -11,16 +11,7 @@ import type { CategoriaResumo, ItemPendente, PessoaResumo } from '@/server/visua
 import { LancamentoItem } from './lancamento-item';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-// Mesma string de classes visuais de `components/ui/input.tsx` (altura,
-// borda, radius, padding, anel de foco, estados disabled, `aria-invalid`) --
-// sem os modificadores `file:*`/`selection:*`, que não têm efeito num
-// `<select>`. Copiada (não importada) por não haver módulo compartilhado de
-// estilos ainda -- mesma decisão das Stories 7.7/7.9 (remover-categoria-form.tsx,
-// upload/page.tsx). `<select>` continua nativo (nunca vira Radix Select) para
-// preservar o picker do SO no mobile; só ganha paridade visual com o Input.
-const selectClassName =
-  'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30';
+import { SelectNative } from '@/components/ui/select-native';
 
 type Categoria = { id: number; nome: string };
 type Conta = { id: string; email: string };
@@ -85,8 +76,9 @@ export function LancamentosView({
   const [visao, setVisao] = useState<'combinada' | 'individual'>(visaoAtual);
 
   // Se a categoria filtrada for removida (soft-delete em outra aba/pessoa) e
-  // um `router.refresh()` trouxer `categorias` sem ela, o <select> cairia de
-  // volta pra "Todas as categorias" sozinho (o <option> some), mas o estado
+  // um `router.refresh()` trouxer `categorias` sem ela, o `<select>` nativo
+  // por trás de `SelectNative` cairia de volta pra "Todas as categorias"
+  // sozinho (o <option> some), mas o estado
   // React continuaria com o id antigo -- lista e Total ficariam filtrando por
   // uma categoria que a tela já não mostra mais como selecionada. Reconciliado
   // durante o render (não `useEffect` -- é exatamente o padrão "adjusting
@@ -192,43 +184,42 @@ export function LancamentosView({
         <form method="GET" style={{ display: 'contents' }}>
           <label className="field">
             Mês
-            <select name="mes" defaultValue={String(mes)} className={selectClassName}>
+            <SelectNative name="mes" defaultValue={String(mes)}>
               {MESES.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
                 </option>
               ))}
-            </select>
+            </SelectNative>
           </label>
           <label className="field">
             Ano
-            <select name="ano" defaultValue={String(ano)} className={selectClassName}>
+            <SelectNative name="ano" defaultValue={String(ano)}>
               {anos.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
               ))}
-            </select>
+            </SelectNative>
           </label>
           <Button type="submit">Filtrar</Button>
         </form>
         <label className="field">
           Pessoa
-          <select value={pessoaSelecionada ?? ''} onChange={handlePessoaChange} className={selectClassName}>
+          <SelectNative value={pessoaSelecionada ?? ''} onChange={handlePessoaChange}>
             <option value="">Todos</option>
             {contas.map((conta) => (
               <option key={conta.id} value={conta.id}>
                 {primeiroNome(conta.email)}
               </option>
             ))}
-          </select>
+          </SelectNative>
         </label>
         <label className="field">
           Categoria
-          <select
+          <SelectNative
             value={categoriaSelecionada === 'todas' ? '' : categoriaSelecionada === 'sem_categoria' ? 'sem' : String(categoriaSelecionada)}
             onChange={handleCategoriaChange}
-            className={selectClassName}
           >
             <option value="">Todas as categorias</option>
             {categorias.length > 0 && <option value="sem">Sem categoria</option>}
@@ -237,7 +228,7 @@ export function LancamentosView({
                 {cat.nome}
               </option>
             ))}
-          </select>
+          </SelectNative>
         </label>
         {/* Toggle Individual/Combinada não faz sentido quando só uma pessoa
             está no recorte, nem quando uma categoria específica está
